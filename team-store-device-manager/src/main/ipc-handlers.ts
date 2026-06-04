@@ -147,6 +147,9 @@ export function registerIpcHandlers(): void {
   handle('salespeople:getReport', (from: string, to: string) =>
     salespeople.getSalespersonReport(from, to)
   )
+  handle('salespeople:setPin', (id: number, pin: string) => salespeople.setPin(id, pin))
+  handle('salespeople:removePin', (id: number) => salespeople.removePin(id))
+  handle('salespeople:verifyPin', (id: number, pin: string) => salespeople.verifyPin(id, pin))
 
   // Device Options
   handle('deviceOptions:getAll', () => deviceOptions.getAllOptions())

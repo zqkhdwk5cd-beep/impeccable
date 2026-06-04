@@ -1,9 +1,11 @@
 import { getDatabase } from '../database'
+import bcrypt from 'bcryptjs'
 
 export interface Salesperson {
   id: number
   name: string
   active: number
+  pin_hash: string | null
   created_at: string
 }
 
@@ -38,6 +40,27 @@ export function toggleSalesperson(id: number): Salesperson {
   if (!row) throw new Error('السيلز غير موجود')
   db.prepare('UPDATE salespeople SET active = ? WHERE id = ?').run(row.active ? 0 : 1, id)
   return db.prepare('SELECT * FROM salespeople WHERE id = ?').get(id) as Salesperson
+}
+
+export function setPin(id: number, pin: string): void {
+  if (!/^\d{4}$/.test(pin)) throw new Error('الباسورد يجب أن يكون 4 أرقام بالضبط')
+  const db = getDatabase()
+  const hash = bcrypt.hashSync(pin, 10)
+  const changes = db.prepare('UPDATE salespeople SET pin_hash = ? WHERE id = ?').run(hash, id).changes
+  if (!changes) throw new Error('السيلز غير موجود')
+}
+
+export function removePin(id: number): void {
+  const db = getDatabase()
+  db.prepare('UPDATE salespeople SET pin_hash = NULL WHERE id = ?').run(id)
+}
+
+export function verifyPin(id: number, pin: string): boolean {
+  const db = getDatabase()
+  const row = db.prepare('SELECT pin_hash FROM salespeople WHERE id = ?').get(id) as { pin_hash: string | null } | undefined
+  if (!row) return false
+  if (!row.pin_hash) return true
+  return bcrypt.compareSync(pin, row.pin_hash)
 }
 
 export function deleteSalesperson(id: number): boolean {

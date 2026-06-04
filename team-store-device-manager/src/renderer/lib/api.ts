@@ -137,6 +137,9 @@ export const api = {
     toggle: (id: number) => invoke<any>('salespeople:toggle', id),
     delete: (id: number) => invoke<boolean>('salespeople:delete', id),
     getReport: (from: string, to: string) => invoke<any[]>('salespeople:getReport', from, to),
+    setPin: (id: number, pin: string) => invoke<void>('salespeople:setPin', id, pin),
+    removePin: (id: number) => invoke<void>('salespeople:removePin', id),
+    verifyPin: (id: number, pin: string) => invoke<boolean>('salespeople:verifyPin', id, pin),
   },
 
   // Device Options

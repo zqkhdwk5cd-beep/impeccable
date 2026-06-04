@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
-import { Save, Store, Shield, Users, RefreshCw, Smartphone, Plus, Trash2, ChevronUp, ChevronDown, UserCheck } from 'lucide-react'
+import { Save, Store, Shield, Users, RefreshCw, Smartphone, Plus, Trash2, ChevronUp, ChevronDown, UserCheck, Lock } from 'lucide-react'
 
 const SETTING_KEYS = ['store_name', 'store_address', 'store_phone', 'invoice_start_number', 'default_policy_text', 'currency', 'backup_location', 'daily_backup_enabled', 'backups_to_keep']
 
@@ -119,6 +119,9 @@ export default function SettingsPage() {
   const [optionsTab, setOptionsTab] = useState<OptionType>('model')
   const [salespeople, setSalespeople] = useState<any[]>([])
   const [newSpName, setNewSpName] = useState('')
+  const [pinModal, setPinModal] = useState<{ id: number; name: string } | null>(null)
+  const [newPin, setNewPin] = useState('')
+  const [confirmPin, setConfirmPin] = useState('')
 
   const load = async () => {
     try {
@@ -175,6 +178,79 @@ export default function SettingsPage() {
   if (loading) return <div className="flex items-center justify-center h-64 text-slate-400 animate-pulse">جاري التحميل...</div>
 
   return (
+    <>
+    {pinModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs mx-4 p-6 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center">
+              <Lock className="w-4 h-4 text-amber-600" />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-900">باسورد {pinModal.name}</h3>
+              <p className="text-xs text-slate-500">4 أرقام فقط</p>
+            </div>
+          </div>
+          <div>
+            <label className="label">الباسورد الجديد</label>
+            <input
+              type="password"
+              inputMode="numeric"
+              maxLength={4}
+              value={newPin}
+              onChange={(e) => { if (/^\d*$/.test(e.target.value)) setNewPin(e.target.value) }}
+              className="input text-center tracking-widest text-lg"
+              placeholder="••••"
+              autoFocus
+            />
+          </div>
+          <div>
+            <label className="label">تأكيد الباسورد</label>
+            <input
+              type="password"
+              inputMode="numeric"
+              maxLength={4}
+              value={confirmPin}
+              onChange={(e) => { if (/^\d*$/.test(e.target.value)) setConfirmPin(e.target.value) }}
+              className="input text-center tracking-widest text-lg"
+              placeholder="••••"
+            />
+          </div>
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={async () => {
+                if (newPin.length !== 4) return toast.error('الباسورد يجب أن يكون 4 أرقام')
+                if (newPin !== confirmPin) return toast.error('الباسوردان غير متطابقين')
+                try {
+                  await api.salespeople.setPin(pinModal.id, newPin)
+                  const updated = await api.salespeople.getAll()
+                  setSalespeople(updated)
+                  setPinModal(null)
+                  toast.success('تم تعيين الباسورد')
+                } catch (e: any) { toast.error(e.message) }
+              }}
+              className="btn-primary flex-1 justify-center"
+            >
+              حفظ
+            </button>
+            <button
+              onClick={async () => {
+                if (!confirm('إزالة الباسورد؟')) return
+                await api.salespeople.removePin(pinModal.id)
+                const updated = await api.salespeople.getAll()
+                setSalespeople(updated)
+                setPinModal(null)
+                toast.success('تم إزالة الباسورد')
+              }}
+              className="btn-secondary"
+            >
+              إزالة
+            </button>
+            <button onClick={() => setPinModal(null)} className="btn-secondary">إلغاء</button>
+          </div>
+        </div>
+      </div>
+    )}
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="page-header">
         <h1 className="page-title">الإعدادات</h1>
@@ -345,6 +421,13 @@ export default function SettingsPage() {
                     {sp.active ? 'نشط' : 'معطل'}
                   </button>
                   <button
+                    onClick={() => { setPinModal({ id: sp.id, name: sp.name }); setNewPin(''); setConfirmPin('') }}
+                    className={`text-xs px-2 py-1 rounded flex items-center gap-1 ${sp.pin_hash ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                  >
+                    <Lock className="w-3 h-3" />
+                    {sp.pin_hash ? 'تغيير' : 'باسورد'}
+                  </button>
+                  <button
                     onClick={async () => {
                       if (!confirm(`حذف "${sp.name}"؟`)) return
                       await api.salespeople.delete(sp.id)
@@ -402,5 +485,6 @@ export default function SettingsPage() {
         </div>
       )}
     </div>
+    </>
   )
 }

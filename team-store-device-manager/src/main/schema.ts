@@ -21,6 +21,7 @@ export function runMigrations(db: Database.Database): void {
     { version: 2, sql: migration_002 },
     { version: 3, sql: migration_003 },
     { version: 4, sql: migration_004 },
+    { version: 5, sql: migration_005 },
   ]
 
   for (const m of migrations) {
@@ -342,4 +343,8 @@ CREATE TABLE IF NOT EXISTS salespeople (
 
 ALTER TABLE purchase_transactions ADD COLUMN salesperson_id INTEGER REFERENCES salespeople(id);
 ALTER TABLE sale_transactions ADD COLUMN salesperson_id INTEGER REFERENCES salespeople(id);
+`
+
+const migration_005 = `
+ALTER TABLE salespeople ADD COLUMN pin_hash TEXT;
 `
