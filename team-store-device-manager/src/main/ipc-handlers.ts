@@ -10,6 +10,7 @@ import * as users from './repositories/users'
 import * as audit from './repositories/audit'
 import * as search from './repositories/search'
 import * as backup from './backup'
+import * as deviceOptions from './repositories/device-options'
 import { getDatabasePath } from './database'
 
 function handle(channel: string, fn: (...args: any[]) => any) {
@@ -135,6 +136,17 @@ export function registerIpcHandlers(): void {
   )
   handle('backup:getDir', () => backup.getBackupDir())
   handle('backup:getDatabasePath', () => getDatabasePath())
+
+  // Device Options
+  handle('deviceOptions:getAll', () => deviceOptions.getAllOptions())
+  handle('deviceOptions:getByType', (type: string) => deviceOptions.getOptions(type as any))
+  handle('deviceOptions:add', (type: string, value: string) =>
+    deviceOptions.addOption(type as any, value)
+  )
+  handle('deviceOptions:delete', (id: number) => deviceOptions.deleteOption(id))
+  handle('deviceOptions:reorder', (id: number, direction: string) =>
+    deviceOptions.reorderOption(id, direction as any)
+  )
 
   // File dialogs
   ipcMain.handle('dialog:openFile', async (_event, options: any) => {

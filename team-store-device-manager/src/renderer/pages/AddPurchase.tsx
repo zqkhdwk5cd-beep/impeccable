@@ -5,9 +5,6 @@ import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import { User, Smartphone, ShoppingCart, Search, CheckCircle, AlertTriangle } from 'lucide-react'
 
-const MODELS = ['iPhone 6', 'iPhone 6S', 'iPhone 6S Plus', 'iPhone 7', 'iPhone 7 Plus', 'iPhone 8', 'iPhone 8 Plus', 'iPhone X', 'iPhone XS', 'iPhone XS Max', 'iPhone XR', 'iPhone 11', 'iPhone 11 Pro', 'iPhone 11 Pro Max', 'iPhone 12', 'iPhone 12 Mini', 'iPhone 12 Pro', 'iPhone 12 Pro Max', 'iPhone 13', 'iPhone 13 Mini', 'iPhone 13 Pro', 'iPhone 13 Pro Max', 'iPhone 14', 'iPhone 14 Plus', 'iPhone 14 Pro', 'iPhone 14 Pro Max', 'iPhone 15', 'iPhone 15 Plus', 'iPhone 15 Pro', 'iPhone 15 Pro Max']
-const STORAGES = ['16GB', '32GB', '64GB', '128GB', '256GB', '512GB', '1TB']
-const COLORS = ['أسود', 'أبيض', 'ذهبي', 'فضي', 'أزرق', 'بنفسجي', 'وردي', 'أحمر', 'أخضر', 'أصفر', 'برتقالي', 'رمادي']
 const CONDITIONS = [{ value: 'used', label: 'مستعمل' }, { value: 'new', label: 'جديد' }, { value: 'refurbished', label: 'مجدد' }]
 const PAYMENT_METHODS = [{ value: 'cash', label: 'نقد' }, { value: 'transfer', label: 'تحويل' }, { value: 'check', label: 'شيك' }, { value: 'other', label: 'أخرى' }]
 const BOX_STATUS = [{ value: 'with_box', label: 'مع الكرتون' }, { value: 'without_box', label: 'بدون كرتون' }, { value: 'damaged_box', label: 'كرتون تالف' }]
@@ -16,6 +13,9 @@ export default function AddPurchase() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
+  const [models, setModels] = useState<string[]>([])
+  const [storages, setStorages] = useState<string[]>([])
+  const [colors, setColors] = useState<string[]>([])
   const [sellerFound, setSellerFound] = useState<any>(null)
   const [serialWarning, setSerialWarning] = useState('')
   const [imeiWarning, setImeiWarning] = useState('')
@@ -52,6 +52,15 @@ export default function AddPurchase() {
   })
 
   const f = (k: string, v: string) => setForm((p) => ({ ...p, [k]: v }))
+
+  // Load device options from DB
+  useEffect(() => {
+    api.deviceOptions.getAll().then((opts) => {
+      setModels(opts.model)
+      setStorages(opts.storage)
+      setColors(opts.color)
+    }).catch(() => {})
+  }, [])
 
   // Phone lookup
   useEffect(() => {
@@ -206,21 +215,21 @@ export default function AddPurchase() {
                 <label className="label">الموديل *</label>
                 <select value={form.model} onChange={(e) => f('model', e.target.value)} className="input">
                   <option value="">اختر الموديل</option>
-                  {MODELS.map((m) => <option key={m} value={m}>{m}</option>)}
+                  {models.map((m) => <option key={m} value={m}>{m}</option>)}
                 </select>
               </div>
               <div>
                 <label className="label">السعة *</label>
                 <select value={form.storage} onChange={(e) => f('storage', e.target.value)} className="input">
                   <option value="">اختر السعة</option>
-                  {STORAGES.map((s) => <option key={s} value={s}>{s}</option>)}
+                  {storages.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
               <div>
                 <label className="label">اللون *</label>
                 <select value={form.color} onChange={(e) => f('color', e.target.value)} className="input">
                   <option value="">اختر اللون</option>
-                  {COLORS.map((c) => <option key={c} value={c}>{c}</option>)}
+                  {colors.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
             </div>

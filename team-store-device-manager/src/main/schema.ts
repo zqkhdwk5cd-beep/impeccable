@@ -19,6 +19,7 @@ export function runMigrations(db: Database.Database): void {
   const migrations: { version: number; sql: string }[] = [
     { version: 1, sql: migration_001 },
     { version: 2, sql: migration_002 },
+    { version: 3, sql: migration_003 },
   ]
 
   for (const m of migrations) {
@@ -266,4 +267,66 @@ INSERT OR IGNORE INTO settings (key, value) VALUES
 const migration_002 = `
 -- future migrations go here
 SELECT 1;
+`
+
+const migration_003 = `
+CREATE TABLE IF NOT EXISTS device_options (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  type TEXT NOT NULL CHECK(type IN ('model','storage','color')),
+  value TEXT NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE(type, value)
+);
+
+INSERT OR IGNORE INTO device_options (type, value, sort_order) VALUES
+  ('model','iPhone 6',1),
+  ('model','iPhone 6S',2),
+  ('model','iPhone 6S Plus',3),
+  ('model','iPhone 7',4),
+  ('model','iPhone 7 Plus',5),
+  ('model','iPhone 8',6),
+  ('model','iPhone 8 Plus',7),
+  ('model','iPhone X',8),
+  ('model','iPhone XS',9),
+  ('model','iPhone XS Max',10),
+  ('model','iPhone XR',11),
+  ('model','iPhone 11',12),
+  ('model','iPhone 11 Pro',13),
+  ('model','iPhone 11 Pro Max',14),
+  ('model','iPhone 12',15),
+  ('model','iPhone 12 Mini',16),
+  ('model','iPhone 12 Pro',17),
+  ('model','iPhone 12 Pro Max',18),
+  ('model','iPhone 13',19),
+  ('model','iPhone 13 Mini',20),
+  ('model','iPhone 13 Pro',21),
+  ('model','iPhone 13 Pro Max',22),
+  ('model','iPhone 14',23),
+  ('model','iPhone 14 Plus',24),
+  ('model','iPhone 14 Pro',25),
+  ('model','iPhone 14 Pro Max',26),
+  ('model','iPhone 15',27),
+  ('model','iPhone 15 Plus',28),
+  ('model','iPhone 15 Pro',29),
+  ('model','iPhone 15 Pro Max',30),
+  ('storage','16GB',1),
+  ('storage','32GB',2),
+  ('storage','64GB',3),
+  ('storage','128GB',4),
+  ('storage','256GB',5),
+  ('storage','512GB',6),
+  ('storage','1TB',7),
+  ('color','أسود',1),
+  ('color','أبيض',2),
+  ('color','ذهبي',3),
+  ('color','فضي',4),
+  ('color','أزرق',5),
+  ('color','بنفسجي',6),
+  ('color','وردي',7),
+  ('color','أحمر',8),
+  ('color','أخضر',9),
+  ('color','أصفر',10),
+  ('color','برتقالي',11),
+  ('color','رمادي',12);
 `

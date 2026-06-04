@@ -2,9 +2,109 @@ import React, { useEffect, useState } from 'react'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
-import { Save, Store, Shield, Users, RefreshCw } from 'lucide-react'
+import { Save, Store, Shield, Users, RefreshCw, Smartphone, Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react'
 
 const SETTING_KEYS = ['store_name', 'store_address', 'store_phone', 'invoice_start_number', 'default_policy_text', 'currency', 'backup_location', 'daily_backup_enabled', 'backups_to_keep']
+
+type OptionType = 'model' | 'storage' | 'color'
+interface DeviceOption { id: number; type: OptionType; value: string; sort_order: number }
+
+function OptionsTab({ type, label }: { type: OptionType; label: string }) {
+  const [items, setItems] = useState<DeviceOption[]>([])
+  const [newValue, setNewValue] = useState('')
+  const [adding, setAdding] = useState(false)
+
+  const load = async () => {
+    try {
+      const data = await api.deviceOptions.getByType(type)
+      setItems(data as DeviceOption[])
+    } catch (e: any) { toast.error(e.message) }
+  }
+  useEffect(() => { load() }, [type])
+
+  const add = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newValue.trim()) return
+    setAdding(true)
+    try {
+      await api.deviceOptions.add(type, newValue.trim())
+      setNewValue('')
+      await load()
+      toast.success(`تمت إضافة "${newValue.trim()}"`)
+    } catch (e: any) { toast.error(e.message) }
+    setAdding(false)
+  }
+
+  const remove = async (item: DeviceOption) => {
+    if (!confirm(`حذف "${item.value}"؟`)) return
+    try {
+      await api.deviceOptions.delete(item.id)
+      await load()
+      toast.success('تم الحذف')
+    } catch (e: any) { toast.error(e.message) }
+  }
+
+  const move = async (item: DeviceOption, dir: 'up' | 'down') => {
+    try {
+      await api.deviceOptions.reorder(item.id, dir)
+      await load()
+    } catch (e: any) { toast.error(e.message) }
+  }
+
+  return (
+    <div className="space-y-3">
+      <form onSubmit={add} className="flex gap-2">
+        <input
+          value={newValue}
+          onChange={(e) => setNewValue(e.target.value)}
+          placeholder={`أضف ${label} جديد...`}
+          className="input flex-1"
+        />
+        <button type="submit" disabled={adding || !newValue.trim()} className="btn-primary">
+          <Plus className="w-4 h-4" />
+          إضافة
+        </button>
+      </form>
+      <div className="border border-slate-200 rounded-lg overflow-hidden">
+        {items.length === 0 ? (
+          <div className="py-8 text-center text-slate-400 text-sm">لا توجد خيارات — أضف واحداً</div>
+        ) : (
+          items.map((item, i) => (
+            <div
+              key={item.id}
+              className="flex items-center justify-between px-4 py-2.5 border-b border-slate-100 last:border-0 hover:bg-slate-50"
+            >
+              <span className="font-medium text-slate-800">{item.value}</span>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => move(item, 'up')}
+                  disabled={i === 0}
+                  className="p-1 rounded text-slate-400 hover:text-slate-700 disabled:opacity-20"
+                >
+                  <ChevronUp className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => move(item, 'down')}
+                  disabled={i === items.length - 1}
+                  className="p-1 rounded text-slate-400 hover:text-slate-700 disabled:opacity-20"
+                >
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => remove(item)}
+                  className="p-1 rounded text-red-400 hover:text-red-600 hover:bg-red-50"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+      <div className="text-xs text-slate-400">{items.length} خيار</div>
+    </div>
+  )
+}
 
 export default function SettingsPage() {
   const { user, isAdmin } = useAuth()
@@ -16,6 +116,7 @@ export default function SettingsPage() {
   const [newUser, setNewUser] = useState({ name: '', username: '', password: '', role: 'employee' })
   const [newPwd, setNewPwd] = useState({ current: '', next: '', confirm: '' })
   const [changingPwd, setChangingPwd] = useState(false)
+  const [optionsTab, setOptionsTab] = useState<OptionType>('model')
 
   const load = async () => {
     try {
@@ -101,6 +202,38 @@ export default function SettingsPage() {
             <label className="label">نص سياسة الاستبدال الافتراضي</label>
             <textarea value={s('default_policy_text')} onChange={(e) => update('default_policy_text', e.target.value)} className="input h-40 resize-none" />
           </div>
+        </div>
+      </div>
+
+      {/* Device Options */}
+      <div className="card">
+        <div className="card-header">
+          <h2 className="font-semibold flex items-center gap-2">
+            <Smartphone className="w-4 h-4 text-brand-600" /> خيارات الأجهزة
+          </h2>
+        </div>
+        <div className="card-body space-y-4">
+          <p className="text-sm text-slate-500">أضف أو احذف الخيارات التي تظهر في فورم شراء الجهاز وبيعه.</p>
+          <div className="flex border-b border-slate-200 gap-1">
+            {([['model','الموديلات'],['storage','المساحات'],['color','الألوان']] as [OptionType,string][]).map(([t, lbl]) => (
+              <button
+                key={t}
+                onClick={() => setOptionsTab(t)}
+                className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                  optionsTab === t
+                    ? 'border-brand-600 text-brand-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                {lbl}
+              </button>
+            ))}
+          </div>
+          <OptionsTab
+            key={optionsTab}
+            type={optionsTab}
+            label={optionsTab === 'model' ? 'موديل' : optionsTab === 'storage' ? 'مساحة' : 'لون'}
+          />
         </div>
       </div>
 

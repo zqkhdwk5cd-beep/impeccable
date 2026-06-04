@@ -129,6 +129,18 @@ export const api = {
     getDatabasePath: () => invoke<string>('backup:getDatabasePath'),
   },
 
+  // Device Options
+  deviceOptions: {
+    getAll: () => invoke<{ model: string[]; storage: string[]; color: string[] }>('deviceOptions:getAll'),
+    getByType: (type: 'model' | 'storage' | 'color') =>
+      invoke<{ id: number; type: string; value: string; sort_order: number }[]>('deviceOptions:getByType', type),
+    add: (type: 'model' | 'storage' | 'color', value: string) =>
+      invoke<any>('deviceOptions:add', type, value),
+    delete: (id: number) => invoke<boolean>('deviceOptions:delete', id),
+    reorder: (id: number, direction: 'up' | 'down') =>
+      invoke<void>('deviceOptions:reorder', id, direction),
+  },
+
   // Dialogs
   dialog: {
     openFile: (options?: any) => window.electron.invoke('dialog:openFile', options),
