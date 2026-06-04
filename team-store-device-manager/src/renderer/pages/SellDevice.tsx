@@ -4,6 +4,7 @@ import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import { Search, Smartphone, User, FileText, CheckCircle, AlertTriangle } from 'lucide-react'
+import SalespersonModal from '../components/SalespersonModal'
 
 const PAYMENT_METHODS = [{ value: 'cash', label: 'نقد' }, { value: 'transfer', label: 'تحويل' }, { value: 'check', label: 'شيك' }, { value: 'other', label: 'أخرى' }]
 
@@ -35,6 +36,7 @@ export default function SellDevice() {
   const [searchParams] = useSearchParams()
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
+  const [salesperson, setSalesperson] = useState<{ id: number; name: string } | null | undefined>(undefined)
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '')
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [selectedDevice, setSelectedDevice] = useState<any>(null)
@@ -107,6 +109,7 @@ export default function SellDevice() {
         discount: parseFloat(saleForm.discount) || 0,
         paid_amount: saleForm.paid_amount ? parseFloat(saleForm.paid_amount) : undefined,
         created_by: user?.id,
+        salesperson_id: salesperson?.id,
       })
       toast.success('تم إنشاء الفاتورة بنجاح')
       navigate(`/invoices/${result.invoice_id}`)
@@ -118,10 +121,21 @@ export default function SellDevice() {
 
   return (
     <div className="max-w-4xl mx-auto">
+      {salesperson === undefined && (
+        <SalespersonModal onSelect={(sp) => setSalesperson(sp)} />
+      )}
+
       <div className="page-header">
         <div>
           <h1 className="page-title">بيع جهاز</h1>
-          <p className="text-slate-500 text-sm mt-1">اتبع الخطوات لإتمام عملية البيع</p>
+          <p className="text-slate-500 text-sm mt-1">
+            اتبع الخطوات لإتمام عملية البيع
+            {salesperson && (
+              <span className="mr-2 inline-flex items-center gap-1 bg-brand-100 text-brand-700 text-xs font-medium px-2 py-0.5 rounded-full">
+                <User className="w-3 h-3" /> {salesperson.name}
+              </span>
+            )}
+          </p>
         </div>
         <button onClick={() => navigate('/')} className="btn-secondary">إلغاء</button>
       </div>

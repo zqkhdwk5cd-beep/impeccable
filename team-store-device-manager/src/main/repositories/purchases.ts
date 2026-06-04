@@ -66,6 +66,7 @@ export interface CreatePurchaseInput {
   paid_amount?: number
   notes?: string
   created_by?: number
+  salesperson_id?: number
 }
 
 export function createPurchase(input: CreatePurchaseInput): any {
@@ -123,9 +124,9 @@ export function createPurchase(input: CreatePurchaseInput): any {
       .prepare(
         `INSERT INTO purchase_transactions
           (device_id, seller_contact_id, purchase_date, purchase_price, extra_costs, total_cost,
-           payment_method, paid_amount, remaining_amount, notes, created_by)
+           payment_method, paid_amount, remaining_amount, notes, created_by, salesperson_id)
          VALUES (@device_id, @seller_contact_id, @purchase_date, @purchase_price, @extra_costs,
-           @total_cost, @payment_method, @paid_amount, @remaining_amount, @notes, @created_by)`
+           @total_cost, @payment_method, @paid_amount, @remaining_amount, @notes, @created_by, @salesperson_id)`
       )
       .run({
         device_id: device.id,
@@ -139,6 +140,7 @@ export function createPurchase(input: CreatePurchaseInput): any {
         remaining_amount: remaining,
         notes: input.notes || null,
         created_by: input.created_by || null,
+        salesperson_id: input.salesperson_id || null,
       })
 
     const ptId = ptResult.lastInsertRowid as number
@@ -219,10 +221,13 @@ export function getPurchaseReport(from: string, to: string): any[] {
     .prepare(
       `SELECT pt.*,
         c.name as seller_name, c.phone as seller_phone,
-        d.model, d.storage, d.color, d.serial_number
+        d.model, d.storage, d.color, d.serial_number,
+        sp.name as salesperson_name
        FROM purchase_transactions pt
        JOIN contacts c ON pt.seller_contact_id = c.id
        JOIN devices d ON pt.device_id = d.id
+       LEFT JOIN salespeople sp ON pt.salesperson_id = sp.id
+       LEFT JOIN salespeople sp ON pt.salesperson_id = sp.id
        WHERE pt.deleted_at IS NULL AND pt.purchase_date BETWEEN ? AND ?
        ORDER BY pt.purchase_date DESC`
     )

@@ -13,11 +13,13 @@ export function getAllSales(limit = 100): any[] {
       `SELECT st.*,
         c.name as buyer_name, c.phone as buyer_phone,
         d.model, d.storage, d.color, d.serial_number, d.imei1,
-        i.invoice_number
+        i.invoice_number,
+        sp.name as salesperson_name
        FROM sale_transactions st
        JOIN contacts c ON st.buyer_contact_id = c.id
        JOIN devices d ON st.device_id = d.id
        LEFT JOIN invoices i ON st.invoice_id = i.id
+       LEFT JOIN salespeople sp ON st.salesperson_id = sp.id
        WHERE st.deleted_at IS NULL
        ORDER BY st.sale_date DESC LIMIT ?`
     )
@@ -57,6 +59,7 @@ export interface CreateSaleInput {
   notes?: string
   created_by?: number
   generate_invoice?: boolean
+  salesperson_id?: number
 }
 
 export function createSale(input: CreateSaleInput): any {
@@ -96,9 +99,9 @@ export function createSale(input: CreateSaleInput): any {
       .prepare(
         `INSERT INTO sale_transactions
           (device_id, buyer_contact_id, sale_date, sale_price, discount,
-           paid_amount, remaining_amount, payment_method, profit, notes, created_by)
+           paid_amount, remaining_amount, payment_method, profit, notes, created_by, salesperson_id)
          VALUES (@device_id, @buyer_contact_id, @sale_date, @sale_price, @discount,
-           @paid_amount, @remaining_amount, @payment_method, @profit, @notes, @created_by)`
+           @paid_amount, @remaining_amount, @payment_method, @profit, @notes, @created_by, @salesperson_id)`
       )
       .run({
         device_id: device.id,
@@ -112,6 +115,7 @@ export function createSale(input: CreateSaleInput): any {
         profit,
         notes: input.notes || null,
         created_by: input.created_by || null,
+        salesperson_id: input.salesperson_id || null,
       })
 
     const saleId = stResult.lastInsertRowid as number
@@ -209,11 +213,13 @@ export function getSalesReport(from: string, to: string): any[] {
       `SELECT st.*,
         c.name as buyer_name, c.phone as buyer_phone,
         d.model, d.storage, d.color, d.serial_number,
-        i.invoice_number
+        i.invoice_number,
+        sp.name as salesperson_name
        FROM sale_transactions st
        JOIN contacts c ON st.buyer_contact_id = c.id
        JOIN devices d ON st.device_id = d.id
        LEFT JOIN invoices i ON st.invoice_id = i.id
+       LEFT JOIN salespeople sp ON st.salesperson_id = sp.id
        WHERE st.deleted_at IS NULL AND st.sale_date BETWEEN ? AND ?
        ORDER BY st.sale_date DESC`
     )

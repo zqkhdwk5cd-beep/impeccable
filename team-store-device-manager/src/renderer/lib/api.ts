@@ -129,6 +129,16 @@ export const api = {
     getDatabasePath: () => invoke<string>('backup:getDatabasePath'),
   },
 
+  // Salespeople
+  salespeople: {
+    getAll: () => invoke<any[]>('salespeople:getAll'),
+    getActive: () => invoke<any[]>('salespeople:getActive'),
+    create: (name: string) => invoke<any>('salespeople:create', name),
+    toggle: (id: number) => invoke<any>('salespeople:toggle', id),
+    delete: (id: number) => invoke<boolean>('salespeople:delete', id),
+    getReport: (from: string, to: string) => invoke<any[]>('salespeople:getReport', from, to),
+  },
+
   // Device Options
   deviceOptions: {
     getAll: () => invoke<{ model: string[]; storage: string[]; color: string[] }>('deviceOptions:getAll'),

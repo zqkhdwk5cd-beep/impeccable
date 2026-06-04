@@ -7,7 +7,7 @@ function formatDate(d: string) { return d ? new Date(d).toLocaleDateString('ar-E
 const today = new Date().toISOString().slice(0, 10)
 const firstOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10)
 
-type ReportType = 'sales' | 'purchases' | 'inventory' | 'profit'
+type ReportType = 'sales' | 'purchases' | 'inventory' | 'profit' | 'salesperson'
 
 export default function ReportsPage() {
   const [reportType, setReportType] = useState<ReportType>('sales')
@@ -30,6 +30,7 @@ export default function ReportsPage() {
       else if (reportType === 'purchases') result = await api.purchases.getReport(from, to)
       else if (reportType === 'inventory') result = await api.devices.getAll({ status: 'available' })
       else if (reportType === 'profit') result = await api.sales.getReport(from, to)
+      else if (reportType === 'salesperson') result = await api.salespeople.getReport(from, to)
 
       setData(result)
       setGenerated(true)
@@ -57,6 +58,7 @@ export default function ReportsPage() {
     { key: 'purchases' as ReportType, label: 'تقرير المشتريات', icon: BarChart3 },
     { key: 'inventory' as ReportType, label: 'تقرير المخزون', icon: Package },
     { key: 'profit' as ReportType, label: 'تقرير الأرباح', icon: TrendingUp },
+    { key: 'salesperson' as ReportType, label: 'تقرير السلز', icon: Users },
   ]
 
   const totalSales = data.reduce((s: number, r: any) => s + (r.sale_price || 0), 0)
@@ -130,6 +132,11 @@ export default function ReportsPage() {
             <div className="card p-4"><div className="text-xs text-slate-500 mb-1">إجمالي الأرباح</div><div className="text-xl font-bold text-green-600">{fmt(totalProfit)}</div></div>
             <div className="card p-4"><div className="text-xs text-slate-500 mb-1">هامش الربح</div><div className="text-xl font-bold text-purple-600">{totalSales > 0 ? ((totalProfit / totalSales) * 100).toFixed(1) + '%' : '-'}</div></div>
           </>}
+          {reportType === 'salesperson' && <>
+            <div className="card p-4"><div className="text-xs text-slate-500 mb-1">عدد السلز</div><div className="text-xl font-bold">{data.length}</div></div>
+            <div className="card p-4"><div className="text-xs text-slate-500 mb-1">إجمالي المبيعات</div><div className="text-xl font-bold">{fmt(data.reduce((s, r) => s + r.sales_total, 0))}</div></div>
+            <div className="card p-4"><div className="text-xs text-slate-500 mb-1">إجمالي الأرباح</div><div className="text-xl font-bold text-green-600">{fmt(data.reduce((s, r) => s + r.sales_profit, 0))}</div></div>
+          </>}
         </div>
       )}
 
@@ -178,6 +185,28 @@ export default function ReportsPage() {
                         <td dir="ltr">{fmt(r.sale_price)}</td>
                         <td dir="ltr" className={r.profit >= 0 ? 'text-green-600' : 'text-red-600'}>{fmt(r.profit)}</td>
                       </>}
+                    </tr>
+                  ))}</tbody>
+                </>}
+                {reportType === 'salesperson' && <>
+                  <thead>
+                    <tr>
+                      <th>السيلز</th>
+                      <th>عدد المبيعات</th>
+                      <th>إجمالي المبيعات</th>
+                      <th>الأرباح</th>
+                      <th>عدد المشتريات</th>
+                      <th>إجمالي المشتريات</th>
+                    </tr>
+                  </thead>
+                  <tbody>{data.map((r: any, i) => (
+                    <tr key={i}>
+                      <td className="font-semibold">{r.salesperson_name}</td>
+                      <td>{r.sales_count}</td>
+                      <td dir="ltr">{fmt(r.sales_total)}</td>
+                      <td dir="ltr" className={r.sales_profit >= 0 ? 'text-green-600' : 'text-red-600'}>{fmt(r.sales_profit)}</td>
+                      <td>{r.purchases_count}</td>
+                      <td dir="ltr">{fmt(r.purchases_total)}</td>
                     </tr>
                   ))}</tbody>
                 </>}

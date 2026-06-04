@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
-import { Save, Store, Shield, Users, RefreshCw, Smartphone, Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react'
+import { Save, Store, Shield, Users, RefreshCw, Smartphone, Plus, Trash2, ChevronUp, ChevronDown, UserCheck } from 'lucide-react'
 
 const SETTING_KEYS = ['store_name', 'store_address', 'store_phone', 'invoice_start_number', 'default_policy_text', 'currency', 'backup_location', 'daily_backup_enabled', 'backups_to_keep']
 
@@ -117,12 +117,19 @@ export default function SettingsPage() {
   const [newPwd, setNewPwd] = useState({ current: '', next: '', confirm: '' })
   const [changingPwd, setChangingPwd] = useState(false)
   const [optionsTab, setOptionsTab] = useState<OptionType>('model')
+  const [salespeople, setSalespeople] = useState<any[]>([])
+  const [newSpName, setNewSpName] = useState('')
 
   const load = async () => {
     try {
-      const [s, u] = await Promise.all([api.settings.getAll(), api.users.getAll()])
+      const [s, u, sp] = await Promise.all([
+        api.settings.getAll(),
+        api.users.getAll(),
+        api.salespeople.getAll(),
+      ])
       setSettings(s)
       setUsers(u)
+      setSalespeople(sp)
     } catch (e: any) { toast.error(e.message) }
     setLoading(false)
   }
@@ -280,6 +287,80 @@ export default function SettingsPage() {
           </div>
           <button type="submit" disabled={changingPwd} className="btn-secondary">{changingPwd ? 'جاري التغيير...' : 'تغيير كلمة المرور'}</button>
         </form>
+      </div>
+
+      {/* Salespeople */}
+      <div className="card">
+        <div className="card-header">
+          <h2 className="font-semibold flex items-center gap-2">
+            <UserCheck className="w-4 h-4 text-brand-600" /> فريق المبيعات
+          </h2>
+        </div>
+        <div className="card-body space-y-3">
+          <p className="text-sm text-slate-500">أسماء السلز الذين يظهرون في نافذة الاختيار عند الشراء والبيع.</p>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault()
+              if (!newSpName.trim()) return
+              try {
+                await api.salespeople.create(newSpName.trim())
+                setNewSpName('')
+                const sp = await api.salespeople.getAll()
+                setSalespeople(sp)
+                toast.success('تمت الإضافة')
+              } catch (err: any) { toast.error(err.message) }
+            }}
+            className="flex gap-2"
+          >
+            <input
+              value={newSpName}
+              onChange={(e) => setNewSpName(e.target.value)}
+              placeholder="اسم السيلز..."
+              className="input flex-1"
+            />
+            <button type="submit" disabled={!newSpName.trim()} className="btn-primary">
+              <Plus className="w-4 h-4" /> إضافة
+            </button>
+          </form>
+          <div className="border border-slate-200 rounded-lg overflow-hidden">
+            {salespeople.length === 0 ? (
+              <div className="py-6 text-center text-slate-400 text-sm">لا يوجد سلز — أضف واحداً</div>
+            ) : salespeople.map((sp) => (
+              <div key={sp.id} className="flex items-center justify-between px-4 py-2.5 border-b border-slate-100 last:border-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center text-sm font-bold text-brand-700">
+                    {sp.name.charAt(0)}
+                  </div>
+                  <span className={`font-medium ${sp.active ? 'text-slate-800' : 'text-slate-400 line-through'}`}>{sp.name}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={async () => {
+                      await api.salespeople.toggle(sp.id)
+                      const updated = await api.salespeople.getAll()
+                      setSalespeople(updated)
+                    }}
+                    className={`text-xs px-2 py-1 rounded ${sp.active ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}
+                  >
+                    {sp.active ? 'نشط' : 'معطل'}
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!confirm(`حذف "${sp.name}"؟`)) return
+                      await api.salespeople.delete(sp.id)
+                      const updated = await api.salespeople.getAll()
+                      setSalespeople(updated)
+                      toast.success('تم الحذف')
+                    }}
+                    className="p-1 rounded text-red-400 hover:text-red-600 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Users (admin only) */}

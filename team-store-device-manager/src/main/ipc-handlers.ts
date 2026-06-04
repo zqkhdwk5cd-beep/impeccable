@@ -11,6 +11,7 @@ import * as audit from './repositories/audit'
 import * as search from './repositories/search'
 import * as backup from './backup'
 import * as deviceOptions from './repositories/device-options'
+import * as salespeople from './repositories/salespeople'
 import { getDatabasePath } from './database'
 
 function handle(channel: string, fn: (...args: any[]) => any) {
@@ -136,6 +137,16 @@ export function registerIpcHandlers(): void {
   )
   handle('backup:getDir', () => backup.getBackupDir())
   handle('backup:getDatabasePath', () => getDatabasePath())
+
+  // Salespeople
+  handle('salespeople:getAll', () => salespeople.getAllSalespeople())
+  handle('salespeople:getActive', () => salespeople.getActiveSalespeople())
+  handle('salespeople:create', (name: string) => salespeople.createSalesperson(name))
+  handle('salespeople:toggle', (id: number) => salespeople.toggleSalesperson(id))
+  handle('salespeople:delete', (id: number) => salespeople.deleteSalesperson(id))
+  handle('salespeople:getReport', (from: string, to: string) =>
+    salespeople.getSalespersonReport(from, to)
+  )
 
   // Device Options
   handle('deviceOptions:getAll', () => deviceOptions.getAllOptions())

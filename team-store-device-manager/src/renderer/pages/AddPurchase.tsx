@@ -4,6 +4,7 @@ import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import { User, Smartphone, ShoppingCart, Search, CheckCircle, AlertTriangle } from 'lucide-react'
+import SalespersonModal from '../components/SalespersonModal'
 
 const CONDITIONS = [{ value: 'used', label: 'مستعمل' }, { value: 'new', label: 'جديد' }, { value: 'refurbished', label: 'مجدد' }]
 const PAYMENT_METHODS = [{ value: 'cash', label: 'نقد' }, { value: 'transfer', label: 'تحويل' }, { value: 'check', label: 'شيك' }, { value: 'other', label: 'أخرى' }]
@@ -19,6 +20,7 @@ export default function AddPurchase() {
   const [sellerFound, setSellerFound] = useState<any>(null)
   const [serialWarning, setSerialWarning] = useState('')
   const [imeiWarning, setImeiWarning] = useState('')
+  const [salesperson, setSalesperson] = useState<{ id: number; name: string } | null | undefined>(undefined)
 
   const [form, setForm] = useState({
     // Seller
@@ -130,6 +132,7 @@ export default function AddPurchase() {
         expected_sale_price: form.expected_sale_price ? parseFloat(form.expected_sale_price) : undefined,
         paid_amount: form.paid_amount ? parseFloat(form.paid_amount) : undefined,
         created_by: user?.id,
+        salesperson_id: salesperson?.id,
       })
       toast.success('تم حفظ عملية الشراء بنجاح')
       navigate(`/devices/${result.device_id}`)
@@ -141,10 +144,21 @@ export default function AddPurchase() {
 
   return (
     <div className="max-w-4xl mx-auto">
+      {salesperson === undefined && (
+        <SalespersonModal onSelect={(sp) => setSalesperson(sp)} />
+      )}
+
       <div className="page-header">
         <div>
           <h1 className="page-title">إضافة عملية شراء</h1>
-          <p className="text-slate-500 text-sm mt-1">تسجيل شراء جهاز جديد من البائع</p>
+          <p className="text-slate-500 text-sm mt-1">
+            تسجيل شراء جهاز جديد من البائع
+            {salesperson && (
+              <span className="mr-2 inline-flex items-center gap-1 bg-brand-100 text-brand-700 text-xs font-medium px-2 py-0.5 rounded-full">
+                <User className="w-3 h-3" /> {salesperson.name}
+              </span>
+            )}
+          </p>
         </div>
         <button onClick={() => navigate('/devices')} className="btn-secondary">إلغاء</button>
       </div>

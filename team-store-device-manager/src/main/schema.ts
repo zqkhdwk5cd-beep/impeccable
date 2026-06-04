@@ -20,6 +20,7 @@ export function runMigrations(db: Database.Database): void {
     { version: 1, sql: migration_001 },
     { version: 2, sql: migration_002 },
     { version: 3, sql: migration_003 },
+    { version: 4, sql: migration_004 },
   ]
 
   for (const m of migrations) {
@@ -329,4 +330,16 @@ INSERT OR IGNORE INTO device_options (type, value, sort_order) VALUES
   ('color','أصفر',10),
   ('color','برتقالي',11),
   ('color','رمادي',12);
+`
+
+const migration_004 = `
+CREATE TABLE IF NOT EXISTS salespeople (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL UNIQUE,
+  active INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+ALTER TABLE purchase_transactions ADD COLUMN salesperson_id INTEGER REFERENCES salespeople(id);
+ALTER TABLE sale_transactions ADD COLUMN salesperson_id INTEGER REFERENCES salespeople(id);
 `
