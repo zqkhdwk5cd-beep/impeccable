@@ -1,107 +1,141 @@
 # Team Store Device Manager
 ## نظام إدارة أجهزة Team Store
 
-تطبيق سطح مكتب لإدارة شراء وبيع أجهزة iPhone في متجر Team Store.
+تطبيق سطح مكتب لإدارة شراء وبيع أجهزة iPhone — يعمل بدون إنترنت.
 
 ---
 
-## المتطلبات
+## تجربة المستخدم النهائي
 
-- Node.js 18+
-- npm 9+
+```
+تثبيت التطبيق  ←  دبل كليك على الأيقونة  ←  تسجيل الدخول  ←  استخدام النظام
+```
+
+**لا يحتاج Terminal. لا يحتاج npm. لا يحتاج إنترنت.**
 
 ---
 
-## تثبيت وتشغيل التطبيق للتطوير
+## للمطور: تشغيل وضع التطوير
 
 ```bash
-# تثبيت الحزم
+# 1. تثبيت الحزم
+cd team-store-device-manager
 npm install
 
-# بناء العملية الرئيسية
-npm run build:main
-
-# تشغيل خادم واجهة المستخدم
-npm run dev:renderer
-# ثم في نافذة أخرى:
-npx electron dist/main/main/index.js
+# 2. تشغيل وضع التطوير
+npm run dev
 ```
+
+يفتح Vite على port 5173 وElectron معاً مع DevTools.  
+إذا عدّلت ملفات main process، شغّل `npm run build:main` وأعد تشغيل `npm run dev`.
 
 ---
 
-## بناء للإنتاج
+## بناء المثبّت للمستخدمين
+
+### macOS
 
 ```bash
-# بناء الكل
-npm run build
+npm run dist:mac
+```
 
-# تشغيل الملف المجمّع
-npx electron .
+**الناتج في `release/`:**
+- `Team Store Device Manager-1.0.0.dmg`  ← افتحه واسحب لـ Applications
+- `Team Store Device Manager-1.0.0-mac.zip`  ← نسخة مضغوطة
 
-# إنشاء ملف تثبيت
-npm run dist
+### Windows
+
+```bash
+npm run dist:win
+```
+
+**الناتج في `release/`:**
+- `Team Store Device Manager Setup 1.0.0.exe`  ← يثبّت التطبيق ويخلق اختصار Desktop
+
+> بناء Windows يحتاج جهاز Windows أو Wine على Linux/Mac.
+
+### Linux
+
+```bash
+npm run dist:linux
+```
+
+**الناتج في `release/`:**
+- `Team Store Device Manager-1.0.0.AppImage`  ← تشغيل مباشر
+- `team-store-device-manager_1.0.0_amd64.deb`  ← تثبيت على Ubuntu/Debian
+
+### اختبار Package بدون installer
+
+```bash
+npm run pack
+# ← release/linux-unpacked/ أو release/mac/
 ```
 
 ---
 
-## موقع قاعدة البيانات
+## أين تُحفظ قاعدة البيانات؟
 
-- **macOS:** `~/Library/Application Support/team-store-device-manager/Team Store Device Manager/team_store.db`
-- **Windows:** `C:\Users\USERNAME\AppData\Roaming\team-store-device-manager\Team Store Device Manager\team_store.db`
-- **Linux:** `~/.config/team-store-device-manager/Team Store Device Manager/team_store.db`
+| نظام | المسار |
+|---|---|
+| macOS | `~/Library/Application Support/team-store-device-manager/Team Store Device Manager/team_store.db` |
+| Windows | `C:\Users\<user>\AppData\Roaming\team-store-device-manager\Team Store Device Manager\team_store.db` |
+| Linux | `~/.config/team-store-device-manager/Team Store Device Manager/team_store.db` |
 
----
-
-## النسخ الاحتياطية
-
-تُحفظ النسخ الاحتياطية في:
-- **macOS:** `~/Library/Application Support/team-store-device-manager/Team Store Device Manager/backups/`
-- **Windows:** `C:\Users\USERNAME\AppData\Roaming\team-store-device-manager\Team Store Device Manager\backups\`
-
-يمكن تغيير مسار النسخ الاحتياطية من الإعدادات.
-
-النسخ اليومي التلقائي يعمل كل 24 ساعة ويحتفظ بآخر 30 نسخة.
+**قاعدة البيانات خارج مجلد التطبيق تماماً:**
+- تبقى بعد إغلاق وإعادة تشغيل التطبيق ✓
+- تبقى بعد تحديث التطبيق إلى إصدار جديد ✓
+- لا تُمسح أبداً تلقائياً ✓
 
 ---
 
-## هيكل المشروع
+## أين تُحفظ النسخ الاحتياطية؟
 
-```
-src/
-├── main/              # Electron main process
-│   ├── index.ts       # نقطة البداية
-│   ├── database.ts    # اتصال SQLite
-│   ├── schema.ts      # مخطط قاعدة البيانات والترحيل
-│   ├── backup.ts      # خدمة النسخ الاحتياطي
-│   ├── ipc-handlers.ts # معالجات IPC
-│   └── repositories/  # طبقة البيانات
-├── renderer/          # React frontend
-│   ├── pages/         # صفحات التطبيق
-│   ├── components/    # مكونات مشتركة
-│   ├── context/       # React Context
-│   └── lib/api.ts     # واجهة IPC للـ Renderer
-├── preload/
-│   └── index.ts       # Electron preload script
-└── types/
-    └── index.ts       # TypeScript types
-```
+| نظام | المسار |
+|---|---|
+| macOS | `~/Library/Application Support/team-store-device-manager/Team Store Device Manager/backups/` |
+| Windows | `C:\Users\<user>\AppData\Roaming\team-store-device-manager\Team Store Device Manager\backups\` |
+| Linux | `~/.config/team-store-device-manager/Team Store Device Manager/backups/` |
+
+يمكن تغيير المسار من **الإعدادات** داخل التطبيق.
 
 ---
 
-## الميزات
+## Scripts
 
-- ✅ قاعدة بيانات SQLite دائمة وآمنة
-- ✅ ترحيل آمن للبيانات (لا يحذف البيانات القديمة)
-- ✅ نسخ احتياطي يومي تلقائي
-- ✅ نسخ احتياطي يدوي
-- ✅ استرجاع النسخ الاحتياطية مع نسخة طوارئ
-- ✅ حذف ناعم (soft delete) لجميع السجلات
-- ✅ سجل نشاط (audit logs) لجميع العمليات
-- ✅ واجهة عربية RTL
-- ✅ بحث شامل (سريال، IMEI، موبايل، فاتورة)
-- ✅ فواتير قابلة للطباعة وتصدير PDF
-- ✅ تقارير وتصدير CSV
-- ✅ نظام مستخدمين (مدير/موظف)
-- ✅ لوحة تحكم مع إحصائيات
-- ✅ إدارة المصاريف الإضافية على الأجهزة
-- ✅ تتبع المدفوعات والمتبقيات
+| Script | الوصف |
+|---|---|
+| `npm run dev` | وضع التطوير كامل |
+| `npm run build` | بناء كامل (renderer + main) |
+| `npm run build:main` | main process فقط |
+| `npm run pack` | اختبار package بدون installer |
+| `npm run dist:mac` | مثبّت macOS (.dmg + .zip) |
+| `npm run dist:win` | مثبّت Windows (.exe) |
+| `npm run dist:linux` | مثبّت Linux (.AppImage + .deb) |
+
+---
+
+## أيقونة التطبيق
+
+ضع الأيقونة في مجلد `build/`:
+
+| الملف | النظام |
+|---|---|
+| `build/icon.icns` | macOS |
+| `build/icon.ico` | Windows |
+| `build/icon.png` | Linux (1024×1024 PNG) |
+
+الملف `build/icon.png` موجود حالياً كـ placeholder.  
+لتصميم أيقونة حقيقية: اصنع PNG 1024×1024 ثم حوّله على https://cloudconvert.com
+
+---
+
+## ضمانات أمان البيانات
+
+| الضمان | التفاصيل |
+|---|---|
+| SQLite دائمة | مسار userData، خارج مجلد التطبيق |
+| ترحيل آمن | additive فقط، لا حذف جداول أو أعمدة |
+| حذف ناعم | حقل deleted_at على كل الجداول |
+| نسخ يومي تلقائي | كل 24 ساعة |
+| نسخة طوارئ | تُنشأ تلقائياً قبل أي استرجاع |
+| سجل نشاط | كل عملية مسجلة بـ timestamp ومستخدم |

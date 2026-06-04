@@ -6,3 +6,6 @@ release/
 *.db-wal
 .env
 .DS_Store
+# Keep build resources (icons, etc.) tracked
+!build/
+!build/**
