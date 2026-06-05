@@ -1,15 +1,20 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Lock, Eye, EyeOff } from 'lucide-react'
 import { usePrivate } from '../context/PrivateContext'
 
 export default function PrivateLock({ children }: { children: React.ReactNode }) {
-  const { isUnlocked, hasPassword, unlock, setPassword } = usePrivate()
+  const { isUnlocked, hasPassword, unlock, setPassword, lock } = usePrivate()
   const [input, setInput] = useState('')
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
   const [show, setShow] = useState(false)
   const [checking, setChecking] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // Lock automatically when leaving this page
+  useEffect(() => {
+    return () => { lock() }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isUnlocked) return <>{children}</>
 

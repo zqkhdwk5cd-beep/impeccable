@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { api } from '../lib/api'
-import { User, Lock, ArrowRight, X } from 'lucide-react'
+import { User, Lock, ArrowRight } from 'lucide-react'
 
 interface Props {
   onSelect: (salesperson: { id: number; name: string } | null) => void
@@ -162,18 +162,13 @@ export default function SalespersonModal({ onSelect }: Props) {
         )}
 
         {/* Footer */}
-        <div className="p-3 border-t border-slate-100 flex justify-between">
-          {selected ? (
+        {selected && (
+          <div className="p-3 border-t border-slate-100">
             <button onClick={() => { setSelected(null); setPin(''); setError('') }} className="text-sm text-slate-400 hover:text-slate-600 flex items-center gap-1">
               <ArrowRight className="w-3.5 h-3.5 rotate-180" /> رجوع
             </button>
-          ) : (
-            <div />
-          )}
-          <button onClick={() => onSelect(null)} className="text-sm text-slate-400 hover:text-slate-600 flex items-center gap-1">
-            <X className="w-3.5 h-3.5" /> تخطي
-          </button>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   )
