@@ -18,7 +18,7 @@ import ReportsPage from './pages/Reports'
 import SearchPage from './pages/Search'
 import SettingsPage from './pages/Settings'
 import BackupsPage from './pages/Backups'
-import PrivatePage from './pages/Private'
+
 import { api } from './lib/api'
 
 function AppRoutes() {
@@ -71,7 +71,6 @@ function AppRoutes() {
         <Route path="/search" element={<SearchPage />} />
         <Route path="/settings" element={<PrivateLock><SettingsPage /></PrivateLock>} />
         <Route path="/backups" element={<BackupsPage />} />
-        <Route path="/private" element={<PrivateLock><PrivatePage /></PrivateLock>} />
         <Route path="*" element={<Navigate to="/devices" replace />} />
       </Routes>
     </Layout>
