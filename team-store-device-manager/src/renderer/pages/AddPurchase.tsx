@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
-import { User, Smartphone, ShoppingCart, Search, CheckCircle, AlertTriangle } from 'lucide-react'
+import { User, Smartphone, ShoppingCart, CheckCircle, AlertTriangle, QrCode } from 'lucide-react'
 import SalespersonModal from '../components/SalespersonModal'
+import BoxScanner, { BoxScanResult } from '../components/BoxScanner'
 
 const CONDITIONS = [{ value: 'used', label: 'مستعمل' }, { value: 'new', label: 'جديد' }, { value: 'refurbished', label: 'مجدد' }]
 const PAYMENT_METHODS = [{ value: 'cash', label: 'نقد' }, { value: 'transfer', label: 'تحويل' }, { value: 'check', label: 'شيك' }, { value: 'other', label: 'أخرى' }]
@@ -21,6 +22,7 @@ export default function AddPurchase() {
   const [serialWarning, setSerialWarning] = useState('')
   const [imeiWarning, setImeiWarning] = useState('')
   const [salesperson, setSalesperson] = useState<{ id: number; name: string } | null | undefined>(undefined)
+  const [scannerOpen, setScannerOpen] = useState(false)
 
   const [form, setForm] = useState({
     // Seller
@@ -54,6 +56,24 @@ export default function AddPurchase() {
   })
 
   const f = (k: string, v: string) => setForm((p) => ({ ...p, [k]: v }))
+
+  const handleScanResult = (data: BoxScanResult) => {
+    setScannerOpen(false)
+    const updates: Record<string, string> = {}
+    if (data.serial_number) updates.serial_number = data.serial_number
+    if (data.imei1) updates.imei1 = data.imei1
+    if (data.imei2) updates.imei2 = data.imei2
+    setForm((p) => ({ ...p, ...updates }))
+    const filled: string[] = []
+    if (data.serial_number) filled.push('Serial')
+    if (data.imei1) filled.push('IMEI 1')
+    if (data.imei2) filled.push('IMEI 2')
+    if (filled.length > 0) {
+      toast.success(`تم تعبئة: ${filled.join('، ')}`)
+    } else {
+      toast.error('لم يتم التعرف على بيانات من الباركود')
+    }
+  }
 
   // Load device options from DB
   useEffect(() => {
@@ -147,6 +167,9 @@ export default function AddPurchase() {
       {salesperson === undefined && (
         <SalespersonModal onSelect={(sp) => setSalesperson(sp)} />
       )}
+      {scannerOpen && (
+        <BoxScanner onResult={handleScanResult} onClose={() => setScannerOpen(false)} />
+      )}
 
       <div className="page-header">
         <div>
@@ -222,6 +245,14 @@ export default function AddPurchase() {
               <Smartphone className="w-4 h-4 text-brand-600" />
               بيانات الجهاز
             </h2>
+            <button
+              type="button"
+              onClick={() => setScannerOpen(true)}
+              className="btn-secondary btn-sm flex items-center gap-1.5 text-brand-700 border-brand-200 hover:bg-brand-50"
+            >
+              <QrCode className="w-3.5 h-3.5" />
+              سكان العلبة
+            </button>
           </div>
           <div className="card-body space-y-4">
             <div className="form-grid-3">

@@ -42,6 +42,7 @@
     "wait-on": "^9.0.10"
   },
   "dependencies": {
+    "@zxing/browser": "^0.1.4",
     "bcryptjs": "^2.4.3",
     "better-sqlite3": "^9.4.3",
     "jspdf": "^2.5.1",
@@ -81,7 +82,10 @@
         { "target": "dmg", "arch": ["x64", "arm64"] },
         { "target": "zip", "arch": ["x64", "arm64"] }
       ],
-      "darkModeSupport": true
+      "darkModeSupport": true,
+      "extendInfo": {
+        "NSCameraUsageDescription": "يستخدم التطبيق الكاميرا لمسح باركود علبة الأيفون"
+      }
     },
     "win": {
       "target": [

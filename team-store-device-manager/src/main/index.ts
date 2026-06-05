@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, session } from 'electron'
 import path from 'path'
 import { initDatabase, closeDatabase } from './database'
 import { registerIpcHandlers } from './ipc-handlers'
@@ -47,6 +47,11 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  // Allow camera access for box scanning
+  session.defaultSession.setPermissionRequestHandler((_wc, permission, callback) => {
+    callback(permission === 'media')
+  })
+
   try {
     initDatabase()
     registerIpcHandlers()
