@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
   LayoutDashboard, Smartphone, ShoppingCart, Tag, Users, FileText,
-  BarChart3, Search, Settings, HardDrive, Store
+  Search, Settings, HardDrive, Store
 } from 'lucide-react'
 
 const navItems = [
@@ -13,7 +13,6 @@ const navItems = [
   { to: '/sell', icon: Tag, label: 'بيع جهاز' },
   { to: '/contacts', icon: Users, label: 'العملاء والبائعين' },
   { to: '/invoices', icon: FileText, label: 'الفواتير' },
-  { to: '/reports', icon: BarChart3, label: 'التقارير' },
   { to: '/search', icon: Search, label: 'البحث' },
   { to: '/settings', icon: Settings, label: 'الإعدادات' },
   { to: '/backups', icon: HardDrive, label: 'النسخ الاحتياطي' },
