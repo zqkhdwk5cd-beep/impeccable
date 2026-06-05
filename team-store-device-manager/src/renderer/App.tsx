@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { PrivateProvider } from './context/PrivateContext'
+import PrivateLock from './components/PrivateLock'
 import Layout from './components/Layout'
-import LoginPage from './pages/Login'
 import SetupPage from './pages/Setup'
 import Dashboard from './pages/Dashboard'
 import DevicesPage from './pages/Devices'
@@ -17,17 +18,29 @@ import ReportsPage from './pages/Reports'
 import SearchPage from './pages/Search'
 import SettingsPage from './pages/Settings'
 import BackupsPage from './pages/Backups'
+import PrivatePage from './pages/Private'
 import { api } from './lib/api'
 
 function AppRoutes() {
-  const { user } = useAuth()
+  const { user, login } = useAuth()
   const [hasUsers, setHasUsers] = useState<boolean | null>(null)
 
   useEffect(() => {
-    api.auth.hasUsers().then(setHasUsers).catch(() => setHasUsers(false))
+    api.auth.hasUsers()
+      .then(setHasUsers)
+      .catch(() => setHasUsers(false))
   }, [])
 
-  if (hasUsers === null) {
+  // Auto-login as the first admin whenever hasUsers becomes true and no session exists
+  useEffect(() => {
+    if (hasUsers === true && !user) {
+      api.auth.getFirst()
+        .then((u) => { if (u) login(u) })
+        .catch(() => {})
+    }
+  }, [hasUsers]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (hasUsers === null || (hasUsers === true && !user)) {
     return (
       <div className="flex items-center justify-center h-screen bg-slate-50">
         <div className="text-slate-500 text-lg font-medium animate-pulse">جاري التحميل...</div>
@@ -35,8 +48,11 @@ function AppRoutes() {
     )
   }
 
-  if (!hasUsers) return <SetupPage onSetup={() => setHasUsers(true)} />
-  if (!user) return <LoginPage />
+  if (!hasUsers) {
+    return (
+      <SetupPage onSetup={() => setHasUsers(true)} />
+    )
+  }
 
   return (
     <Layout>
@@ -52,8 +68,9 @@ function AppRoutes() {
         <Route path="/invoices/:id" element={<InvoiceDetail />} />
         <Route path="/reports" element={<ReportsPage />} />
         <Route path="/search" element={<SearchPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/settings" element={<PrivateLock><SettingsPage /></PrivateLock>} />
         <Route path="/backups" element={<BackupsPage />} />
+        <Route path="/private" element={<PrivateLock><PrivatePage /></PrivateLock>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>
@@ -63,7 +80,9 @@ function AppRoutes() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppRoutes />
+      <PrivateProvider>
+        <AppRoutes />
+      </PrivateProvider>
     </AuthProvider>
   )
 }

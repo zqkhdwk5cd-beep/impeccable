@@ -79,6 +79,16 @@ export function hasAnyUser(): boolean {
   return count.c > 0
 }
 
+export function getFirstAdminUser(): Omit<User, 'password_hash'> | null {
+  const db = getDatabase()
+  const user = db
+    .prepare('SELECT id, name, username, role, created_at, updated_at FROM users WHERE deleted_at IS NULL ORDER BY CASE WHEN role = ? THEN 0 ELSE 1 END, id ASC LIMIT 1')
+    .get('admin') as User | undefined
+  if (!user) return null
+  const { password_hash, ...safe } = user as any
+  return safe
+}
+
 export function softDeleteUser(id: number): boolean {
   const db = getDatabase()
   const result = db

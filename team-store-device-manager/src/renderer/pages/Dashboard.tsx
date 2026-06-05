@@ -50,11 +50,9 @@ export default function Dashboard() {
     { label: 'أجهزة مباعة', value: s.sold_devices || 0, icon: Smartphone, color: 'text-blue-600', bg: 'bg-blue-50' },
     { label: 'قيمة المخزون', value: fmt(s.total_inventory_value || 0), icon: DollarSign, color: 'text-amber-600', bg: 'bg-amber-50' },
     { label: 'إجمالي المبيعات', value: fmt(s.total_sales || 0), icon: TrendingUp, color: 'text-purple-600', bg: 'bg-purple-50' },
-    { label: 'إجمالي الأرباح', value: fmt(s.total_profit || 0), icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-50' },
     { label: 'متبقي من العملاء', value: fmt(s.total_remaining_from_customers || 0), icon: AlertCircle, color: 'text-orange-600', bg: 'bg-orange-50' },
     { label: 'متبقي للموردين', value: fmt(s.total_remaining_to_suppliers || 0), icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-50' },
     { label: 'مبيعات هذا الشهر', value: fmt(s.monthly_sales || 0), icon: TrendingUp, color: 'text-cyan-600', bg: 'bg-cyan-50' },
-    { label: 'أرباح هذا الشهر', value: fmt(s.monthly_profit || 0), icon: TrendingUp, color: 'text-teal-600', bg: 'bg-teal-50' },
   ]
 
   return (

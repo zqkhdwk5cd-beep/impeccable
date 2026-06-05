@@ -22,6 +22,7 @@ export function runMigrations(db: Database.Database): void {
     { version: 3, sql: migration_003 },
     { version: 4, sql: migration_004 },
     { version: 5, sql: migration_005 },
+    { version: 6, sql: migration_006 },
   ]
 
   for (const m of migrations) {
@@ -347,4 +348,8 @@ ALTER TABLE sale_transactions ADD COLUMN salesperson_id INTEGER REFERENCES sales
 
 const migration_005 = `
 ALTER TABLE salespeople ADD COLUMN pin_hash TEXT;
+`
+
+const migration_006 = `
+INSERT OR IGNORE INTO settings (key, value) VALUES ('private_password_hash', '');
 `

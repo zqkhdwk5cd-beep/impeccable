@@ -105,14 +105,9 @@ export default function DeviceDetail() {
         <div className="card p-4">
           <h3 className="font-semibold text-slate-800 mb-3">مالي</h3>
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between"><span className="text-slate-500">سعر الشراء</span><span className="font-medium" dir="ltr">{fmt(d.purchase_price)}</span></div>
-            <div className="flex justify-between"><span className="text-slate-500">مصاريف إضافية</span><span className="font-medium" dir="ltr">{fmt(d.extra_costs)}</span></div>
-            <div className="flex justify-between border-t pt-2"><span className="text-slate-700 font-medium">إجمالي التكلفة</span><span className="font-bold text-red-600" dir="ltr">{fmt(d.total_cost)}</span></div>
-            {d.expected_sale_price && <div className="flex justify-between"><span className="text-slate-500">سعر بيع متوقع</span><span className="font-medium" dir="ltr">{fmt(d.expected_sale_price)}</span></div>}
-            {d.final_sale_price && <>
-              <div className="flex justify-between"><span className="text-slate-500">سعر البيع الفعلي</span><span className="font-bold text-green-600" dir="ltr">{fmt(d.final_sale_price)}</span></div>
-              <div className="flex justify-between border-t pt-2"><span className="text-slate-700 font-medium">الربح</span><span className={`font-bold ${(d.profit || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`} dir="ltr">{fmt(d.profit || 0)}</span></div>
-            </>}
+            {d.final_sale_price && (
+              <div className="flex justify-between"><span className="text-slate-500">سعر البيع</span><span className="font-bold text-green-600" dir="ltr">{fmt(d.final_sale_price)}</span></div>
+            )}
           </div>
         </div>
       </div>

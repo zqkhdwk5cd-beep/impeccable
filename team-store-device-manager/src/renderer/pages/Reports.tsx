@@ -7,7 +7,7 @@ function formatDate(d: string) { return d ? new Date(d).toLocaleDateString('ar-E
 const today = new Date().toISOString().slice(0, 10)
 const firstOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10)
 
-type ReportType = 'sales' | 'purchases' | 'inventory' | 'profit' | 'salesperson'
+type ReportType = 'sales' | 'purchases' | 'inventory' | 'salesperson'
 
 export default function ReportsPage() {
   const [reportType, setReportType] = useState<ReportType>('sales')
@@ -29,7 +29,6 @@ export default function ReportsPage() {
       if (reportType === 'sales') result = await api.sales.getReport(from, to)
       else if (reportType === 'purchases') result = await api.purchases.getReport(from, to)
       else if (reportType === 'inventory') result = await api.devices.getAll({ status: 'available' })
-      else if (reportType === 'profit') result = await api.sales.getReport(from, to)
       else if (reportType === 'salesperson') result = await api.salespeople.getReport(from, to)
 
       setData(result)
@@ -57,12 +56,10 @@ export default function ReportsPage() {
     { key: 'sales' as ReportType, label: 'تقرير المبيعات', icon: TrendingUp },
     { key: 'purchases' as ReportType, label: 'تقرير المشتريات', icon: BarChart3 },
     { key: 'inventory' as ReportType, label: 'تقرير المخزون', icon: Package },
-    { key: 'profit' as ReportType, label: 'تقرير الأرباح', icon: TrendingUp },
     { key: 'salesperson' as ReportType, label: 'تقرير السلز', icon: Users },
   ]
 
   const totalSales = data.reduce((s: number, r: any) => s + (r.sale_price || 0), 0)
-  const totalProfit = data.reduce((s: number, r: any) => s + (r.profit || 0), 0)
   const totalPurchases = data.reduce((s: number, r: any) => s + (r.total_cost || 0), 0)
 
   return (
@@ -114,7 +111,6 @@ export default function ReportsPage() {
         <div className="grid grid-cols-3 gap-4 mb-6">
           {reportType === 'sales' && <>
             <div className="card p-4"><div className="text-xs text-slate-500 mb-1">إجمالي المبيعات</div><div className="text-xl font-bold">{fmt(totalSales)}</div></div>
-            <div className="card p-4"><div className="text-xs text-slate-500 mb-1">إجمالي الأرباح</div><div className="text-xl font-bold text-green-600">{fmt(totalProfit)}</div></div>
             <div className="card p-4"><div className="text-xs text-slate-500 mb-1">عدد الصفقات</div><div className="text-xl font-bold">{data.length}</div></div>
           </>}
           {reportType === 'purchases' && <>
@@ -125,17 +121,10 @@ export default function ReportsPage() {
           {reportType === 'inventory' && <>
             <div className="card p-4"><div className="text-xs text-slate-500 mb-1">أجهزة متاحة</div><div className="text-xl font-bold">{data.length}</div></div>
             <div className="card p-4"><div className="text-xs text-slate-500 mb-1">إجمالي قيمة المخزون</div><div className="text-xl font-bold">{fmt(data.reduce((s, d) => s + d.total_cost, 0))}</div></div>
-            <div className="card p-4"><div className="text-xs text-slate-500 mb-1">سعر بيع متوقع</div><div className="text-xl font-bold">{fmt(data.reduce((s, d) => s + (d.expected_sale_price || 0), 0))}</div></div>
-          </>}
-          {reportType === 'profit' && <>
-            <div className="card p-4"><div className="text-xs text-slate-500 mb-1">إجمالي الإيرادات</div><div className="text-xl font-bold">{fmt(totalSales)}</div></div>
-            <div className="card p-4"><div className="text-xs text-slate-500 mb-1">إجمالي الأرباح</div><div className="text-xl font-bold text-green-600">{fmt(totalProfit)}</div></div>
-            <div className="card p-4"><div className="text-xs text-slate-500 mb-1">هامش الربح</div><div className="text-xl font-bold text-purple-600">{totalSales > 0 ? ((totalProfit / totalSales) * 100).toFixed(1) + '%' : '-'}</div></div>
           </>}
           {reportType === 'salesperson' && <>
             <div className="card p-4"><div className="text-xs text-slate-500 mb-1">عدد السلز</div><div className="text-xl font-bold">{data.length}</div></div>
             <div className="card p-4"><div className="text-xs text-slate-500 mb-1">إجمالي المبيعات</div><div className="text-xl font-bold">{fmt(data.reduce((s, r) => s + r.sales_total, 0))}</div></div>
-            <div className="card p-4"><div className="text-xs text-slate-500 mb-1">إجمالي الأرباح</div><div className="text-xl font-bold text-green-600">{fmt(data.reduce((s, r) => s + r.sales_profit, 0))}</div></div>
           </>}
         </div>
       )}
@@ -149,14 +138,13 @@ export default function ReportsPage() {
             <div className="table-wrapper">
               <table className="table">
                 {reportType === 'sales' && <>
-                  <thead><tr><th>الجهاز</th><th>العميل</th><th>التاريخ</th><th>السعر</th><th>الربح</th><th>الفاتورة</th></tr></thead>
+                  <thead><tr><th>الجهاز</th><th>العميل</th><th>التاريخ</th><th>السعر</th><th>الفاتورة</th></tr></thead>
                   <tbody>{data.map((r: any, i) => (
                     <tr key={i}>
                       <td>{r.model} {r.storage} {r.color}</td>
                       <td>{r.buyer_name}</td>
                       <td>{formatDate(r.sale_date)}</td>
                       <td dir="ltr">{fmt(r.sale_price)}</td>
-                      <td dir="ltr" className={r.profit >= 0 ? 'text-green-600' : 'text-red-600'}>{fmt(r.profit)}</td>
                       <td>{r.invoice_number ? `#${r.invoice_number}` : '-'}</td>
                     </tr>
                   ))}</tbody>
@@ -173,18 +161,14 @@ export default function ReportsPage() {
                     </tr>
                   ))}</tbody>
                 </>}
-                {(reportType === 'inventory' || reportType === 'profit') && <>
-                  <thead><tr><th>الجهاز</th><th>السريال</th><th>الحالة</th><th>التكلفة</th>{reportType === 'profit' && <><th>سعر البيع</th><th>الربح</th></>}</tr></thead>
+                {reportType === 'inventory' && <>
+                  <thead><tr><th>الجهاز</th><th>السريال</th><th>الحالة</th><th>التكلفة</th></tr></thead>
                   <tbody>{data.map((r: any, i) => (
                     <tr key={i}>
                       <td>{r.model} {r.storage} {r.color}</td>
                       <td className="font-mono text-xs">{r.serial_number || '-'}</td>
                       <td><span className={`status-${r.status || 'available'}`}>{r.status === 'available' ? 'متاح' : r.status === 'sold' ? 'مباع' : r.status}</span></td>
                       <td dir="ltr">{fmt(r.total_cost)}</td>
-                      {reportType === 'profit' && <>
-                        <td dir="ltr">{fmt(r.sale_price)}</td>
-                        <td dir="ltr" className={r.profit >= 0 ? 'text-green-600' : 'text-red-600'}>{fmt(r.profit)}</td>
-                      </>}
                     </tr>
                   ))}</tbody>
                 </>}
@@ -194,7 +178,6 @@ export default function ReportsPage() {
                       <th>السيلز</th>
                       <th>عدد المبيعات</th>
                       <th>إجمالي المبيعات</th>
-                      <th>الأرباح</th>
                       <th>عدد المشتريات</th>
                       <th>إجمالي المشتريات</th>
                     </tr>
@@ -204,7 +187,6 @@ export default function ReportsPage() {
                       <td className="font-semibold">{r.salesperson_name}</td>
                       <td>{r.sales_count}</td>
                       <td dir="ltr">{fmt(r.sales_total)}</td>
-                      <td dir="ltr" className={r.sales_profit >= 0 ? 'text-green-600' : 'text-red-600'}>{fmt(r.sales_profit)}</td>
                       <td>{r.purchases_count}</td>
                       <td dir="ltr">{fmt(r.purchases_total)}</td>
                     </tr>

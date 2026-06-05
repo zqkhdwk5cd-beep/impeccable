@@ -33,6 +33,7 @@ export function registerIpcHandlers(): void {
   )
   handle('auth:hasUsers', () => users.hasAnyUser())
   handle('auth:createAdmin', (data: any) => users.createUser({ ...data, role: 'admin' }))
+  handle('auth:getFirst', () => users.getFirstAdminUser())
 
   // Users
   handle('users:getAll', () => users.getAllUsers())

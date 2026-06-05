@@ -21,6 +21,7 @@ export const api = {
       invoke<{ success: boolean; user?: any }>('auth:login', username, password),
     hasUsers: () => invoke<boolean>('auth:hasUsers'),
     createAdmin: (data: any) => invoke<any>('auth:createAdmin', data),
+    getFirst: () => invoke<any>('auth:getFirst'),
   },
 
   // Users
