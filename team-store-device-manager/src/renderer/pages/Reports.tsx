@@ -60,6 +60,7 @@ export default function ReportsPage() {
   ]
 
   const totalSales = data.reduce((s: number, r: any) => s + (r.sale_price || 0), 0)
+  const totalProfit = data.reduce((s: number, r: any) => s + (r.profit || 0), 0)
   const totalPurchases = data.reduce((s: number, r: any) => s + (r.total_cost || 0), 0)
 
   return (
@@ -121,10 +122,12 @@ export default function ReportsPage() {
           {reportType === 'inventory' && <>
             <div className="card p-4"><div className="text-xs text-slate-500 mb-1">أجهزة متاحة</div><div className="text-xl font-bold">{data.length}</div></div>
             <div className="card p-4"><div className="text-xs text-slate-500 mb-1">إجمالي قيمة المخزون</div><div className="text-xl font-bold">{fmt(data.reduce((s, d) => s + d.total_cost, 0))}</div></div>
+            <div className="card p-4"><div className="text-xs text-slate-500 mb-1">سعر بيع متوقع</div><div className="text-xl font-bold">{fmt(data.reduce((s, d) => s + (d.expected_sale_price || 0), 0))}</div></div>
           </>}
           {reportType === 'salesperson' && <>
             <div className="card p-4"><div className="text-xs text-slate-500 mb-1">عدد السلز</div><div className="text-xl font-bold">{data.length}</div></div>
             <div className="card p-4"><div className="text-xs text-slate-500 mb-1">إجمالي المبيعات</div><div className="text-xl font-bold">{fmt(data.reduce((s, r) => s + r.sales_total, 0))}</div></div>
+            <div className="card p-4"><div className="text-xs text-slate-500 mb-1">إجمالي الأرباح</div><div className="text-xl font-bold text-green-600">{fmt(data.reduce((s, r) => s + r.sales_profit, 0))}</div></div>
           </>}
         </div>
       )}
@@ -178,6 +181,7 @@ export default function ReportsPage() {
                       <th>السيلز</th>
                       <th>عدد المبيعات</th>
                       <th>إجمالي المبيعات</th>
+                      <th>الأرباح</th>
                       <th>عدد المشتريات</th>
                       <th>إجمالي المشتريات</th>
                     </tr>
@@ -187,6 +191,7 @@ export default function ReportsPage() {
                       <td className="font-semibold">{r.salesperson_name}</td>
                       <td>{r.sales_count}</td>
                       <td dir="ltr">{fmt(r.sales_total)}</td>
+                      <td dir="ltr" className={r.sales_profit >= 0 ? 'text-green-600' : 'text-red-600'}>{fmt(r.sales_profit)}</td>
                       <td>{r.purchases_count}</td>
                       <td dir="ltr">{fmt(r.purchases_total)}</td>
                     </tr>

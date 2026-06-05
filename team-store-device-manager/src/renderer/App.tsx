@@ -57,7 +57,8 @@ function AppRoutes() {
   return (
     <Layout>
       <Routes>
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/" element={<Navigate to="/devices" replace />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/devices" element={<DevicesPage />} />
         <Route path="/devices/:id" element={<DeviceDetail />} />
         <Route path="/purchases/new" element={<AddPurchase />} />
@@ -66,12 +67,12 @@ function AppRoutes() {
         <Route path="/contacts/:id" element={<ContactProfile />} />
         <Route path="/invoices" element={<InvoicesPage />} />
         <Route path="/invoices/:id" element={<InvoiceDetail />} />
-        <Route path="/reports" element={<ReportsPage />} />
+        <Route path="/reports" element={<PrivateLock><ReportsPage /></PrivateLock>} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/settings" element={<PrivateLock><SettingsPage /></PrivateLock>} />
         <Route path="/backups" element={<BackupsPage />} />
         <Route path="/private" element={<PrivateLock><PrivatePage /></PrivateLock>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/devices" replace />} />
       </Routes>
     </Layout>
   )

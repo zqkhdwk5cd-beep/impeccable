@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 
 const navItems = [
-  { to: '/', icon: LayoutDashboard, label: 'لوحة التحكم', exact: true },
+  { to: '/dashboard', icon: LayoutDashboard, label: 'لوحة التحكم' },
   { to: '/devices', icon: Smartphone, label: 'المخزون' },
   { to: '/purchases/new', icon: ShoppingCart, label: 'إضافة شراء' },
   { to: '/sell', icon: Tag, label: 'بيع جهاز' },
