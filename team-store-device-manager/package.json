@@ -55,7 +55,7 @@
   },
   "build": {
     "appId": "com.teamstore.devicemanager",
-    "productName": "System",
+    "productName": "System Team Store",
     "asar": true,
     "asarUnpack": [
       "**/*.node",
