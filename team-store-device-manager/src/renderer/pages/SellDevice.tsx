@@ -21,11 +21,11 @@ function DeviceCard({ device, onSelect }: { device: any; onSelect: () => void })
         </div>
         <span className={`status-${device.status}`}>{statusLabel[device.status]}</span>
       </div>
-      <div className="mt-3 flex gap-4 text-xs text-slate-600">
-        <span>التكلفة: {device.total_cost?.toLocaleString()} EGP</span>
-        {device.battery_health && <span>البطارية: {device.battery_health}%</span>}
-        {device.expected_sale_price && <span>سعر متوقع: {device.expected_sale_price?.toLocaleString()} EGP</span>}
-      </div>
+      {device.battery_health && (
+        <div className="mt-3 flex gap-4 text-xs text-slate-600">
+          <span>البطارية: {device.battery_health}%</span>
+        </div>
+      )}
     </div>
   )
 }
@@ -88,7 +88,6 @@ export default function SellDevice() {
 
   const finalPrice = Math.max(0, (parseFloat(saleForm.sale_price) || 0) - (parseFloat(saleForm.discount) || 0))
   const remaining = finalPrice - (parseFloat(saleForm.paid_amount) || finalPrice)
-  const profit = selectedDevice ? finalPrice - selectedDevice.total_cost : 0
 
   const handleSale = async () => {
     if (!selectedDevice) return toast.error('يرجى اختيار الجهاز')
@@ -188,7 +187,6 @@ export default function SellDevice() {
               <Smartphone className="w-8 h-8 text-brand-600" />
               <div>
                 <div className="font-semibold">{selectedDevice.brand} {selectedDevice.model} {selectedDevice.storage} {selectedDevice.color}</div>
-                <div className="text-sm text-slate-500">تكلفة: {selectedDevice.total_cost?.toLocaleString()} EGP</div>
               </div>
               <button onClick={() => setStep(1)} className="mr-auto btn-secondary btn-sm">تغيير</button>
             </div>
@@ -239,7 +237,7 @@ export default function SellDevice() {
             <div className="card p-4 bg-slate-50 border-brand-200 border-2">
               <div className="text-xs text-slate-500 mb-1">الجهاز</div>
               <div className="font-semibold">{selectedDevice.brand} {selectedDevice.model} {selectedDevice.storage}</div>
-              <div className="text-sm text-slate-500">{selectedDevice.color} · تكلفة: {selectedDevice.total_cost?.toLocaleString()} EGP</div>
+              <div className="text-sm text-slate-500">{selectedDevice.color}</div>
             </div>
             <div className="card p-4 bg-slate-50 border-blue-200 border-2">
               <div className="text-xs text-slate-500 mb-1">العميل</div>
@@ -294,14 +292,6 @@ export default function SellDevice() {
                 </div>
               </div>
 
-              {selectedDevice && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <div className="text-sm font-medium text-green-800">
-                    الربح المتوقع: <span className="text-lg font-bold">{profit.toLocaleString()} EGP</span>
-                    <span className="text-xs text-green-600 mr-2">({((profit / (selectedDevice.total_cost || 1)) * 100).toFixed(1)}%)</span>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
