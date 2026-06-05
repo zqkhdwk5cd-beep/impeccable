@@ -49,7 +49,7 @@ export const api = {
 
   // Devices
   devices: {
-    getAll: (filters?: any) => invoke<any[]>('devices:getAll', filters),
+    getAll: (filters?: any) => invoke<{ items: any[]; total: number }>('devices:getAll', filters),
     getById: (id: number) => invoke<any>('devices:getById', id),
     findBySerial: (serial: string) => invoke<any | null>('devices:findBySerial', serial),
     findByImei: (imei: string) => invoke<any | null>('devices:findByImei', imei),

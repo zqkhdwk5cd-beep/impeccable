@@ -3,38 +3,50 @@ import type { Device } from '../../types'
 
 export function getAllDevices(filters?: {
   status?: string
-  model?: string
-  storage?: string
+  search?: string
   includeDeleted?: boolean
-}): Device[] {
+  limit?: number
+  offset?: number
+}): { items: Device[]; total: number } {
   const db = getDatabase()
-  let sql = `SELECT d.*,
-    c.name as seller_name, c.phone as seller_phone,
-    pt.purchase_date
-    FROM devices d
-    LEFT JOIN purchase_transactions pt ON d.purchase_transaction_id = pt.id
-    LEFT JOIN contacts c ON pt.seller_contact_id = c.id
-    WHERE 1=1`
+  const conditions: string[] = ['1=1']
   const params: any[] = []
 
   if (!filters?.includeDeleted) {
-    sql += ' AND d.deleted_at IS NULL'
+    conditions.push('d.deleted_at IS NULL')
   }
   if (filters?.status) {
-    sql += ' AND d.status = ?'
+    conditions.push('d.status = ?')
     params.push(filters.status)
   }
-  if (filters?.model) {
-    sql += ' AND d.model LIKE ?'
-    params.push(`%${filters.model}%`)
+  if (filters?.search) {
+    const q = `%${filters.search}%`
+    conditions.push(`(
+      d.serial_number LIKE ? OR d.imei1 LIKE ? OR d.imei2 LIKE ?
+      OR d.model LIKE ? OR d.color LIKE ? OR d.storage LIKE ?
+      OR c.name LIKE ?
+    )`)
+    params.push(q, q, q, q, q, q, q)
   }
-  if (filters?.storage) {
-    sql += ' AND d.storage = ?'
-    params.push(filters.storage)
-  }
-  sql += ' ORDER BY d.created_at DESC'
 
-  return db.prepare(sql).all(...params) as Device[]
+  const where = 'WHERE ' + conditions.join(' AND ')
+  const joins = `FROM devices d
+    LEFT JOIN purchase_transactions pt ON d.purchase_transaction_id = pt.id
+    LEFT JOIN contacts c ON pt.seller_contact_id = c.id`
+
+  const total = (db.prepare(`SELECT COUNT(*) as n ${joins} ${where}`).get(...params) as any).n
+
+  const limit = filters?.limit ?? 50
+  const offset = filters?.offset ?? 0
+
+  const items = db.prepare(`
+    SELECT d.*, c.name as seller_name, c.phone as seller_phone, pt.purchase_date
+    ${joins} ${where}
+    ORDER BY d.created_at DESC
+    LIMIT ? OFFSET ?
+  `).all(...params, limit, offset) as Device[]
+
+  return { items, total }
 }
 
 export function getDeviceById(id: number): Device | null {
