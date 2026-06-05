@@ -58,7 +58,7 @@ function AppRoutes() {
     <Layout>
       <Routes>
         <Route path="/" element={<Navigate to="/devices" replace />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<PrivateLock><Dashboard /></PrivateLock>} />
         <Route path="/devices" element={<DevicesPage />} />
         <Route path="/devices/:id" element={<DeviceDetail />} />
         <Route path="/purchases/new" element={<AddPurchase />} />
