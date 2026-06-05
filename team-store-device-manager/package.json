@@ -83,8 +83,10 @@
         { "target": "zip", "arch": ["x64", "arm64"] }
       ],
       "darkModeSupport": true,
+      "identity": null,
       "extendInfo": {
-        "NSCameraUsageDescription": "يستخدم التطبيق الكاميرا لمسح باركود علبة الأيفون"
+        "NSCameraUsageDescription": "يستخدم التطبيق الكاميرا لمسح باركود علبة الأيفون",
+        "NSMicrophoneUsageDescription": "لا يستخدم التطبيق الميكروفون"
       }
     },
     "win": {
