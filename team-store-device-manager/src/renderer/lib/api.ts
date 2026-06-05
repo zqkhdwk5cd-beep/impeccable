@@ -155,6 +155,12 @@ export const api = {
       invoke<void>('deviceOptions:reorder', id, direction),
   },
 
+  // Camera
+  camera: {
+    requestAccess: () => invoke<boolean>('camera:requestAccess'),
+    openSettings: () => invoke<void>('camera:openSettings'),
+  },
+
   // Dialogs
   dialog: {
     openFile: (options?: any) => window.electron.invoke('dialog:openFile', options),

@@ -1,4 +1,4 @@
-import { ipcMain, dialog } from 'electron'
+import { ipcMain, dialog, systemPreferences, shell } from 'electron'
 import * as contacts from './repositories/contacts'
 import * as devices from './repositories/devices'
 import * as purchases from './repositories/purchases'
@@ -162,6 +162,18 @@ export function registerIpcHandlers(): void {
   handle('deviceOptions:reorder', (id: number, direction: string) =>
     deviceOptions.reorderOption(id, direction as any)
   )
+
+  // Camera permission (macOS)
+  handle('camera:requestAccess', async () => {
+    if (process.platform !== 'darwin') return true
+    const status = systemPreferences.getMediaAccessStatus('camera')
+    if (status === 'granted') return true
+    if (status === 'denied') return false
+    return await systemPreferences.askForMediaAccess('camera')
+  })
+  handle('camera:openSettings', () => {
+    shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Camera')
+  })
 
   // File dialogs
   ipcMain.handle('dialog:openFile', async (_event, options: any) => {
