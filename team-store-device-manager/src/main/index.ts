@@ -1,4 +1,4 @@
-import { app, BrowserWindow, session } from 'electron'
+import { app, BrowserWindow, session, systemPreferences } from 'electron'
 import path from 'path'
 import { initDatabase, closeDatabase } from './database'
 import { registerIpcHandlers } from './ipc-handlers'
@@ -51,6 +51,14 @@ app.whenReady().then(() => {
   session.defaultSession.setPermissionRequestHandler((_wc, permission, callback) => {
     callback(permission === 'media')
   })
+
+  // Request macOS camera permission proactively
+  if (process.platform === 'darwin') {
+    const status = systemPreferences.getMediaAccessStatus('camera')
+    if (status === 'not-determined') {
+      systemPreferences.askForMediaAccess('camera')
+    }
+  }
 
   try {
     initDatabase()

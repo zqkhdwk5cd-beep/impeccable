@@ -102,12 +102,10 @@ export default function BoxScanner({ onResult, onClose }: Props) {
         controlsRef.current = controls
       } catch (err: any) {
         const name = err?.name || ''
-        if (name === 'NotAllowedError') {
-          setError('رُفض إذن الكاميرا — أذن للتطبيق في إعدادات الخصوصية')
-        } else if (name === 'NotFoundError') {
-          setError('لم يتم العثور على كاميرا')
+        if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+          setError('لم يتم العثور على كاميرا في هذا الجهاز')
         } else {
-          setError('خطأ في تشغيل الكاميرا')
+          setError('افتح: System Settings → Privacy & Security → Camera وشغّل التطبيق')
         }
       }
     }
