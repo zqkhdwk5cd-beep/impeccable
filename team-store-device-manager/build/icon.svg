@@ -1,14 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
-  <!-- Background -->
-  <rect width="1024" height="1024" rx="200" fill="#0f172a"/>
-  <!-- Store circle -->
-  <circle cx="512" cy="420" r="260" fill="#0f96eb"/>
-  <!-- iPhone shape -->
-  <rect x="430" y="300" width="144" height="240" rx="24" fill="white" opacity="0.95"/>
-  <rect x="448" y="320" width="108" height="170" rx="8" fill="#0f172a"/>
-  <circle cx="512" cy="508" r="10" fill="white" opacity="0.5"/>
-  <!-- Store text area -->
-  <rect x="180" y="720" width="664" height="140" rx="20" fill="#0f96eb" opacity="0.15"/>
-  <!-- T -->
-  <text x="512" y="825" font-family="Arial,sans-serif" font-size="100" font-weight="900" fill="white" text-anchor="middle" letter-spacing="4">TEAM STORE</text>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e293b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="180" fill="url(#bg)"/>
+  <rect x="412" y="180" width="200" height="200" rx="40" fill="#3b82f6"/>
+  <text x="512" y="560" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="700" font-size="120" fill="white" text-anchor="middle">Team</text>
+  <text x="512" y="700" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="700" font-size="120" fill="white" text-anchor="middle">Store</text>
+  <text x="512" y="790" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="400" font-size="48" fill="#94a3b8" text-anchor="middle">Device Manager</text>
 </svg>
