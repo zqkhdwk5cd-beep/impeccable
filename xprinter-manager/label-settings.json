@@ -1,0 +1,36 @@
+{
+  "_comment": "Production label settings for Xprinter XP-235B — calibrated 2026-06-06",
+  "printer": {
+    "name": "Xprinter_XP_235B",
+    "connectionType": "USB",
+    "protocol": "TSPL"
+  },
+  "label": {
+    "id": "production-pos-50x25",
+    "name": "Production POS 50x25",
+    "widthMm": 50,
+    "heightMm": 25,
+    "gapMm": 3,
+    "leftOffsetMm": 0,
+    "topOffsetMm": 0,
+    "dpi": 203
+  },
+  "print": {
+    "speed": 4,
+    "darkness": 8,
+    "tsplDirection": 1,
+    "tsplMirror": 0
+  },
+  "tspl": {
+    "sizeCommand": "SIZE 50 mm, 25 mm",
+    "gapCommand": "GAP 3 mm, 0 mm",
+    "directionCommand": "DIRECTION 1,0",
+    "speedCommand": "SPEED 4",
+    "densityCommand": "DENSITY 8",
+    "widthDots": 406,
+    "heightDots": 203
+  },
+  "cups": {
+    "printCommand": "lp -d Xprinter_XP_235B -o raw <file.tspl>"
+  }
+}
