@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:">
+  <title>فاحص الآيفون</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ── Title bar drag region ── -->
+<div class="titlebar">
+  <span class="titlebar-title">فاحص الآيفون</span>
+</div>
+
+<div class="root">
+
+  <!-- ── Sidebar ── -->
+  <nav class="sidebar" id="sidebar">
+    <div class="brand">
+      <span class="brand-icon">📱</span>
+      <span class="brand-name">فاحص الآيفون</span>
+    </div>
+
+    <!-- Score widget -->
+    <div class="score-widget">
+      <svg class="score-svg" viewBox="0 0 80 80">
+        <circle cx="40" cy="40" r="32" stroke-width="5" class="ring-track"/>
+        <circle cx="40" cy="40" r="32" stroke-width="5" class="ring-fill"
+          id="ringFill" stroke-dasharray="201" stroke-dashoffset="201"
+          stroke-linecap="round" transform="rotate(-90 40 40)"/>
+      </svg>
+      <div class="score-inner">
+        <div class="score-num" id="scoreNum">—</div>
+        <div class="score-lbl" id="scoreLabel">لم تبدأ</div>
+      </div>
+    </div>
+
+    <!-- Nav items -->
+    <div class="nav-list" id="navList">
+      <button class="nav-item nav-item--active" data-section="pre"     onclick="scrollTo('pre')">     <span>🔍</span> قبل اللقاء</button>
+      <button class="nav-item" data-section="icloud"  onclick="scrollTo('icloud')">  <span>☁️</span> iCloud</button>
+      <button class="nav-item" data-section="parts"   onclick="scrollTo('parts')">   <span>🔧</span> القطع الأصلية</button>
+      <button class="nav-item" data-section="battery" onclick="scrollTo('battery')"> <span>🔋</span> البطارية</button>
+      <button class="nav-item" data-section="screen"  onclick="scrollTo('screen')">  <span>🖥</span> الشاشة</button>
+      <button class="nav-item" data-section="camera"  onclick="scrollTo('camera')">  <span>📷</span> الكاميرا</button>
+      <button class="nav-item" data-section="network" onclick="scrollTo('network')"> <span>📶</span> الشبكات</button>
+      <button class="nav-item" data-section="body"    onclick="scrollTo('body')">    <span>🔎</span> الهيكل</button>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="reset-btn" onclick="resetAll()">
+        <svg viewBox="0 0 16 16" fill="none" width="13" height="13">
+          <path d="M2 8a6 6 0 1 0 .75-2.9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M2 4.5V8H5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        إعادة تعيين
+      </button>
+      <div class="progress-text" id="progressText">0 / 29</div>
+    </div>
+  </nav>
+
+  <!-- ── Main content ── -->
+  <main class="content" id="content">
+
+    <!-- Verdict banner -->
+    <div class="verdict-banner" id="verdictBanner"></div>
+
+    <!-- IMEI tool -->
+    <div class="imei-card" id="section-pre">
+      <h2 class="section-title"><span>🔍</span> قبل اللقاء مع البائع</h2>
+      <div class="imei-tool">
+        <label class="field-label" for="imeiInput">فحص IMEI على موقع Apple</label>
+        <div class="imei-row">
+          <input id="imeiInput" class="imei-input" type="tel" placeholder="354687xxxxxxxxx"
+            maxlength="17" dir="ltr" inputmode="numeric" autocomplete="off">
+          <button class="imei-btn" onclick="openImeiCheck()">فحص →</button>
+        </div>
+        <p class="field-hint">الإعدادات ← عام ← معلومات ← IMEI &nbsp;·&nbsp; أو اضغط *#06# في الهاتف</p>
+      </div>
+
+      <div class="checks-grid">
+        <div class="check-card" id="chk-imei-apple">
+          <div class="check-head">
+            <div class="check-bullet"></div>
+            <div class="check-body">
+              <div class="check-title"><span class="badge badge-red">مهم جداً</span>IMEI نظيف على Apple</div>
+              <div class="check-desc">تحقق أن الجهاز ما عليه حجب أو Activation Lock</div>
+            </div>
+          </div>
+          <div class="check-actions">
+            <button class="act-ok"   onclick="mark('chk-imei-apple','ok')">✓ نظيف</button>
+            <button class="act-fail" onclick="mark('chk-imei-apple','fail')">✗ مشكلة</button>
+            <button class="act-skip" onclick="mark('chk-imei-apple','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">اذهب لـ <code>checkcoverage.apple.com</code> وأدخل الـ IMEI. تحقق من تاريخ الضمان وأنه لم يُلغَ بسبب السرقة.</div>
+        </div>
+
+        <div class="check-card" id="chk-stolen">
+          <div class="check-head">
+            <div class="check-bullet"></div>
+            <div class="check-body">
+              <div class="check-title"><span class="badge badge-red">مهم جداً</span>ليس مسروقاً أو محجوباً</div>
+              <div class="check-desc">فحص IMEI على قواعد بيانات الهواتف المسروقة</div>
+            </div>
+          </div>
+          <div class="check-actions">
+            <button class="act-ok"   onclick="mark('chk-stolen','ok')">✓ نظيف</button>
+            <button class="act-fail" onclick="mark('chk-stolen','fail')">✗ محجوب</button>
+            <button class="act-skip" onclick="mark('chk-stolen','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">مواقع مجانية: <code>imei.info</code> · <code>swappa.com/imei-check</code> · <code>imeipro.info</code><br>ابحث عن "Clean" أو "Not Blacklisted".</div>
+        </div>
+
+        <div class="check-card" id="chk-serial-match">
+          <div class="check-head">
+            <div class="check-bullet"></div>
+            <div class="check-body">
+              <div class="check-title">السيريال يطابق الكرتونة</div>
+              <div class="check-desc">تأكد من الكرتونة الأصلية ومطابقة السيريال</div>
+            </div>
+          </div>
+          <div class="check-actions">
+            <button class="act-ok"   onclick="mark('chk-serial-match','ok')">✓ مطابق</button>
+            <button class="act-fail" onclick="mark('chk-serial-match','fail')">✗ مختلف</button>
+            <button class="act-skip" onclick="mark('chk-serial-match','skip')">لا كرتونة</button>
+          </div>
+          <div class="check-tip">الإعدادات ← عام ← معلومات. اختلاف السيريال = جهاز متبدل أو كرتونة مش أصلية.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- iCloud -->
+    <div class="section-block" id="section-icloud">
+      <h2 class="section-title"><span>☁️</span> iCloud وقفل التفعيل</h2>
+      <div class="callout callout-warn">⚠️ هذا القسم الأهم — آيفون عليه <strong>Activation Lock</strong> يساوي صفر. لا تشتريه مهما كان السعر مغرياً.</div>
+      <div class="checks-grid">
+        <div class="check-card check-card--wide" id="chk-activation-lock">
+          <div class="check-head">
+            <div class="check-bullet"></div>
+            <div class="check-body">
+              <div class="check-title"><span class="badge badge-red">حاسم</span>Activation Lock غير مفعل</div>
+              <div class="check-desc">تأكد أن قفل التفعيل محذوف وما في iCloud Account</div>
+            </div>
+          </div>
+          <div class="check-actions">
+            <button class="act-ok"   onclick="mark('chk-activation-lock','ok')">✓ نظيف</button>
+            <button class="act-fail" onclick="mark('chk-activation-lock','fail')">✗ مقفل</button>
+            <button class="act-skip" onclick="mark('chk-activation-lock','skip')">تخطي</button>
+          </div>
+          <div class="check-tip"><strong>الطريقة الأكيدة:</strong> اطلب Factory Reset أمامك — إذا طلب iCloud password أثناء الإعداد = لا تشتري.<br>البائع الصادق يقدر يحذف الحساب في ثواني. اللي يرفض = خطر كبير.</div>
+        </div>
+        <div class="check-card" id="chk-mdm">
+          <div class="check-head">
+            <div class="check-bullet"></div>
+            <div class="check-body">
+              <div class="check-title"><span class="badge badge-yellow">تحذير</span>ما في MDM Profile</div>
+              <div class="check-desc">الإعدادات ← عام ← VPN وإدارة الأجهزة</div>
+            </div>
+          </div>
+          <div class="check-actions">
+            <button class="act-ok"   onclick="mark('chk-mdm','ok')">✓ نظيف</button>
+            <button class="act-fail" onclick="mark('chk-mdm','fail')">✗ في Profile</button>
+            <button class="act-skip" onclick="mark('chk-mdm','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">Profile من شركة = الجهاز قد يكون ملك الشركة أو يُمسح عن بعد في أي وقت.</div>
+        </div>
+        <div class="check-card" id="chk-reset">
+          <div class="check-head">
+            <div class="check-bullet"></div>
+            <div class="check-body">
+              <div class="check-title">Factory Reset أمامك</div>
+              <div class="check-desc">شوف الإعداد من أوله أو اطلب إعادة ضبط المصنع</div>
+            </div>
+          </div>
+          <div class="check-actions">
+            <button class="act-ok"   onclick="mark('chk-reset','ok')">✓ نظيف</button>
+            <button class="act-fail" onclick="mark('chk-reset','fail')">✗ مرفوض</button>
+            <button class="act-skip" onclick="mark('chk-reset','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">الإعدادات ← عام ← نقل أو إعادة تهيئة iPhone ← مسح كل المحتوى والإعدادات.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- القطع الأصلية -->
+    <div class="section-block" id="section-parts">
+      <h2 class="section-title"><span>🔧</span> القطع الأصلية وتاريخ الصيانة</h2>
+      <div class="callout">🍎 آيفون 12+ مع iOS 15.2+ يعرضلك تلقائياً أي قطع متغيرة.<br>المسار: <code>الإعدادات ← عام ← معلومات ← قطع وخدمة</code></div>
+      <div class="checks-grid">
+        <div class="check-card" id="chk-screen-genuine">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title"><span class="badge badge-yellow">مهم</span>الشاشة أصلية</div>
+            <div class="check-desc">في "قطع وخدمة": الشاشة "قطعة Apple الأصلية"</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-screen-genuine','ok')">✓ أصلية</button>
+            <button class="act-fail" onclick="mark('chk-screen-genuine','fail')">✗ مجهولة</button>
+            <button class="act-skip" onclick="mark('chk-screen-genuine','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">"قطعة مجهولة" = شاشة بمركز غير معتمد. التأثير: ألوان مختلفة، True Tone معطل، Face ID قد يتعطل.</div>
+        </div>
+        <div class="check-card" id="chk-battery-genuine">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title"><span class="badge badge-yellow">مهم</span>البطارية أصلية</div>
+            <div class="check-desc">في "قطع وخدمة": البطارية "قطعة Apple الأصلية"</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-battery-genuine','ok')">✓ أصلية</button>
+            <button class="act-fail" onclick="mark('chk-battery-genuine','fail')">✗ مجهولة</button>
+            <button class="act-skip" onclick="mark('chk-battery-genuine','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">بطارية غير أصلية = عمر أقصر وخطر تسرب أو انتفاخ.</div>
+        </div>
+        <div class="check-card" id="chk-camera-genuine">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title">الكاميرا أصلية</div>
+            <div class="check-desc">في "قطع وخدمة": الكاميرا "قطعة Apple الأصلية"</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-camera-genuine','ok')">✓ أصلية</button>
+            <button class="act-fail" onclick="mark('chk-camera-genuine','fail')">✗ مجهولة</button>
+            <button class="act-skip" onclick="mark('chk-camera-genuine','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">كاميرا غير أصلية تأثيرها على جودة التصوير كبير.</div>
+        </div>
+        <div class="check-card" id="chk-faceid-genuine">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title"><span class="badge badge-yellow">مهم</span>Face ID / Touch ID يعمل</div>
+            <div class="check-desc">فتح الوجه أو البصمة يشتغلان بشكل طبيعي</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-faceid-genuine','ok')">✓ يعمل</button>
+            <button class="act-fail" onclick="mark('chk-faceid-genuine','fail')">✗ معطل</button>
+            <button class="act-skip" onclick="mark('chk-faceid-genuine','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">Face ID معطل = الشاشة اتغيرت بدون معدات Apple المعتمدة. "تعذر تفعيل Face ID" = خصم كبير من السعر.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- البطارية -->
+    <div class="section-block" id="section-battery">
+      <h2 class="section-title"><span>🔋</span> البطارية والنظام</h2>
+      <div class="checks-grid">
+        <div class="check-card" id="chk-battery-health">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title"><span class="badge badge-red">مهم جداً</span>صحة البطارية 80%+</div>
+            <div class="check-desc">الإعدادات ← البطارية ← صحة البطارية والشحن</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-battery-health','ok')">✓ 80%+</button>
+            <button class="act-fail" onclick="mark('chk-battery-health','fail')">✗ أقل</button>
+            <button class="act-skip" onclick="mark('chk-battery-health','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">90%+ ممتازة · 85-89% جيدة · 80-84% مقبولة · أقل من 80% تحتاج استبدال (~$99-149 في Apple Store).</div>
+        </div>
+        <div class="check-card" id="chk-battery-throttle">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title">ما في تقليل أداء</div>
+            <div class="check-desc">الإعدادات ← البطارية ← صحة البطارية والشحن</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-battery-throttle','ok')">✓ طبيعي</button>
+            <button class="act-fail" onclick="mark('chk-battery-throttle','fail')">✗ مقلل</button>
+            <button class="act-skip" onclick="mark('chk-battery-throttle','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">"تقليل الأداء قيد التشغيل" = الجهاز أبطأ بشكل ملحوظ لحماية البطارية المتدهورة.</div>
+        </div>
+        <div class="check-card" id="chk-ios-latest">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title">iOS قادر على التحديث</div>
+            <div class="check-desc">الإعدادات ← عام ← تحديث البرنامج</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-ios-latest','ok')">✓ يتحدث</button>
+            <button class="act-fail" onclick="mark('chk-ios-latest','fail')">✗ مشكلة</button>
+            <button class="act-skip" onclick="mark('chk-ios-latest','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">أجهزة معدّل عليها أحياناً تعجز عن التحديث — مؤشر خطر.</div>
+        </div>
+        <div class="check-card" id="chk-battery-cycles">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title">دورات الشحن معقولة</div>
+            <div class="check-desc">أقل من 500 دورة/سنة يعتبر طبيعي</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-battery-cycles','ok')">✓ معقولة</button>
+            <button class="act-fail" onclick="mark('chk-battery-cycles','fail')">✗ عالية</button>
+            <button class="act-skip" onclick="mark('chk-battery-cycles','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">الإعدادات ← الخصوصية ← خدمات الموقع ← خدمات النظام ← تقرير تحليلات iPhone. ابحث عن <code>cycle_count</code>.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- الشاشة -->
+    <div class="section-block" id="section-screen">
+      <h2 class="section-title"><span>🖥</span> الشاشة والصوت</h2>
+      <div class="checks-grid">
+        <div class="check-card" id="chk-display-dead">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title">ما في Dead Pixels أو بقع</div>
+            <div class="check-desc">شوف على خلفيات أبيض، أسود، أحمر، أخضر</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-display-dead','ok')">✓ نظيفة</button>
+            <button class="act-fail" onclick="mark('chk-display-dead','fail')">✗ عيوب</button>
+            <button class="act-skip" onclick="mark('chk-display-dead','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">ضع السطوع على 100%. ابحث عن نقاط ميتة، خطوط، أو Burn-in على الشاشات OLED.</div>
+        </div>
+        <div class="check-card" id="chk-true-tone">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title">True Tone يعمل (iPhone 8+)</div>
+            <div class="check-desc">الإعدادات ← شاشة العرض والسطوع</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-true-tone','ok')">✓ يعمل</button>
+            <button class="act-fail" onclick="mark('chk-true-tone','fail')">✗ معطل</button>
+            <button class="act-skip" onclick="mark('chk-true-tone','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">True Tone مخفي = الشاشة على الأرجح غير أصلية.</div>
+        </div>
+        <div class="check-card" id="chk-touch">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title">اللمس يستجيب في كل الزوايا</div>
+            <div class="check-desc">افتح Notes وارسم خطوط في كل الاتجاهات</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-touch','ok')">✓ ممتاز</button>
+            <button class="act-fail" onclick="mark('chk-touch','fail')">✗ مشكلة</button>
+            <button class="act-skip" onclick="mark('chk-touch','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">انتبه لزوايا لا تستجيب أو لمسات وهمية. الشاشات المستبدلة بجودة رديئة تعاني كثيراً.</div>
+        </div>
+        <div class="check-card" id="chk-speaker">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title">المكبر وسماعة الأذن تشتغلان</div>
+            <div class="check-desc">اختبر الصوت على أعلى مستوى وأثناء مكالمة</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-speaker','ok')">✓ ممتاز</button>
+            <button class="act-fail" onclick="mark('chk-speaker','fail')">✗ مشكلة</button>
+            <button class="act-skip" onclick="mark('chk-speaker','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">شغّل موسيقى على أعلى صوت — نظيف بدون تشويش. اختبر سماعة الأذن أثناء مكالمة.</div>
+        </div>
+        <div class="check-card" id="chk-brightness">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title">السطوع يصل للحد الأقصى</div>
+            <div class="check-desc">الشاشات المستبدلة أقل سطوعاً بشكل واضح</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-brightness','ok')">✓ ممتاز</button>
+            <button class="act-fail" onclick="mark('chk-brightness','fail')">✗ خافت</button>
+            <button class="act-skip" onclick="mark('chk-brightness','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">iPhone 13-16 الأصلي يصل 2000 نيت. الشاشات المقلدة تصل 700-1000 نيت فقط.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- الكاميرا -->
+    <div class="section-block" id="section-camera">
+      <h2 class="section-title"><span>📷</span> الكاميرا والتصوير</h2>
+      <div class="checks-grid">
+        <div class="check-card" id="chk-cam-back">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title">الكاميرا الخلفية واضحة</div>
+            <div class="check-desc">صوّر عن قرب وبعيد، التكبير، Portrait</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-cam-back','ok')">✓ ممتازة</button>
+            <button class="act-fail" onclick="mark('chk-cam-back','fail')">✗ مشكلة</button>
+            <button class="act-skip" onclick="mark('chk-cam-back','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">اختبر Macro، التكبير البصري، Portrait Mode، وفيديو 4K. تحقق من عدم وجود حبوب داخل العدسة.</div>
+        </div>
+        <div class="check-card" id="chk-cam-front">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title">الكاميرا الأمامية تعمل</div>
+            <div class="check-desc">سيلفي واضح بدون تشويه</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-cam-front','ok')">✓ ممتازة</button>
+            <button class="act-fail" onclick="mark('chk-cam-front','fail')">✗ مشكلة</button>
+            <button class="act-skip" onclick="mark('chk-cam-front','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">السيلفي المشوه = عدسة مكسورة. الكاميرا الأمامية تحتوي على حساسات Face ID.</div>
+        </div>
+        <div class="check-card" id="chk-flash">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title">الفلاش يعمل</div>
+            <div class="check-desc">اختبر كمصباح وأثناء التصوير</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-flash','ok')">✓ يعمل</button>
+            <button class="act-fail" onclick="mark('chk-flash','fail')">✗ مشكلة</button>
+            <button class="act-skip" onclick="mark('chk-flash','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">افتح مركز التحكم — الفلاش يضيء فوراً وبشكل مستمر. يومض أو باهت = مشكلة.</div>
+        </div>
+        <div class="check-card" id="chk-cam-lens">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title">العدسة سليمة بدون خدوش</div>
+            <div class="check-desc">افحص تحت إضاءة قوية من زوايا مختلفة</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-cam-lens','ok')">✓ سليمة</button>
+            <button class="act-fail" onclick="mark('chk-cam-lens','fail')">✗ مخدوشة</button>
+            <button class="act-skip" onclick="mark('chk-cam-lens','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">خدش كبير = Lens Flare ومشاكل تباين في الصور خاصة في الإضاءة الخلفية.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- الشبكات -->
+    <div class="section-block" id="section-network">
+      <h2 class="section-title"><span>📶</span> الاتصال والشبكات</h2>
+      <div class="checks-grid">
+        <div class="check-card" id="chk-wifi">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title">WiFi يتصل ويعمل بسرعة</div>
+            <div class="check-desc">اتصل بشبكة وافتح يوتيوب بجودة عالية</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-wifi','ok')">✓ ممتاز</button>
+            <button class="act-fail" onclick="mark('chk-wifi','fail')">✗ مشكلة</button>
+            <button class="act-skip" onclick="mark('chk-wifi','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">الإعدادات ← WiFi: تأكد من ظهور شبكات قريبة بإشارة قوية.</div>
+        </div>
+        <div class="check-card" id="chk-cellular">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title">شبكة الاتصال تعمل (SIM)</div>
+            <div class="check-desc">ضع شريحتك واختبر المكالمات والبيانات</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-cellular','ok')">✓ يعمل</button>
+            <button class="act-fail" onclick="mark('chk-cellular','fail')">✗ مشكلة</button>
+            <button class="act-skip" onclick="mark('chk-cellular','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">تأكد من اسم المشغل واشارة الشبكة، إجراء المكالمات، وعمل 4G/5G.</div>
+        </div>
+        <div class="check-card" id="chk-bluetooth">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title">Bluetooth يكتشف الأجهزة</div>
+            <div class="check-desc">الإعدادات ← Bluetooth وشوف الأجهزة القريبة</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-bluetooth','ok')">✓ يعمل</button>
+            <button class="act-fail" onclick="mark('chk-bluetooth','fail')">✗ مشكلة</button>
+            <button class="act-skip" onclick="mark('chk-bluetooth','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">فعّل وانتظر 10 ثواني — تظهر أجهزة قريبة. قرّن بسماعة إذا متاح.</div>
+        </div>
+        <div class="check-card" id="chk-gps">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title">GPS يحدد الموقع بدقة</div>
+            <div class="check-desc">افتح خرائط Apple في الخارج</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-gps','ok')">✓ دقيق</button>
+            <button class="act-fail" onclick="mark('chk-gps','fail')">✗ مشكلة</button>
+            <button class="act-skip" onclick="mark('chk-gps','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">الموقع يظهر بدقة خلال 30 ثانية في الخارج. GPS ضعيف = مشاكل في Uber/Careem/الخرائط.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- الهيكل -->
+    <div class="section-block" id="section-body">
+      <h2 class="section-title"><span>🔎</span> الحالة الجسدية والهيكل</h2>
+      <div class="checks-grid">
+        <div class="check-card" id="chk-water">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title"><span class="badge badge-red">مهم</span>ما في أضرار مياه</div>
+            <div class="check-desc">مؤشر الرطوبة داخل درج الشريحة</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-water','ok')">✓ نظيف</button>
+            <button class="act-fail" onclick="mark('chk-water','fail')">✗ تلف ماء</button>
+            <button class="act-skip" onclick="mark('chk-water','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">افتح درج الشريحة — المؤشر الأبيض إذا صار أحمر أو وردي = تعرض للماء. الجهاز قد يموت بعد أيام.</div>
+        </div>
+        <div class="check-card" id="chk-body-bend">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title">الهيكل سليم بدون انحناء</div>
+            <div class="check-desc">ضعه على سطح مستوٍ وشوف</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-body-bend','ok')">✓ سليم</button>
+            <button class="act-fail" onclick="mark('chk-body-bend','fail')">✗ متشوه</button>
+            <button class="act-skip" onclick="mark('chk-body-bend','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">الانحناء يؤثر على ختم الجهاز ومقاومته للماء وقد يؤثر على الدوائر الداخلية.</div>
+        </div>
+        <div class="check-card" id="chk-buttons">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title">كل الأزرار تعمل</div>
+            <div class="check-desc">الصوت، التشغيل، الصامت / Action Button</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-buttons','ok')">✓ تعمل</button>
+            <button class="act-fail" onclick="mark('chk-buttons','fail')">✗ مشكلة</button>
+            <button class="act-skip" onclick="mark('chk-buttons','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">أزرار تحتاج ضغط قوي أو لا تستجيب = تلف أو تجمّع غبار.</div>
+        </div>
+        <div class="check-card" id="chk-charging-port">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title">منفذ الشحن نظيف ويشحن</div>
+            <div class="check-desc">Lightning أو USB-C — اختبر الشحن</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-charging-port','ok')">✓ ممتاز</button>
+            <button class="act-fail" onclick="mark('chk-charging-port','fail')">✗ مشكلة</button>
+            <button class="act-skip" onclick="mark('chk-charging-port','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">افحص المنفذ بضوء — لا دبابيس مثنية. الكابل يدخل بسهولة وأيقونة الشحن تظهر فوراً.</div>
+        </div>
+        <div class="check-card" id="chk-gap">
+          <div class="check-head"><div class="check-bullet"></div><div class="check-body">
+            <div class="check-title">الشاشة ملتصقة بالتساوي</div>
+            <div class="check-desc">لا فجوات أو حواف بارزة على الأطراف</div>
+          </div></div>
+          <div class="check-actions">
+            <button class="act-ok" onclick="mark('chk-gap','ok')">✓ مثالي</button>
+            <button class="act-fail" onclick="mark('chk-gap','fail')">✗ فجوات</button>
+            <button class="act-skip" onclick="mark('chk-gap','skip')">تخطي</button>
+          </div>
+          <div class="check-tip">مرّر إصبعك على الحواف — سطح واحد مستوٍ. الفجوات = تركيب غير احترافي.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- bottom spacer -->
+    <div style="height: 40px"></div>
+  </main>
+
+</div><!-- /root -->
+
+<script src="app.js"></script>
+</body>
+</html>
