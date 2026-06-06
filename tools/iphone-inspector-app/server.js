@@ -1,13 +1,6 @@
 #!/usr/bin/env node
 'use strict';
 
-// Add Homebrew paths so ideviceinfo is found regardless of shell env
-process.env.PATH = [
-  '/opt/homebrew/bin',   // Apple Silicon
-  '/usr/local/bin',      // Intel Mac
-  process.env.PATH || '',
-].join(':');
-
 const http = require('http');
 const fs   = require('fs');
 const path = require('path');
@@ -18,17 +11,44 @@ const PORT = 3737;
 const bus  = new EventEmitter();
 bus.setMaxListeners(50);
 
-// ── Dependency check ─────────────────────────────────
-function hasDep(cmd) {
-  try { execSync(`which ${cmd}`, { stdio: 'ignore' }); return true; }
-  catch { return false; }
+// ── Find binaries by checking known paths directly ────
+const SEARCH_DIRS = [
+  '/opt/homebrew/bin',   // Apple Silicon Homebrew
+  '/usr/local/bin',      // Intel Homebrew
+  '/usr/bin',
+];
+
+function findBin(cmd) {
+  for (const dir of SEARCH_DIRS) {
+    const full = path.join(dir, cmd);
+    try { fs.accessSync(full, fs.constants.X_OK); return full; }
+    catch {}
+  }
+  // Last resort: try which
+  try {
+    const p = execSync(`which ${cmd} 2>/dev/null`, { encoding: 'utf8' }).trim();
+    if (p) return p;
+  } catch {}
+  return null;
 }
 
-const DEPS = {
-  idevice_id:       hasDep('idevice_id'),
-  ideviceinfo:      hasDep('ideviceinfo'),
-  idevicediagnostics: hasDep('idevicediagnostics'),
+const BIN = {
+  idevice_id:           findBin('idevice_id'),
+  ideviceinfo:          findBin('ideviceinfo'),
+  idevicediagnostics:   findBin('idevicediagnostics'),
 };
+
+const DEPS = {
+  idevice_id:           !!BIN.idevice_id,
+  ideviceinfo:          !!BIN.ideviceinfo,
+  idevicediagnostics:   !!BIN.idevicediagnostics,
+};
+
+console.log('── Dependency check ──');
+for (const [k, v] of Object.entries(BIN)) {
+  console.log(`  ${k}: ${v || '✗ not found'}`);
+}
+console.log('');
 
 // ── iPhone model name map ────────────────────────────
 const MODEL_NAMES = {
@@ -50,19 +70,20 @@ function run(cmd) {
 }
 
 function getKey(udid, key) {
+  if (!BIN.ideviceinfo) return null;
   const u = udid ? `-u ${udid}` : '';
-  const v = run(`ideviceinfo ${u} -k ${key} 2>/dev/null`);
+  const v = run(`"${BIN.ideviceinfo}" ${u} -k ${key} 2>/dev/null`);
   return (v && !v.startsWith('ERROR') && v !== '') ? v : null;
 }
 
 function getDevices() {
-  if (!DEPS.idevice_id) return [];
-  const out = run('idevice_id -l 2>/dev/null');
+  if (!BIN.idevice_id) return [];
+  const out = run(`"${BIN.idevice_id}" -l 2>/dev/null`);
   return out ? out.split('\n').filter(Boolean) : [];
 }
 
 function readDevice(udid) {
-  if (!DEPS.ideviceinfo) return null;
+  if (!BIN.ideviceinfo) return null;
 
   const u = udid || '';
   const d = {};
@@ -82,15 +103,14 @@ function readDevice(udid) {
     if (v) d[k] = v;
   }
 
-  // Friendly model name
   if (d.ProductType) {
     d.ModelName = MODEL_NAMES[d.ProductType] || d.ProductType;
   }
 
   // Battery diagnostics
-  if (DEPS.idevicediagnostics) {
+  if (BIN.idevicediagnostics) {
     const args = u ? `-u ${u}` : '';
-    const diag = run(`idevicediagnostics ${args} diagnostics IORegistry 2>/dev/null`);
+    const diag = run(`"${BIN.idevicediagnostics}" ${args} diagnostics IORegistry 2>/dev/null`);
     if (diag) {
       const extract = (key) => {
         const m = diag.match(new RegExp(`<key>${key}<\\/key>\\s*<(?:integer|real)>([^<]+)<`));
@@ -130,7 +150,6 @@ setInterval(poll, 2000);
 const MIME = { '.html':'text/html', '.css':'text/css', '.js':'application/javascript', '.svg':'image/svg+xml' };
 
 const server = http.createServer((req, res) => {
-  // SSE endpoint
   if (req.url === '/events') {
     res.writeHead(200, {
       'Content-Type':  'text/event-stream',
@@ -139,18 +158,14 @@ const server = http.createServer((req, res) => {
       'Access-Control-Allow-Origin': '*',
     });
     res.write('\n');
-
-    // Send current state immediately
     const current = lastUDIDs.map(u => readDevice(u));
     res.write(`data: ${JSON.stringify({ udids: lastUDIDs, devices: current, deps: DEPS })}\n\n`);
-
     const listener = (data) => res.write(`data: ${JSON.stringify(data)}\n\n`);
     bus.on('update', listener);
     req.on('close', () => bus.off('update', listener));
     return;
   }
 
-  // API: current device
   if (req.url === '/api/device') {
     const udids   = getDevices();
     const devices = udids.map(u => readDevice(u));
@@ -159,7 +174,6 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Static files
   let filePath = path.join(__dirname, 'public',
     req.url === '/' ? 'index.html' : req.url);
   const ext  = path.extname(filePath);
@@ -178,6 +192,5 @@ server.listen(PORT, '127.0.0.1', () => {
     console.log('  ⚠️  libimobiledevice مش مثبت. لتثبيته:');
     console.log('  brew install libimobiledevice\n');
   }
-  // Open browser
   exec(`open "${url}"`);
 });
