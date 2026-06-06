@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'" />
+  <title>Xprinter Label Manager</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- ─── Titlebar ─────────────────────────────────── -->
+  <div class="titlebar">
+    <h1>Xprinter Label Manager</h1>
+    <span class="printer-badge" id="title-printer-status">No printer selected</span>
+  </div>
+
+  <div class="body">
+
+    <!-- ─── Sidebar ──────────────────────────────────── -->
+    <nav class="sidebar">
+      <div class="nav-item active" data-tab="printers">
+        <span class="nav-icon">🖨</span> Printers
+        <span class="nav-badge" id="nav-printer-count" style="display:none">0</span>
+      </div>
+      <div class="nav-item" data-tab="driver">
+        <span class="nav-icon">⚙️</span> Driver
+      </div>
+      <div class="nav-item" data-tab="profile">
+        <span class="nav-icon">📐</span> Label Profile
+      </div>
+      <div class="nav-item" data-tab="calibration">
+        <span class="nav-icon">🎯</span> Calibration
+      </div>
+      <div class="nav-item" data-tab="testprint">
+        <span class="nav-icon">🧪</span> Test Print
+      </div>
+      <div class="nav-item" data-tab="logs">
+        <span class="nav-icon">📋</span> Logs
+        <span class="nav-badge" id="nav-log-count" style="display:none">0</span>
+      </div>
+      <div class="nav-item" data-tab="restore">
+        <span class="nav-icon">♻️</span> Restore
+      </div>
+    </nav>
+
+    <!-- ─── Content ──────────────────────────────────── -->
+    <main class="content">
+
+      <!-- ══ PRINTERS tab ═══════════════════════════════ -->
+      <div class="tab-pane active" id="tab-printers">
+        <div class="pane-header">
+          <h2>Connected Printers</h2>
+          <p>Detected via CUPS · USB · Network · Bluetooth</p>
+        </div>
+        <div class="pane-body">
+          <div class="btn-row" style="margin-top:0;margin-bottom:14px">
+            <button class="btn btn-primary" id="btn-detect">
+              <span class="spinner" id="detect-spinner" style="display:none"></span>
+              Refresh Printers
+            </button>
+            <span id="detect-status" style="font-size:11.5px;color:var(--text-muted);align-self:center"></span>
+          </div>
+          <div id="printer-list">
+            <div class="empty-state">
+              <div class="icon">🖨</div>
+              <h3>No printers detected</h3>
+              <p>Click "Refresh Printers" to scan for connected devices.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ DRIVER tab ════════════════════════════════ -->
+      <div class="tab-pane" id="tab-driver">
+        <div class="pane-header">
+          <h2>Driver / PPD Manager</h2>
+          <p>Inspect and install printer drivers without silent admin commands</p>
+        </div>
+        <div class="pane-body">
+          <div id="driver-no-printer" class="empty-state">
+            <div class="icon">⚙️</div>
+            <h3>Select a printer first</h3>
+            <p>Go to the Printers tab and click a printer to select it.</p>
+          </div>
+          <div id="driver-content" style="display:none">
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">Current Driver</span>
+                <span id="driver-type-badge"></span>
+              </div>
+              <div id="driver-info-rows"></div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">PPD File Preview</span>
+              </div>
+              <pre class="ppd-preview" id="ppd-preview">—</pre>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">Install New Driver</span>
+              </div>
+              <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px">
+                Select a local PPD file. The driver will be installed via
+                <code style="color:var(--accent)">lpadmin</code>.
+                You will be asked to confirm before any admin action.
+              </p>
+              <div class="btn-row" style="margin-top:0">
+                <button class="btn btn-secondary" id="btn-select-ppd">Choose PPD File…</button>
+                <button class="btn btn-primary" id="btn-install-ppd" disabled>Install Driver</button>
+              </div>
+              <div id="ppd-selected-path" style="font-size:11px;color:var(--text-dim);margin-top:8px"></div>
+              <div id="driver-result" class="result-box" style="display:none"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PROFILE tab ═══════════════════════════════ -->
+      <div class="tab-pane" id="tab-profile">
+        <div class="pane-header">
+          <h2>Label Profile</h2>
+          <p>Configure label dimensions and printing parameters</p>
+        </div>
+        <div class="pane-body">
+          <div style="display:grid;grid-template-columns:200px 1fr;gap:16px">
+            <!-- Profile list -->
+            <div>
+              <div class="section-label">Saved Profiles</div>
+              <div class="profile-list" id="profile-list"></div>
+              <button class="btn btn-ghost" id="btn-new-profile" style="width:100%;margin-top:8px;justify-content:center;font-size:12px">
+                + New Profile
+              </button>
+            </div>
+            <!-- Profile form -->
+            <div>
+              <div class="section-label">Profile Settings</div>
+              <div class="card" style="margin-bottom:12px">
+                <div class="form-group" style="margin-bottom:12px">
+                  <label>Profile Name</label>
+                  <input type="text" id="profile-name" placeholder="e.g. 40×30 Shipping" />
+                </div>
+                <div class="form-grid" style="margin-bottom:12px">
+                  <div class="form-group">
+                    <label>Width (mm)</label>
+                    <input type="number" id="profile-width" step="0.5" min="10" max="300" value="40" />
+                  </div>
+                  <div class="form-group">
+                    <label>Height (mm)</label>
+                    <input type="number" id="profile-height" step="0.5" min="10" max="500" value="30" />
+                  </div>
+                  <div class="form-group">
+                    <label>Gap (mm)</label>
+                    <input type="number" id="profile-gap" step="0.5" min="0" max="20" value="3" />
+                  </div>
+                  <div class="form-group">
+                    <label>DPI</label>
+                    <select id="profile-dpi">
+                      <option value="203">203 dpi</option>
+                      <option value="300">300 dpi</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="section-label">Offset Adjustment</div>
+                <div class="form-grid" style="margin-bottom:12px">
+                  <div class="form-group">
+                    <label>Left Offset (mm)</label>
+                    <input type="number" id="profile-left-offset" step="0.1" min="-20" max="20" value="0" />
+                    <span class="hint">Positive = right</span>
+                  </div>
+                  <div class="form-group">
+                    <label>Top Offset (mm)</label>
+                    <input type="number" id="profile-top-offset" step="0.1" min="-20" max="20" value="0" />
+                    <span class="hint">Positive = down</span>
+                  </div>
+                </div>
+                <div class="section-label">Print Settings</div>
+                <div class="form-grid cols-3">
+                  <div class="form-group">
+                    <label>Print Speed (1–10)</label>
+                    <input type="number" id="profile-speed" step="1" min="1" max="10" value="4" />
+                  </div>
+                  <div class="form-group">
+                    <label>Darkness (0–15)</label>
+                    <input type="number" id="profile-darkness" step="1" min="0" max="15" value="8" />
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div id="profile-dots-preview" style="font-size:11.5px;color:var(--text-muted)"></div>
+                <div class="btn-row" style="margin-top:0">
+                  <button class="btn btn-danger" id="btn-delete-profile" disabled>Delete</button>
+                  <button class="btn btn-secondary" id="btn-apply-profile" disabled>Apply to Printer</button>
+                  <button class="btn btn-primary" id="btn-save-profile">Save Profile</button>
+                </div>
+              </div>
+              <div id="profile-result" class="result-box" style="display:none;margin-top:10px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ CALIBRATION tab ════════════════════════════ -->
+      <div class="tab-pane" id="tab-calibration">
+        <div class="pane-header">
+          <h2>Calibration</h2>
+          <p>Print a test label, check alignment, adjust offset until centered</p>
+        </div>
+        <div class="pane-body">
+          <div id="cal-no-printer" class="empty-state">
+            <div class="icon">🎯</div>
+            <h3>Select a printer and profile first</h3>
+            <p>Go to Printers and Label Profile tabs to set up your printer.</p>
+          </div>
+          <div id="cal-content" style="display:none">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+              <!-- Left: steps -->
+              <div>
+                <div class="card">
+                  <div class="card-title" style="margin-bottom:10px">Step 1: Print Test Label</div>
+                  <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">
+                    Print a calibration label with border, crosshair, corner markers, and QR placeholder.
+                    Examine where the print lands relative to the label edges.
+                  </p>
+                  <button class="btn btn-primary" id="btn-cal-print" style="width:100%">
+                    <span class="spinner" id="cal-print-spinner" style="display:none"></span>
+                    Print Test Label
+                  </button>
+                </div>
+
+                <div class="card">
+                  <div class="card-title" style="margin-bottom:10px">Step 2: Where did it print?</div>
+                  <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">
+                    Click the direction the print shifted, then enter the approximate distance in mm.
+                  </p>
+
+                  <div style="margin-bottom:14px">
+                    <div class="section-label">Horizontal (X)</div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap">
+                      <button class="cal-btn" id="cal-x-left">← Left</button>
+                      <button class="cal-btn center-btn" id="cal-x-center">✓ Center</button>
+                      <button class="cal-btn" id="cal-x-right">Right →</button>
+                    </div>
+                    <div class="cal-amount">
+                      <label style="font-size:11px;color:var(--text-muted)">Amount:</label>
+                      <input type="number" id="cal-x-amount" value="1" step="0.5" min="0" max="20" style="width:70px;padding:5px 8px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px" />
+                      <span style="font-size:11px;color:var(--text-muted)">mm</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="section-label">Vertical (Y)</div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap">
+                      <button class="cal-btn" id="cal-y-up">↑ Up</button>
+                      <button class="cal-btn center-btn" id="cal-y-center">✓ Center</button>
+                      <button class="cal-btn" id="cal-y-down">↓ Down</button>
+                    </div>
+                    <div class="cal-amount">
+                      <label style="font-size:11px;color:var(--text-muted)">Amount:</label>
+                      <input type="number" id="cal-y-amount" value="1" step="0.5" min="0" max="20" style="width:70px;padding:5px 8px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px" />
+                      <span style="font-size:11px;color:var(--text-muted)">mm</span>
+                    </div>
+                  </div>
+
+                  <div class="btn-row">
+                    <button class="btn btn-primary" id="btn-cal-apply" style="flex:1">Apply Correction & Reprint</button>
+                  </div>
+                  <div id="cal-result" class="result-box" style="display:none;margin-top:8px"></div>
+                </div>
+              </div>
+
+              <!-- Right: state + history -->
+              <div>
+                <div class="card">
+                  <div class="card-title" style="margin-bottom:10px">Current Offsets</div>
+                  <div id="cal-current-offsets">
+                    <div class="info-row">
+                      <span class="info-label">Left Offset</span>
+                      <span class="info-value" id="cal-left-display">0.00 mm</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Top Offset</span>
+                      <span class="info-value" id="cal-top-display">0.00 mm</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Iteration</span>
+                      <span class="info-value" id="cal-iteration-display">0</span>
+                    </div>
+                  </div>
+                  <div class="btn-row">
+                    <button class="btn btn-ghost" id="btn-cal-reset" style="flex:1;justify-content:center">Reset to 0,0</button>
+                    <button class="btn btn-secondary" id="btn-cal-save" style="flex:1;justify-content:center">Save to Profile</button>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-title" style="margin-bottom:8px">Calibration History</div>
+                  <div id="cal-history-list">
+                    <div style="font-size:11.5px;color:var(--text-dim)">No adjustments yet.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ TEST PRINT tab ════════════════════════════ -->
+      <div class="tab-pane" id="tab-testprint">
+        <div class="pane-header">
+          <h2>Test Print</h2>
+          <p>Print test labels or send a PDF to the selected printer</p>
+        </div>
+        <div class="pane-body">
+          <div id="tp-no-printer" class="empty-state">
+            <div class="icon">🧪</div>
+            <h3>Select a printer first</h3>
+          </div>
+          <div id="tp-content" style="display:none">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+              <div class="card">
+                <div class="card-title" style="margin-bottom:10px">Test Label</div>
+                <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">
+                  Prints a PostScript test label with border, crosshair, corner labels,
+                  edge tick marks, and QR finder pattern. Uses the current label profile dimensions.
+                </p>
+                <div style="margin-bottom:10px">
+                  <div class="info-row">
+                    <span class="info-label">Printer</span>
+                    <span class="info-value" id="tp-printer-name">—</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Profile</span>
+                    <span class="info-value" id="tp-profile-name">—</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Size</span>
+                    <span class="info-value" id="tp-size">—</span>
+                  </div>
+                </div>
+                <button class="btn btn-primary" id="btn-tp-test" style="width:100%">
+                  <span class="spinner" id="tp-spinner" style="display:none"></span>
+                  Print Test Label
+                </button>
+                <div id="tp-result" class="result-box" style="display:none;margin-top:10px"></div>
+              </div>
+
+              <div class="card">
+                <div class="card-title" style="margin-bottom:10px">Print PDF</div>
+                <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">
+                  Send a PDF file directly to the printer via CUPS.
+                  Scale and margins are controlled by the current label profile.
+                </p>
+                <div class="btn-row" style="margin-top:0;flex-direction:column">
+                  <button class="btn btn-secondary" id="btn-tp-select-pdf" style="justify-content:center">Choose PDF File…</button>
+                  <div id="tp-pdf-path" style="font-size:11px;color:var(--text-dim)"></div>
+                  <button class="btn btn-primary" id="btn-tp-print-pdf" disabled style="justify-content:center">
+                    <span class="spinner" id="tp-pdf-spinner" style="display:none"></span>
+                    Print PDF
+                  </button>
+                </div>
+                <div id="tp-pdf-result" class="result-box" style="display:none;margin-top:10px"></div>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top:4px">
+              <div class="card-header">
+                <span class="card-title">Queue Management</span>
+              </div>
+              <div class="btn-row" style="margin-top:0">
+                <button class="btn btn-danger" id="btn-cancel-jobs">Cancel All Jobs</button>
+              </div>
+              <div id="cancel-result" class="result-box" style="display:none;margin-top:10px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ LOGS tab ═══════════════════════════════════ -->
+      <div class="tab-pane" id="tab-logs">
+        <div class="pane-header" style="display:flex;align-items:center;justify-content:space-between;padding-bottom:12px">
+          <div>
+            <h2>Command Log</h2>
+            <p>All executed commands and their results</p>
+          </div>
+          <div class="btn-row" style="margin-top:0">
+            <select id="log-filter" style="background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:var(--radius);font-size:12px;font-family:inherit">
+              <option value="all">All levels</option>
+              <option value="command">Commands only</option>
+              <option value="error">Errors only</option>
+            </select>
+            <button class="btn btn-ghost" id="btn-clear-logs" style="font-size:12px">Clear</button>
+          </div>
+        </div>
+        <div class="pane-body" style="display:flex;flex-direction:column;padding-top:0">
+          <div class="log-container" id="log-container"></div>
+        </div>
+      </div>
+
+      <!-- ══ RESTORE tab ════════════════════════════════ -->
+      <div class="tab-pane" id="tab-restore">
+        <div class="pane-header">
+          <h2>Backup &amp; Restore</h2>
+          <p>Save and restore printer settings. Always backs up before changes.</p>
+        </div>
+        <div class="pane-body">
+          <div class="btn-row" style="margin-top:0;margin-bottom:16px">
+            <button class="btn btn-primary" id="btn-create-backup" disabled>
+              Create Backup Now
+            </button>
+            <span style="font-size:11.5px;color:var(--text-muted);align-self:center" id="backup-status"></span>
+          </div>
+          <div id="backup-list">
+            <div class="empty-state">
+              <div class="icon">♻️</div>
+              <h3>No backups yet</h3>
+              <p>Backups are created automatically before any settings change.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
