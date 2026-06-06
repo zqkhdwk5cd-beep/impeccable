@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>فاحص الآيفون — تأكد قبل الشراء</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0a0f;
+      --surface:   #13131a;
+      --surface2:  #1c1c26;
+      --border:    #2a2a38;
+      --text:      #e8e8f0;
+      --muted:     #8888a8;
+      --accent:    #6c63ff;
+      --accent2:   #a78bfa;
+      --green:     #22c55e;
+      --yellow:    #eab308;
+      --red:       #ef4444;
+      --orange:    #f97316;
+      --radius:    14px;
+      --radius-sm: 8px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #1a1040 0%, #0f0f1a 50%, #0a1628 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 2.5rem 1.5rem 2rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 80% at 50% 0%, rgba(108,99,255,.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .logo-icon {
+      font-size: 3rem;
+      margin-bottom: .75rem;
+      display: block;
+      filter: drop-shadow(0 0 20px rgba(108,99,255,.6));
+    }
+    header h1 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      color: #fff;
+      margin-bottom: .5rem;
+    }
+    header p {
+      color: var(--muted);
+      font-size: .95rem;
+      max-width: 42ch;
+      margin: 0 auto;
+    }
+
+    /* ── Score bar ── */
+    .score-bar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.5rem;
+      margin: 1.5rem auto;
+      max-width: 680px;
+      position: sticky;
+      top: .75rem;
+      z-index: 100;
+      box-shadow: 0 8px 32px rgba(0,0,0,.5);
+    }
+    .score-num {
+      font-size: 2rem;
+      font-weight: 900;
+      line-height: 1;
+      min-width: 3ch;
+      text-align: center;
+      color: var(--green);
+      transition: color .3s;
+    }
+    .score-num.warn { color: var(--yellow); }
+    .score-num.danger { color: var(--red); }
+
+    .score-track {
+      flex: 1;
+      height: 8px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .score-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--green), #86efac);
+      transition: width .4s cubic-bezier(.4,0,.2,1), background .3s;
+      width: 100%;
+    }
+    .score-fill.warn { background: linear-gradient(90deg, var(--yellow), #fde047); }
+    .score-fill.danger { background: linear-gradient(90deg, var(--red), #fca5a5); }
+
+    .score-label {
+      font-size: .85rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .reset-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: var(--radius-sm);
+      padding: .35rem .75rem;
+      cursor: pointer;
+      font-size: .8rem;
+      transition: all .2s;
+    }
+    .reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Main layout ── */
+    main {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 0 1rem 4rem;
+    }
+
+    /* ── Section ── */
+    .section {
+      margin-bottom: 1.5rem;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .85rem 1.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      user-select: none;
+      transition: border-color .2s;
+    }
+    .section-header:hover { border-color: var(--accent); }
+    .section-icon { font-size: 1.4rem; }
+    .section-title { font-weight: 700; font-size: 1rem; flex: 1; }
+    .section-progress {
+      font-size: .8rem;
+      color: var(--muted);
+      background: var(--surface2);
+      border-radius: 99px;
+      padding: .2rem .65rem;
+    }
+    .section-chevron {
+      color: var(--muted);
+      transition: transform .25s;
+      font-style: normal;
+      font-size: .8rem;
+    }
+    .section-body {
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 var(--radius) var(--radius);
+      overflow: hidden;
+      display: none;
+    }
+    .section.open .section-body { display: block; }
+    .section.open .section-header {
+      border-radius: var(--radius) var(--radius) 0 0;
+      border-color: var(--accent);
+    }
+    .section.open .section-chevron { transform: rotate(180deg); }
+
+    /* ── Check item ── */
+    .check-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: .75rem;
+      align-items: start;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      transition: background .15s;
+      cursor: pointer;
+    }
+    .check-item:last-child { border-bottom: none; }
+    .check-item:hover { background: rgba(108,99,255,.05); }
+
+    .check-radio {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+      transition: all .2s;
+      font-size: .75rem;
+    }
+    .check-item.ok    .check-radio { border-color: var(--green); background: var(--green); color: #fff; }
+    .check-item.fail  .check-radio { border-color: var(--red);   background: var(--red);   color: #fff; }
+    .check-item.skip  .check-radio { border-color: var(--muted); background: var(--surface2); color: var(--muted); }
+
+    .check-content { min-width: 0; }
+    .check-title {
+      font-weight: 600;
+      font-size: .9rem;
+      margin-bottom: .25rem;
+      color: var(--text);
+    }
+    .check-desc {
+      font-size: .8rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .check-tip {
+      display: none;
+      margin-top: .6rem;
+      padding: .65rem .85rem;
+      background: rgba(108,99,255,.08);
+      border-right: 3px solid var(--accent);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-size: .8rem;
+      color: #c4b5fd;
+      line-height: 1.55;
+    }
+    .check-item.expanded .check-tip { display: block; }
+
+    .check-actions {
+      display: flex;
+      flex-direction: column;
+      gap: .35rem;
+      flex-shrink: 0;
+    }
+    .btn-ok, .btn-fail, .btn-skip {
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: .3rem .7rem;
+      font-size: .72rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+    .btn-ok   { background: rgba(34,197,94,.15);  color: var(--green);  }
+    .btn-fail { background: rgba(239,68,68,.15);   color: var(--red);    }
+    .btn-skip { background: rgba(136,136,168,.12); color: var(--muted);  }
+    .btn-ok:hover   { background: rgba(34,197,94,.3);  }
+    .btn-fail:hover { background: rgba(239,68,68,.3);   }
+    .btn-skip:hover { background: rgba(136,136,168,.25); }
+
+    .check-item.ok   .btn-ok   { background: var(--green); color: #fff; }
+    .check-item.fail .btn-fail { background: var(--red);   color: #fff; }
+    .check-item.skip .btn-skip { background: var(--muted); color: #fff; }
+
+    /* ── Tags ── */
+    .tag {
+      display: inline-block;
+      font-size: .65rem;
+      font-weight: 700;
+      padding: .1rem .45rem;
+      border-radius: 99px;
+      margin-right: .3rem;
+      vertical-align: middle;
+    }
+    .tag-critical { background: rgba(239,68,68,.18); color: var(--red); }
+    .tag-warn     { background: rgba(234,179,8,.18);  color: var(--yellow); }
+    .tag-info     { background: rgba(108,99,255,.18); color: var(--accent2); }
+
+    /* ── IMEI section ── */
+    .imei-box {
+      background: var(--surface2);
+      border-radius: var(--radius-sm);
+      padding: 1rem 1.25rem;
+      margin: 1rem;
+      border: 1px solid var(--border);
+    }
+    .imei-box label { font-size: .8rem; color: var(--muted); display: block; margin-bottom: .5rem; }
+    .imei-row { display: flex; gap: .5rem; }
+    .imei-input {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      padding: .55rem .85rem;
+      font-size: .9rem;
+      direction: ltr;
+      text-align: left;
+      font-family: "SF Mono", "Consolas", monospace;
+    }
+    .imei-input:focus { outline: none; border-color: var(--accent); }
+    .imei-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: .55rem 1rem;
+      font-size: .85rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity .2s;
+    }
+    .imei-btn:hover { opacity: .85; }
+    .imei-hint { font-size: .75rem; color: var(--muted); margin-top: .5rem; }
+
+    /* ── Verdict ── */
+    .verdict-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      transition: border-color .3s;
+    }
+    .verdict-icon { font-size: 2.5rem; margin-bottom: .75rem; }
+    .verdict-title { font-size: 1.25rem; font-weight: 800; margin-bottom: .5rem; }
+    .verdict-sub { font-size: .85rem; color: var(--muted); }
+    .verdict-card.good   { border-color: var(--green);  }
+    .verdict-card.caution { border-color: var(--yellow); }
+    .verdict-card.bad    { border-color: var(--red);    }
+
+    /* ── Warnings list ── */
+    .warnings {
+      background: rgba(239,68,68,.06);
+      border: 1px solid rgba(239,68,68,.25);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      display: none;
+    }
+    .warnings.visible { display: block; }
+    .warnings h3 { font-size: .85rem; color: var(--red); margin-bottom: .65rem; font-weight: 700; }
+    .warnings li {
+      font-size: .82rem;
+      color: #fca5a5;
+      margin-right: 1rem;
+      margin-bottom: .3rem;
+      line-height: 1.4;
+    }
+
+    /* ── Info callout ── */
+    .callout {
+      display: flex;
+      gap: .75rem;
+      padding: .85rem 1rem;
+      background: rgba(108,99,255,.07);
+      border: 1px solid rgba(108,99,255,.2);
+      border-radius: var(--radius-sm);
+      margin: .75rem 1rem;
+      font-size: .8rem;
+      color: #c4b5fd;
+      line-height: 1.5;
+    }
+    .callout-icon { flex-shrink: 0; font-size: 1rem; margin-top: .1rem; }
+
+    /* ── How-to guide ── */
+    .path-steps {
+      padding: .5rem 1.25rem 1rem;
+    }
+    .path-step {
+      display: flex;
+      gap: .75rem;
+      align-items: flex-start;
+      padding: .5rem 0;
+    }
+    .step-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-size: .7rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .path-arrow {
+      color: var(--muted);
+      font-size: .8rem;
+      padding: .5rem 0 0 1.1rem;
+    }
+    .step-text { font-size: .82rem; color: var(--text); line-height: 1.5; }
+    .mono {
+      font-family: "SF Mono","Consolas",monospace;
+      background: var(--surface2);
+      padding: .1rem .35rem;
+      border-radius: 4px;
+      font-size: .78rem;
+      color: var(--accent2);
+    }
+
+    /* ── Summary footer ── */
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: .65rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      font-size: .82rem;
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .sum-label { color: var(--muted); }
+    .sum-val { font-weight: 700; }
+    .sum-val.ok   { color: var(--green);  }
+    .sum-val.fail { color: var(--red);    }
+    .sum-val.skip { color: var(--muted);  }
+
+    @media (max-width: 500px) {
+      .check-actions { flex-direction: row; }
+      .btn-ok, .btn-fail, .btn-skip { padding: .3rem .5rem; font-size: .68rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="logo-icon">📱</span>
+  <h1>فاحص الآيفون</h1>
+  <p>قائمة فحص شاملة قبل شراء آيفون مستعمل — اكتشف أي صيانة أو قطع متغيرة</p>
+</header>
+
+<main>
+  <!-- Score bar -->
+  <div class="score-bar">
+    <div>
+      <div class="score-num" id="scoreNum">—</div>
+      <div style="font-size:.7rem;color:var(--muted);text-align:center">من 100</div>
+    </div>
+    <div style="flex:1">
+      <div class="score-track"><div class="score-fill" id="scoreFill" style="width:0%"></div></div>
+      <div style="display:flex;justify-content:space-between;margin-top:.3rem">
+        <span class="score-label" id="scoreLabel">لم تبدأ الفحص بعد</span>
+        <span class="score-label" id="scoreCount"></span>
+      </div>
+    </div>
+    <button class="reset-btn" onclick="resetAll()">إعادة</button>
+  </div>
+
+  <!-- Verdict -->
+  <div class="verdict-card" id="verdictCard" style="display:none">
+    <div class="verdict-icon" id="verdictIcon"></div>
+    <div class="verdict-title" id="verdictTitle"></div>
+    <div class="verdict-sub" id="verdictSub"></div>
+  </div>
+
+  <!-- Warnings -->
+  <div class="warnings" id="warningsBox">
+    <h3>⚠️ مشاكل تحتاج انتباه</h3>
+    <ul id="warningsList"></ul>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       SECTION 1 — قبل اللقاء
+  ═══════════════════════════════════════ -->
+  <div class="section open" data-section="pre">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">🔍</span>
+      <span class="section-title">قبل اللقاء مع البائع</span>
+      <span class="section-progress" id="prog-pre">0 / 3</span>
+      <i class="section-chevron">▲</i>
+    </div>
+    <div class="section-body">
+
+      <div class="callout">
+        <span class="callout-icon">💡</span>
+        <span>اطلب من البائع يبعتلك السيريال نمبر أو IMEI قبل الاجتماع — التحقق منه بيوفر عليك وقت ورحلة.</span>
+      </div>
+
+      <!-- IMEI input -->
+      <div class="imei-box">
+        <label>أدخل رقم IMEI للتحقق السريع</label>
+        <div class="imei-row">
+          <input class="imei-input" id="imeiInput" type="tel" placeholder="354687xxxxxxxxx" maxlength="17" dir="ltr">
+          <button class="imei-btn" onclick="openImeiCheck()">فحص</button>
+        </div>
+        <div class="imei-hint">IMEI يجيب من: الجهاز ← الإعدادات ← عام ← معلومات، أو اضغط *#06# في الهاتف</div>
+      </div>
+
+      <div class="check-item" id="chk-imei-apple" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title"><span class="tag tag-critical">مهم جداً</span> IMEI نظيف على موقع Apple</div>
+          <div class="check-desc">تحقق أن الجهاز ما عليه حجب أو activation lock من Apple</div>
+          <div class="check-tip">
+            <strong>الخطوات:</strong><br>
+            اذهب لـ <span class="mono">checkcoverage.apple.com</span> أو ادخل IMEI في:<br>
+            <strong>الإعدادات ← عام ← معلومات ← IMEI</strong><br><br>
+            ابحث عن: تاريخ انتهاء الضمان، نوع الجهاز، وأن الضمان لم يتم إلغاؤه بسبب السرقة.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-imei-apple','ok')">✓ نظيف</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-imei-apple','fail')">✗ مشكلة</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-imei-apple','skip')">تخطي</button>
+        </div>
+      </div>
+
+      <div class="check-item" id="chk-stolen" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title"><span class="tag tag-critical">مهم جداً</span> ليس مسروقاً أو محجوباً</div>
+          <div class="check-desc">فحص IMEI على قواعد بيانات الهواتف المسروقة (GSMA وغيرها)</div>
+          <div class="check-tip">
+            <strong>مواقع للفحص المجاني:</strong><br>
+            • <span class="mono">imei.info</span> — تفاصيل أساسية<br>
+            • <span class="mono">swappa.com/imei-check</span> — فحص الحجب<br>
+            • <span class="mono">imeipro.info</span> — فحص شامل<br><br>
+            ابحث عن: "Clean" أو "Not Blacklisted" — أي علامة حمراء تعني ابعد عن الصفقة.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-stolen','ok')">✓ نظيف</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-stolen','fail')">✗ محجوب</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-stolen','skip')">تخطي</button>
+        </div>
+      </div>
+
+      <div class="check-item" id="chk-serial-match" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title">السيريال نمبر يطابق الكرتونة</div>
+          <div class="check-desc">تأكد أن الكرتونة الأصلية موجودة والسيريال مطابق للجهاز</div>
+          <div class="check-tip">
+            السيريال نمبر موجود في <strong>الإعدادات ← عام ← معلومات</strong> وكمان مطبوع على ظهر الجهاز وعلى الكرتونة.<br><br>
+            إذا اختلف السيريال عن الكرتونة = الجهاز متبدل أو الكرتونة مش أصلية. مش نهاية الدنيا لكن نقطة تفاوض.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-serial-match','ok')">✓ مطابق</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-serial-match','fail')">✗ مختلف</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-serial-match','skip')">لا كرتونة</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       SECTION 2 — iCloud & الحسابات
+  ═══════════════════════════════════════ -->
+  <div class="section" data-section="icloud">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">☁️</span>
+      <span class="section-title">iCloud وقفل التفعيل</span>
+      <span class="section-progress" id="prog-icloud">0 / 3</span>
+      <i class="section-chevron">▲</i>
+    </div>
+    <div class="section-body">
+
+      <div class="callout">
+        <span class="callout-icon">⚠️</span>
+        <span>هذا القسم الأهم — آيفون عليه Activation Lock يساوي <strong style="color:var(--red)">صفر</strong>. لا تشتريه مهما كان السعر مغري.</span>
+      </div>
+
+      <div class="check-item" id="chk-activation-lock" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title"><span class="tag tag-critical">حاسم</span> Activation Lock مش مفعل</div>
+          <div class="check-desc">تأكد أن قفل التفعيل محذوف وما في iCloud Account</div>
+          <div class="check-tip">
+            <strong>الطريقة الأكيدة:</strong> اطلب من البائع يعمل Factory Reset أمامك وشوف إذا طلب منه iCloud password أثناء الإعداد.<br><br>
+            <strong>أو:</strong> روح لـ <strong>الإعدادات ← اسمه في الأعلى</strong> — لو في حساب iCloud لا تشتري لحد ما يحذفه أمامك وتتأكد من Activation Lock على موقع Apple.<br><br>
+            <strong>تحذير:</strong> البائع الصادق يقدر يحذف الحساب في ثواني. اللي يرفض = خطر كبير.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-activation-lock','ok')">✓ نظيف</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-activation-lock','fail')">✗ مقفل</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-activation-lock','skip')">تخطي</button>
+        </div>
+      </div>
+
+      <div class="check-item" id="chk-mdm" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title"><span class="tag tag-warn">تحذير</span> ما في MDM Profile</div>
+          <div class="check-desc">تأكد أن الجهاز ما عليه إدارة مؤسسية (MDM) من شركة أو مدرسة</div>
+          <div class="check-tip">
+            <strong>الإعدادات ← عام ← VPN وإدارة الأجهزة</strong><br>
+            إذا لقيت Profile مثبت من شركة أو مؤسسة، الجهاز ممكن يكون ملك الشركة وليس البائع.<br><br>
+            بعض الـ MDM profiles تمنع تثبيت تطبيقات معينة أو تعمل Wipe للجهاز عن بعد.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-mdm','ok')">✓ نظيف</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-mdm','fail')">✗ في Profile</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-mdm','skip')">تخطي</button>
+        </div>
+      </div>
+
+      <div class="check-item" id="chk-reset" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title">Factory Reset أمامك أو تجديد نظيف</div>
+          <div class="check-desc">شوف الإعداد من أوله أو اطلب إعادة ضبط المصنع</div>
+          <div class="check-tip">
+            إذا كان الجهاز محتاج إعداد أولي = مثالي، اعمل الإعداد بنفسك وتأكد أنه ما طلب iCloud password.<br><br>
+            <strong>الإعدادات ← عام ← نقل أو إعادة تهيئة iPhone ← مسح كل المحتوى والإعدادات</strong>
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-reset','ok')">✓ نظيف</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-reset','fail')">✗ مرفوض</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-reset','skip')">تخطي</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       SECTION 3 — القطع الأصلية (iOS 15.2+)
+  ═══════════════════════════════════════ -->
+  <div class="section" data-section="parts">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">🔧</span>
+      <span class="section-title">القطع الأصلية وتاريخ الصيانة</span>
+      <span class="section-progress" id="prog-parts">0 / 4</span>
+      <i class="section-chevron">▲</i>
+    </div>
+    <div class="section-body">
+
+      <div class="callout">
+        <span class="callout-icon">🍎</span>
+        <span>آيفون 12 وما بعده مع iOS 15.2+ يعرضلك تلقائياً لو في قطع متغيرة — هذا أدق كاشف موجود.</span>
+      </div>
+
+      <div class="path-steps">
+        <strong style="font-size:.82rem;color:var(--muted)">المسار:</strong>
+        <div class="path-step"><div class="step-num">1</div><div class="step-text">الإعدادات</div></div>
+        <div class="path-arrow">↓</div>
+        <div class="path-step"><div class="step-num">2</div><div class="step-text">عام</div></div>
+        <div class="path-arrow">↓</div>
+        <div class="path-step"><div class="step-num">3</div><div class="step-text">معلومات</div></div>
+        <div class="path-arrow">↓</div>
+        <div class="path-step"><div class="step-num">4</div><div class="step-text">ابحث عن: <span class="mono">قطع وخدمة</span></div></div>
+      </div>
+
+      <div class="check-item" id="chk-screen-genuine" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title"><span class="tag tag-warn">مهم</span> الشاشة أصلية</div>
+          <div class="check-desc">في "قطع وخدمة": الشاشة تظهر "قطعة Apple الأصلية"</div>
+          <div class="check-tip">
+            إذا ظهر "<strong style="color:var(--red)">قطعة مجهولة</strong>" أو "<strong style="color:var(--yellow)">تعذر التحقق</strong>" = الشاشة تغيرت بمركز غير معتمد.<br><br>
+            <strong>تأثير الشاشة غير الأصلية:</strong><br>
+            • ألوان مختلفة / True Tone معطل<br>
+            • Face ID ممكن يتعطل<br>
+            • اللمس أبطأ أو أقل دقة<br>
+            • الضمان على الشاشة ينتهي
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-screen-genuine','ok')">✓ أصلية</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-screen-genuine','fail')">✗ مجهولة</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-screen-genuine','skip')">تخطي</button>
+        </div>
+      </div>
+
+      <div class="check-item" id="chk-battery-genuine" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title"><span class="tag tag-warn">مهم</span> البطارية أصلية</div>
+          <div class="check-desc">في "قطع وخدمة": البطارية تظهر "قطعة Apple الأصلية"</div>
+          <div class="check-tip">
+            بطارية غير أصلية = عمرها أقل بكثير وخطر تسرب أو انتفاخ.<br><br>
+            حتى لو "أصلية": تحقق من صحة البطارية في <strong>الإعدادات ← البطارية ← صحة البطارية</strong>.<br>
+            قبول: 80%+ للاستعمال العادي، 85%+ إذا حابب تستعملها سنتين.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-battery-genuine','ok')">✓ أصلية</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-battery-genuine','fail')">✗ مجهولة</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-battery-genuine','skip')">تخطي</button>
+        </div>
+      </div>
+
+      <div class="check-item" id="chk-camera-genuine" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title">الكاميرا أصلية</div>
+          <div class="check-desc">في "قطع وخدمة": الكاميرا تظهر "قطعة Apple الأصلية"</div>
+          <div class="check-tip">
+            كاميرا غير أصلية أقل شيوعاً لكن تأثيرها على جودة التصوير كبير.<br><br>
+            اختبر الكاميرا عملياً: صوّر في إضاءة عادية وإضاءة منخفضة وتحقق من الوضوح والألوان.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-camera-genuine','ok')">✓ أصلية</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-camera-genuine','fail')">✗ مجهولة</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-camera-genuine','skip')">تخطي</button>
+        </div>
+      </div>
+
+      <div class="check-item" id="chk-faceid-genuine" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title"><span class="tag tag-warn">مهم</span> Face ID / Touch ID يعمل</div>
+          <div class="check-desc">البصمة وفتح الوجه يشتغلوا بشكل طبيعي</div>
+          <div class="check-tip">
+            Face ID معطل غالباً يعني الشاشة اتغيرت بدون معدات Apple المعتمدة.<br><br>
+            <strong>اختبار Face ID:</strong> قفّل الجهاز وانظر إليه — المفروض يفتح فوراً.<br>
+            <strong>اختبار Touch ID:</strong> ضع إصبعك على الزر — المفروض يفتح بسرعة.<br><br>
+            إذا طلع "<strong style="color:var(--red)">تعذر تفعيل Face ID</strong>" = مشكلة حقيقية وخصم كبير من السعر.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-faceid-genuine','ok')">✓ يعمل</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-faceid-genuine','fail')">✗ معطل</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-faceid-genuine','skip')">تخطي</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       SECTION 4 — البطارية والنظام
+  ═══════════════════════════════════════ -->
+  <div class="section" data-section="battery">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">🔋</span>
+      <span class="section-title">البطارية والنظام</span>
+      <span class="section-progress" id="prog-battery">0 / 4</span>
+      <i class="section-chevron">▲</i>
+    </div>
+    <div class="section-body">
+
+      <div class="check-item" id="chk-battery-health" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title"><span class="tag tag-critical">مهم جداً</span> صحة البطارية 80%+</div>
+          <div class="check-desc">الإعدادات ← البطارية ← صحة البطارية والشحن</div>
+          <div class="check-tip">
+            <strong>دليل التقييم:</strong><br>
+            <span style="color:var(--green)">■</span> 90-100% — ممتازة، تقريباً جديدة<br>
+            <span style="color:var(--green)">■</span> 85-89% — جيدة جداً<br>
+            <span style="color:var(--yellow)">■</span> 80-84% — مقبولة، راعي السعر<br>
+            <span style="color:var(--red)">■</span> أقل من 80% — تحتاج استبدال قريب<br><br>
+            البطارية في Apple Store تكلف ~$99-149 أضفها على سعر الشراء.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-battery-health','ok')">✓ 80%+</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-battery-health','fail')">✗ أقل</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-battery-health','skip')">تخطي</button>
+        </div>
+      </div>
+
+      <div class="check-item" id="chk-battery-cycles" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title">دورات الشحن معقولة</div>
+          <div class="check-desc">عدد مرات الشحن الكاملة — اقل دائماً أفضل</div>
+          <div class="check-tip">
+            <strong>الإعدادات ← الخصوصية والأمان ← خدمات الموقع ← خدمات النظام ← تقرير تحليلات iPhone</strong><br><br>
+            ابحث في الـ Log عن: <span class="mono">cycle_count</span><br><br>
+            <strong>معدل طبيعي:</strong> ~300-500 دورة في السنة.<br>
+            أكثر من 1000 دورة = بطارية متعبة حتى لو الصحة تبدو عالية.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-battery-cycles','ok')">✓ معقولة</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-battery-cycles','fail')">✗ عالية</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-battery-cycles','skip')">تخطي</button>
+        </div>
+      </div>
+
+      <div class="check-item" id="chk-ios-latest" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title">iOS محدّث وقادر على التحديث</div>
+          <div class="check-desc">تأكد من إمكانية تحديث النظام وعدم وجود حجب</div>
+          <div class="check-tip">
+            <strong>الإعدادات ← عام ← تحديث البرنامج</strong><br><br>
+            تأكد أن التحديث متاح وقادر على التنزيل. بعض الأجهزة المسروقة أو المتعدل عليها تعجز عن التحديث.<br><br>
+            إذا عرض تحديث، حاول تثبيته أمام البائع (أو تأكد من الإصدار الحالي ومقارنته بأحدث إصدار).
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-ios-latest','ok')">✓ محدّث</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-ios-latest','fail')">✗ مشكلة</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-ios-latest','skip')">تخطي</button>
+        </div>
+      </div>
+
+      <div class="check-item" id="chk-battery-throttle" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title">ما في تقليل أداء بسبب البطارية</div>
+          <div class="check-desc">تأكد من عدم تفعيل "تقليل الأداء الديناميكي"</div>
+          <div class="check-tip">
+            <strong>الإعدادات ← البطارية ← صحة البطارية والشحن</strong><br><br>
+            إذا ظهر: "<strong style="color:var(--red)">تقليل الأداء قيد التشغيل</strong>" = الجهاز يعمل بأداء أقل لحماية البطارية المتدهورة. هذا يؤثر على السرعة الإجمالية.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-battery-throttle','ok')">✓ طبيعي</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-battery-throttle','fail')">✗ مقلل</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-battery-throttle','skip')">تخطي</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       SECTION 5 — الشاشة والصوت
+  ═══════════════════════════════════════ -->
+  <div class="section" data-section="screen">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">🖥</span>
+      <span class="section-title">الشاشة والصوت</span>
+      <span class="section-progress" id="prog-screen">0 / 5</span>
+      <i class="section-chevron">▲</i>
+    </div>
+    <div class="section-body">
+
+      <div class="check-item" id="chk-display-dead" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title">ما في Dead Pixels أو بقع</div>
+          <div class="check-desc">شوف الشاشة على ألوان مختلفة: أبيض، أسود، أحمر، أخضر</div>
+          <div class="check-tip">
+            افتح صورة أو صفحة ويب بكل لون بالكامل.<br><br>
+            ابحث عن:<br>
+            • نقاط ميتة (أسود أو أبيض ثابتة)<br>
+            • خطوط رأسية/أفقية<br>
+            • بقع أو تلون غير منتظم<br>
+            • "Burn-in" على الشاشات OLED: صور ثابتة مطبوعة على الخلفية<br><br>
+            ضع سطوع الشاشة على 100% لتكشف كل المشاكل.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-display-dead','ok')">✓ نظيفة</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-display-dead','fail')">✗ فيها عيوب</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-display-dead','skip')">تخطي</button>
+        </div>
+      </div>
+
+      <div class="check-item" id="chk-true-tone" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title">True Tone يعمل (iPhone 8+)</div>
+          <div class="check-desc">الإعدادات ← شاشة العرض والسطوع</div>
+          <div class="check-tip">
+            True Tone معطل أو مخفي = الشاشة على الأرجح غير أصلية.<br><br>
+            <strong>الإعدادات ← شاشة العرض والسطوع ← True Tone</strong><br>
+            المفروض يكون موجود وقابل للتفعيل. إذا الخيار مش موجود بالكامل = شاشة مستبدلة.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-true-tone','ok')">✓ يعمل</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-true-tone','fail')">✗ معطل</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-true-tone','skip')">تخطي</button>
+        </div>
+      </div>
+
+      <div class="check-item" id="chk-touch" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title">اللمس يستجيب في كل الزوايا</div>
+          <div class="check-desc">اختبر اللمس في جميع أركان الشاشة وحوافها</div>
+          <div class="check-tip">
+            مرّر إصبعك ببطء من كل حافة للأخرى وافتح تطبيق Notes وارسم خطوط بكل الاتجاهات.<br><br>
+            انتبه لـ:<br>
+            • زوايا لا تستجيب<br>
+            • لمس متأخر في أجزاء معينة<br>
+            • لمسات "وهمية" بدون لمسك<br><br>
+            الشاشات المستبدلة بجودة رديئة تعاني كثيراً من مشاكل اللمس.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-touch','ok')">✓ ممتاز</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-touch','fail')">✗ مشكلة</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-touch','skip')">تخطي</button>
+        </div>
+      </div>
+
+      <div class="check-item" id="chk-speaker" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title">المكبر وسماعة الأذن تشتغلان</div>
+          <div class="check-desc">اختبر الصوت على أقصى مستوى وسماعة الأذن أثناء المكالمة</div>
+          <div class="check-tip">
+            <strong>اختبار المكبر:</strong> شغّل موسيقى على أعلى صوت — يجب أن يكون الصوت نظيفاً بدون تشويش.<br><br>
+            <strong>اختبار سماعة الأذن:</strong> اتصل برقم (صاحبك مثلاً) وتأكد من وضوح الصوت عند رفع الهاتف للأذن.<br><br>
+            <strong>اختبار الميكروفون:</strong> سجّل مذكرة صوتية وشوف وضوح صوتك.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-speaker','ok')">✓ ممتاز</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-speaker','fail')">✗ مشكلة</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-speaker','skip')">تخطي</button>
+        </div>
+      </div>
+
+      <div class="check-item" id="chk-brightness" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title">السطوع يصل للحد الأقصى</div>
+          <div class="check-desc">شاشات مستبدلة غالباً أقل سطوعاً بشكل ملحوظ</div>
+          <div class="check-tip">
+            اضغط على السطوع لأقصى درجة واخرج في الضوء أو وجّه الشاشة نحو مصدر ضوء قوي.<br><br>
+            الشاشات الأصلية في آيفون 13-16 تصل لـ 2000 نيت. الشاشات المقلدة الجيدة تصل 700-1000 نيت فقط.<br><br>
+            المقارنة بعينك مع آيفون آخر تكشف الفرق فوراً.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-brightness','ok')">✓ ممتاز</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-brightness','fail')">✗ خافت</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-brightness','skip')">تخطي</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       SECTION 6 — الكاميرا
+  ═══════════════════════════════════════ -->
+  <div class="section" data-section="camera">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">📷</span>
+      <span class="section-title">الكاميرا والتصوير</span>
+      <span class="section-progress" id="prog-camera">0 / 4</span>
+      <i class="section-chevron">▲</i>
+    </div>
+    <div class="section-body">
+
+      <div class="check-item" id="chk-cam-back" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title">الكاميرا الخلفية واضحة وتركّز</div>
+          <div class="check-desc">صوّر عن قرب وبعيد وتحقق من الوضوح والتركيز التلقائي</div>
+          <div class="check-tip">
+            اختبر:<br>
+            • التصوير عن قرب (Macro إذا متوفر)<br>
+            • التكبير الرقمي والبصري<br>
+            • Portrait Mode إذا متوفر<br>
+            • تصوير فيديو 4K وشوف الاستقرار<br><br>
+            تحقق من: عدم وجود حبوب على العدسة داخلياً، وعدم رعشة في الـ OIS.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-cam-back','ok')">✓ ممتازة</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-cam-back','fail')">✗ مشكلة</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-cam-back','skip')">تخطي</button>
+        </div>
+      </div>
+
+      <div class="check-item" id="chk-cam-front" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title">الكاميرا الأمامية تعمل</div>
+          <div class="check-desc">سيلفي واضح والـ FaceTime يشتغل</div>
+          <div class="check-tip">
+            الكاميرا الأمامية تحتوي على حساسات Face ID (في النماذج الداعمة له).<br><br>
+            تحقق من وضوح الصورة وعدم وجود بقع على العدسة. السيلفي المشوه أو الضبابي يدل على عدسة مكسورة أو مستبدلة.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-cam-front','ok')">✓ ممتازة</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-cam-front','fail')">✗ مشكلة</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-cam-front','skip')">تخطي</button>
+        </div>
+      </div>
+
+      <div class="check-item" id="chk-flash" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title">الفلاش يعمل</div>
+          <div class="check-desc">اختبر الفلاش أثناء التصوير وكمصباح يدوي</div>
+          <div class="check-tip">
+            افتح مركز التحكم وفعّل المصباح — يجب أن يضيء فوراً وبشكل مستمر.<br><br>
+            صوّر صورة في الظلام مع الفلاش. إذا الفلاش يومض أو باهت = مشكلة في الكاميرا أو الضوء.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-flash','ok')">✓ يعمل</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-flash','fail')">✗ مشكلة</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-flash','skip')">تخطي</button>
+        </div>
+      </div>
+
+      <div class="check-item" id="chk-cam-lens" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title">العدسة سليمة بدون خدوش</div>
+          <div class="check-desc">افحص زجاج الكاميرا تحت إضاءة قوية</div>
+          <div class="check-tip">
+            الخدوش الدقيقة على عدسة الكاميرا تنتشر في الإضاءة الخلفية وتسبب Lens Flare ومشاكل في التباين.<br><br>
+            وجّه الجهاز نحو مصدر ضوء قوي وشوف العدسة من زوايا مختلفة. خدش واحد كبير = تأثير واضح على الصور.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-cam-lens','ok')">✓ سليمة</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-cam-lens','fail')">✗ مخدوشة</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-cam-lens','skip')">تخطي</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       SECTION 7 — الاتصال والشبكات
+  ═══════════════════════════════════════ -->
+  <div class="section" data-section="connectivity">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">📶</span>
+      <span class="section-title">الاتصال والشبكات</span>
+      <span class="section-progress" id="prog-connectivity">0 / 4</span>
+      <i class="section-chevron">▲</i>
+    </div>
+    <div class="section-body">
+
+      <div class="check-item" id="chk-wifi" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title">WiFi يتصل ويعمل بسرعة</div>
+          <div class="check-desc">اتصل بشبكة وافتح صفحة ويب ويوتيوب</div>
+          <div class="check-tip">
+            اتصل بشبكة WiFi موثوقة وافتح يوتيوب بجودة عالية.<br><br>
+            افتح <strong>الإعدادات ← WiFi</strong> وتأكد من ظهور شبكات قريبة بإشارة قوية (3-4 أعواد).<br><br>
+            أجهزة بقطع استبدال رديئة أحياناً تعاني من ضعف WiFi.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-wifi','ok')">✓ ممتاز</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-wifi','fail')">✗ مشكلة</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-wifi','skip')">تخطي</button>
+        </div>
+      </div>
+
+      <div class="check-item" id="chk-cellular" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title">شبكة الاتصال تعمل (SIM)</div>
+          <div class="check-desc">ضع شريحتك واختبر المكالمات والبيانات</div>
+          <div class="check-tip">
+            ضع شريحتك (SIM) وتأكد من:<br>
+            • ظهور اسم المشغل واشارة الشبكة<br>
+            • إمكانية إجراء واستقبال المكالمات<br>
+            • عمل البيانات (4G/5G)<br><br>
+            إذا الجهاز مقفل على مشغل معين (Carrier Locked) تأكد أنه مناسب لشريحتك.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-cellular','ok')">✓ يعمل</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-cellular','fail')">✗ مشكلة</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-cellular','skip')">تخطي</button>
+        </div>
+      </div>
+
+      <div class="check-item" id="chk-bluetooth" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title">Bluetooth يكتشف الأجهزة</div>
+          <div class="check-desc">الإعدادات ← Bluetooth وتأكد من ظهور أجهزة قريبة</div>
+          <div class="check-tip">
+            فعّل Bluetooth وانتظر 10 ثواني — المفروض تظهر أجهزة قريبة (سماعات، ساعات، هواتف أخرى).<br><br>
+            إذا متاح، قرّن الجهاز بسماعة بلوتوث واختبر الصوت.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-bluetooth','ok')">✓ يعمل</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-bluetooth','fail')">✗ مشكلة</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-bluetooth','skip')">تخطي</button>
+        </div>
+      </div>
+
+      <div class="check-item" id="chk-gps" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title">GPS يحدد الموقع بدقة</div>
+          <div class="check-desc">افتح خرائط Apple أو Google Maps</div>
+          <div class="check-tip">
+            افتح خرائط Apple خارجاً (أو قرب نافذة) وتأكد أن الموقع يظهر بدقة خلال 30 ثانية.<br><br>
+            الـ GPS الضعيف يؤثر على كل التطبيقات المعتمدة على الموقع: الخرائط، Uber، Careem، إلخ.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-gps','ok')">✓ دقيق</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-gps','fail')">✗ مشكلة</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-gps','skip')">تخطي</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       SECTION 8 — الحالة الجسدية
+  ═══════════════════════════════════════ -->
+  <div class="section" data-section="physical">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">🔎</span>
+      <span class="section-title">الحالة الجسدية والهيكل</span>
+      <span class="section-progress" id="prog-physical">0 / 5</span>
+      <i class="section-chevron">▲</i>
+    </div>
+    <div class="section-body">
+
+      <div class="check-item" id="chk-water" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title"><span class="tag tag-critical">مهم</span> ما في أضرار مياه</div>
+          <div class="check-desc">تحقق من مؤشر الرطوبة في درج الشريحة</div>
+          <div class="check-tip">
+            <strong>مؤشر ضرر المياه (LCI):</strong><br>
+            افتح درج الشريحة SIM. داخل فتحة الدرج يوجد مؤشر أبيض اللون — إذا صار <strong style="color:var(--red)">أحمر أو وردي</strong> = الجهاز تعرض للماء.<br><br>
+            <strong>علامات أخرى:</strong><br>
+            • صدأ داخل مقبس الشحن أو السماعة<br>
+            • شاشة بها بقع رطوبة<br>
+            • أزرار صدئة أو لا تستجيب بشكل كامل<br><br>
+            الجهاز المتضرر بالمياه قد يعمل الآن لكن يموت بعد أيام أو أسابيع.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-water','ok')">✓ نظيف</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-water','fail')">✗ تلف ماء</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-water','skip')">تخطي</button>
+        </div>
+      </div>
+
+      <div class="check-item" id="chk-body" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title">الهيكل سليم بدون تشوه</div>
+          <div class="check-desc">تأكد من استقامة الهيكل وعدم وجود انحناء</div>
+          <div class="check-tip">
+            ضع الجهاز على سطح مستوٍ — يجب أن يكون مستوياً تماماً ولا يتحرك.<br><br>
+            <strong>الانحناء (Bending):</strong> حامل الجهاز بيد واحدة وانظر على طول الهيكل — أي انحناء يدل على سقوط أو ضغط شديد.<br><br>
+            هيكل متشوه يؤثر على ختم الجهاز ومقاومته للماء وربما على الدوائر الداخلية.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-body','ok')">✓ سليم</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-body','fail')">✗ متشوه</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-body','skip')">تخطي</button>
+        </div>
+      </div>
+
+      <div class="check-item" id="chk-buttons" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title">كل الأزرار تعمل</div>
+          <div class="check-desc">الصوت، التشغيل، الصامت/Action Button</div>
+          <div class="check-tip">
+            اختبر كل زر:<br>
+            • <strong>زر التشغيل</strong>: قفّل وفعّل الشاشة<br>
+            • <strong>زري الصوت</strong>: ارفع/اخفض وتأكد من تغير مستوى الصوت<br>
+            • <strong>زر الصامت</strong> (أو Action Button في 15+): تأكد من عمله<br><br>
+            أزرار صامتة أو تحتاج ضغط قوي = تلف أو تجمّع غبار.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-buttons','ok')">✓ تعمل</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-buttons','fail')">✗ مشكلة</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-buttons','skip')">تخطي</button>
+        </div>
+      </div>
+
+      <div class="check-item" id="chk-charging-port" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title">منفذ الشحن نظيف ويشحن</div>
+          <div class="check-desc">Lightning أو USB-C: اختبر الشحن وتأكد عدم تلف المنفذ</div>
+          <div class="check-tip">
+            افحص المنفذ بضوء قوي — لا يجب أن يكون فيه أتربة أو أوساخ أو دبابيس مثنية.<br><br>
+            وصّل شاحن وتأكد من:<br>
+            • ظهور أيقونة الشحن فوراً<br>
+            • الكابل يدخل بسهولة بدون ترقيع<br>
+            • عدم الحاجة لتحريك الكابل لبدء الشحن<br><br>
+            جرّب أيضاً شحن لاسلكي إذا كان الجهاز يدعمه.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-charging-port','ok')">✓ ممتاز</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-charging-port','fail')">✗ مشكلة</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-charging-port','skip')">تخطي</button>
+        </div>
+      </div>
+
+      <div class="check-item" id="chk-gap" onclick="toggleTip(this)">
+        <div class="check-radio">✓</div>
+        <div class="check-content">
+          <div class="check-title">الشاشة ملتصقة بالهيكل بالتساوي</div>
+          <div class="check-desc">تحقق من عدم وجود فجوات أو حواف بارزة</div>
+          <div class="check-tip">
+            مرّر إصبعك على حافة الشاشة بالكامل — المفروض يكون سطحاً واحداً مستوياً بدون أي نتوء أو فجوة.<br><br>
+            الشاشة المستبدلة أحياناً تترك فجوات صغيرة في الحواف — هذا يسمح بدخول الأتربة والرطوبة ومؤشر على تركيب غير احترافي.
+          </div>
+        </div>
+        <div class="check-actions">
+          <button class="btn-ok" onclick="markItem(event,'chk-gap','ok')">✓ مثالي</button>
+          <button class="btn-fail" onclick="markItem(event,'chk-gap','fail')">✗ فجوات</button>
+          <button class="btn-skip" onclick="markItem(event,'chk-gap','skip')">تخطي</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       SECTION 9 — الملخص
+  ═══════════════════════════════════════ -->
+  <div class="section" data-section="summary" id="summarySection">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">📊</span>
+      <span class="section-title">ملخص الفحص</span>
+      <span class="section-progress" id="prog-summary"></span>
+      <i class="section-chevron">▲</i>
+    </div>
+    <div class="section-body">
+      <div id="summaryContent" style="padding:.5rem 0">
+        <div class="summary-row"><span class="sum-label">اكتمل</span><span class="sum-val ok" id="sumOk">0</span></div>
+        <div class="summary-row"><span class="sum-label">مشاكل</span><span class="sum-val fail" id="sumFail">0</span></div>
+        <div class="summary-row"><span class="sum-label">تخطي</span><span class="sum-val skip" id="sumSkip">0</span></div>
+        <div class="summary-row"><span class="sum-label">لم يفحص</span><span class="sum-val" id="sumPending" style="color:var(--muted)">29</span></div>
+        <div class="summary-row" style="border-top: 1px solid var(--border); margin-top:.3rem; padding-top:.9rem">
+          <span class="sum-label"><strong>التقييم النهائي</strong></span>
+          <span class="sum-val" id="sumFinal" style="color:var(--muted)">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ── State ──────────────────────────────────────────────
+const TOTAL_ITEMS = 29;
+const state = {};
+
+// Critical items that auto-trigger warnings
+const CRITICAL = {
+  'chk-activation-lock': 'قفل iCloud مفعل — الجهاز غير قابل للاستخدام',
+  'chk-stolen':          'IMEI محجوب أو مسروق — لا تشتري',
+  'chk-imei-apple':      'مشكلة في سجل Apple — تحقق قبل الشراء',
+  'chk-water':           'تلف مياه — الجهاز قد يموت في أي وقت',
+  'chk-faceid-genuine':  'Face ID / Touch ID معطل — مشكلة في الشاشة أو الحساس',
+  'chk-screen-genuine':  'شاشة غير أصلية — ألوان وأداء أقل',
+  'chk-battery-genuine': 'بطارية غير أصلية — عمر أقصر وأمان أقل',
+};
+
+// ── Sections ───────────────────────────────────────────
+function toggleSection(header) {
+  const section = header.closest('.section');
+  section.classList.toggle('open');
+}
+
+// ── Check items ────────────────────────────────────────
+function toggleTip(el) {
+  if (el.classList.contains('check-item')) {
+    el.classList.toggle('expanded');
+  }
+}
+
+function markItem(evt, id, status) {
+  evt.stopPropagation();
+  const el = document.getElementById(id);
+  el.classList.remove('ok', 'fail', 'skip');
+  if (state[id] === status) {
+    delete state[id];
+  } else {
+    el.classList.add(status);
+    state[id] = status;
+  }
+  const radio = el.querySelector('.check-radio');
+  radio.textContent = status === 'ok' ? '✓' : status === 'fail' ? '✗' : '—';
+  if (!state[id]) radio.textContent = '✓';
+
+  updateScore();
+  updateSectionProgress();
+  updateVerdict();
+  updateWarnings();
+}
+
+// ── Score calculation ──────────────────────────────────
+function updateScore() {
+  const ok   = Object.values(state).filter(v => v === 'ok').length;
+  const fail = Object.values(state).filter(v => v === 'fail').length;
+  const skip = Object.values(state).filter(v => v === 'skip').length;
+  const checked = ok + fail + skip;
+
+  const numEl   = document.getElementById('scoreNum');
+  const fillEl  = document.getElementById('scoreFill');
+  const labelEl = document.getElementById('scoreLabel');
+  const countEl = document.getElementById('scoreCount');
+
+  if (checked === 0) {
+    numEl.textContent = '—';
+    numEl.className = 'score-num';
+    fillEl.style.width = '0%';
+    fillEl.className = 'score-fill';
+    labelEl.textContent = 'لم تبدأ الفحص بعد';
+    countEl.textContent = '';
+    return;
+  }
+
+  // Penalty system: each fail reduces score, with critical items costing more
+  let score = 100;
+  for (const [id, v] of Object.entries(state)) {
+    if (v === 'fail') {
+      score -= CRITICAL[id] ? 20 : 8;
+    }
+  }
+  // Unanswered items reduce max score slightly
+  const unanswered = TOTAL_ITEMS - checked;
+  score = Math.max(0, Math.min(100, score - Math.floor(unanswered * 0.5)));
+
+  const cls = score >= 75 ? '' : score >= 50 ? 'warn' : 'danger';
+  numEl.textContent = score;
+  numEl.className = `score-num ${cls}`;
+  fillEl.style.width = `${score}%`;
+  fillEl.className = `score-fill ${cls}`;
+  countEl.textContent = `${checked} / ${TOTAL_ITEMS}`;
+
+  const labels = {
+    '': ['ممتاز', 'جيد جداً', 'لا بأس', 'مقبول'],
+    'warn': ['يحتاج تفاوض', 'مشاكل متعددة'],
+    'danger': ['خطر — ابتعد', 'غير مناسب للشراء']
+  };
+  if (score >= 90) labelEl.textContent = 'ممتاز';
+  else if (score >= 75) labelEl.textContent = 'جيد — مع ملاحظات';
+  else if (score >= 55) labelEl.textContent = 'يحتاج تفاوض على السعر';
+  else if (score >= 35) labelEl.textContent = 'مشاكل كثيرة — احذر';
+  else labelEl.textContent = 'غير مناسب للشراء';
+
+  // Summary
+  document.getElementById('sumOk').textContent    = ok;
+  document.getElementById('sumFail').textContent  = fail;
+  document.getElementById('sumSkip').textContent  = skip;
+  document.getElementById('sumPending').textContent = TOTAL_ITEMS - checked;
+  document.getElementById('sumFinal').textContent = score >= 75 ? `${score} — اشتري` :
+    score >= 50 ? `${score} — تفاوض` : `${score} — لا توصي`;
+  document.getElementById('sumFinal').style.color =
+    score >= 75 ? 'var(--green)' : score >= 50 ? 'var(--yellow)' : 'var(--red)';
+}
+
+// ── Section progress ───────────────────────────────────
+function updateSectionProgress() {
+  const sections = {
+    pre: ['chk-imei-apple','chk-stolen','chk-serial-match'],
+    icloud: ['chk-activation-lock','chk-mdm','chk-reset'],
+    parts: ['chk-screen-genuine','chk-battery-genuine','chk-camera-genuine','chk-faceid-genuine'],
+    battery: ['chk-battery-health','chk-battery-cycles','chk-ios-latest','chk-battery-throttle'],
+    screen: ['chk-display-dead','chk-true-tone','chk-touch','chk-speaker','chk-brightness'],
+    camera: ['chk-cam-back','chk-cam-front','chk-flash','chk-cam-lens'],
+    connectivity: ['chk-wifi','chk-cellular','chk-bluetooth','chk-gps'],
+    physical: ['chk-water','chk-body','chk-buttons','chk-charging-port','chk-gap'],
+  };
+
+  for (const [key, ids] of Object.entries(sections)) {
+    const done = ids.filter(id => state[id]).length;
+    const el = document.getElementById(`prog-${key}`);
+    if (el) el.textContent = `${done} / ${ids.length}`;
+  }
+}
+
+// ── Verdict ────────────────────────────────────────────
+function updateVerdict() {
+  const fail  = Object.values(state).filter(v => v === 'fail').length;
+  const ok    = Object.values(state).filter(v => v === 'ok').length;
+  const checked = ok + fail + Object.values(state).filter(v => v === 'skip').length;
+  if (checked < 5) {
+    document.getElementById('verdictCard').style.display = 'none';
+    return;
+  }
+
+  const hasCriticalFail = Object.entries(state).some(([id, v]) => v === 'fail' && CRITICAL[id]);
+  const card  = document.getElementById('verdictCard');
+  const icon  = document.getElementById('verdictIcon');
+  const title = document.getElementById('verdictTitle');
+  const sub   = document.getElementById('verdictSub');
+
+  card.style.display = 'block';
+
+  if (hasCriticalFail) {
+    card.className = 'verdict-card bad';
+    icon.textContent = '🚨';
+    title.textContent = 'لا توصي بالشراء';
+    sub.textContent = 'في مشكلة حاسمة — راجع قسم التحذيرات أدناه';
+  } else if (fail >= 4) {
+    card.className = 'verdict-card bad';
+    icon.textContent = '⛔';
+    title.textContent = 'مشاكل متعددة — ابعد';
+    sub.textContent = `${fail} مشكلة مكتشفة — ليست صفقة جيدة`;
+  } else if (fail >= 2) {
+    card.className = 'verdict-card caution';
+    icon.textContent = '⚠️';
+    title.textContent = 'تفاوض على السعر';
+    sub.textContent = `${fail} مشكلة — يحتاج تخفيض في السعر`;
+  } else if (fail === 1) {
+    card.className = 'verdict-card caution';
+    icon.textContent = '🟡';
+    title.textContent = 'مقبول مع تحفظ';
+    sub.textContent = 'مشكلة واحدة — ناقش مع البائع وتفاوض';
+  } else {
+    card.className = 'verdict-card good';
+    icon.textContent = '✅';
+    title.textContent = 'يبدو جيداً — اشتري';
+    sub.textContent = 'لم تكتشف مشاكل واضحة — صفقة معقولة';
+  }
+}
+
+// ── Warnings ───────────────────────────────────────────
+function updateWarnings() {
+  const box  = document.getElementById('warningsBox');
+  const list = document.getElementById('warningsList');
+  const fails = Object.entries(state).filter(([, v]) => v === 'fail');
+
+  if (fails.length === 0) { box.classList.remove('visible'); return; }
+
+  box.classList.add('visible');
+  list.innerHTML = fails.map(([id]) => {
+    const el = document.getElementById(id);
+    const title = el.querySelector('.check-title').textContent.replace(/[مهم جداًحاسمتحذير\s]+$/, '').trim();
+    return `<li>${title}</li>`;
+  }).join('');
+}
+
+// ── IMEI ───────────────────────────────────────────────
+function openImeiCheck() {
+  const imei = document.getElementById('imeiInput').value.replace(/\s/g, '');
+  if (imei.length >= 14) {
+    window.open(`https://checkcoverage.apple.com/?sn=${imei}`, '_blank');
+  } else {
+    alert('أدخل رقم IMEI الكامل (14-15 رقم)');
+  }
+}
+
+// ── Reset ──────────────────────────────────────────────
+function resetAll() {
+  if (!confirm('إعادة تعيين كل الإجابات؟')) return;
+  for (const key of Object.keys(state)) delete state[key];
+  document.querySelectorAll('.check-item').forEach(el => {
+    el.classList.remove('ok','fail','skip','expanded');
+    el.querySelector('.check-radio').textContent = '✓';
+  });
+  document.getElementById('verdictCard').style.display = 'none';
+  document.getElementById('warningsBox').classList.remove('visible');
+  updateScore();
+  updateSectionProgress();
+}
+
+// ── Init ───────────────────────────────────────────────
+updateScore();
+updateSectionProgress();
+</script>
+</body>
+</html>
