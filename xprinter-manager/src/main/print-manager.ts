@@ -6,7 +6,7 @@ import { promisify } from 'util';
 import type { LabelProfile, CommandResult } from '../shared/types';
 import { logger } from './logger';
 import { sendPrintJob } from './cups-manager';
-import { calculateDimensions } from './label-config';
+import { mmToDots } from './label-config';
 
 const execAsync = promisify(exec);
 
@@ -120,19 +120,81 @@ showpage
 `;
 }
 
+// ─── TSPL test label (primary for thermal/label printers) ────
+// Xprinter XP-235B and most thermal label printers do NOT support
+// PostScript. They use TSPL (Thermal Standard Printer Language) raw commands.
+
+export function generateTestTSPL(profile: LabelProfile): string {
+  const wDots = mmToDots(profile.widthMm, profile.dpi);
+  const hDots = mmToDots(profile.heightMm, profile.dpi);
+  const cx = Math.round(wDots / 2);
+  const cy = Math.round(hDots / 2);
+  const m = 4; // margin dots
+  const crossLen = Math.round(Math.min(wDots, hDots) * 0.12);
+
+  // TSPL TEXT coords: X,Y,"font",rotation,x-mult,y-mult,"text"
+  // Font "1" = 8pt, "2" = 12pt, "3" = 16pt
+  const lines = [
+    `SIZE ${profile.widthMm} mm, ${profile.heightMm} mm`,
+    `GAP ${profile.gapMm} mm, 0 mm`,
+    `DIRECTION 0,0`,
+    `OFFSET 0 mm`,
+    `SPEED ${profile.printSpeed}`,
+    `DENSITY ${profile.darkness}`,
+    `SET PEEL OFF`,
+    `SET CUTTER OFF`,
+    `CLS`,
+    // Full border
+    `BOX ${m},${m},${wDots - m},${hDots - m},2`,
+    // Edge tick marks (midpoint of each edge)
+    `BAR ${cx - 8},${m},16,5`,
+    `BAR ${cx - 8},${hDots - m - 5},16,5`,
+    `BAR ${m},${cy - 8},5,16`,
+    `BAR ${wDots - m - 5},${cy - 8},5,16`,
+    // Center crosshair
+    `LINE ${cx - crossLen},${cy},${cx + crossLen},${cy},1`,
+    `LINE ${cx},${cy - crossLen},${cx},${cy + crossLen},1`,
+    // Center solid dot
+    `BAR ${cx - 4},${cy - 4},8,8`,
+    // Corner labels
+    `TEXT ${m + 4},${m + 4},"1",0,1,1,"TL"`,
+    `TEXT ${wDots - 28},${m + 4},"1",0,1,1,"TR"`,
+    `TEXT ${m + 4},${hDots - 26},"1",0,1,1,"BL"`,
+    `TEXT ${wDots - 28},${hDots - 26},"1",0,1,1,"BR"`,
+    // Edge direction labels
+    `TEXT ${cx - 4},${m + 6},"1",0,1,1,"T"`,
+    `TEXT ${cx - 4},${hDots - m - 20},"1",0,1,1,"B"`,
+    `TEXT ${m + 6},${cy - 10},"1",0,1,1,"L"`,
+    `TEXT ${wDots - m - 14},${cy - 10},"1",0,1,1,"R"`,
+    // Center info text
+    `TEXT ${cx - 50},${cy + 8},"2",0,1,1,"TEST LABEL"`,
+    `TEXT ${cx - 55},${cy + 32},"1",0,1,1,"${profile.widthMm}x${profile.heightMm}mm DPI:${profile.dpi}"`,
+    `TEXT ${cx - 55},${cy + 46},"1",0,1,1,"Spd:${profile.printSpeed} Dark:${profile.darkness} Gap:${profile.gapMm}mm"`,
+    `PRINT 1,1`,
+  ];
+
+  return lines.join('\n') + '\n';
+}
+
 export async function printTestLabel(
   printerName: string,
   profile: LabelProfile
 ): Promise<CommandResult> {
-  logger.info(`Generating test label for ${printerName}`);
+  // Try TSPL first (works for Xprinter/most thermal label printers)
+  logger.info(`Generating TSPL test label for ${printerName}`);
+  const tspl = generateTestTSPL(profile);
+  const tsplResult = await sendRawTSPL(printerName, tspl);
+
+  if (tsplResult.success) return tsplResult;
+
+  // Fallback: PostScript via CUPS (for printers with PS driver)
+  logger.warn('TSPL raw failed, falling back to PostScript via CUPS', tsplResult.stderr);
   const ps = generateTestPostScript(profile);
   const psFile = tmpFile('.ps');
   fs.writeFileSync(psFile, ps, 'utf-8');
-  logger.info(`Test label PostScript written to: ${psFile}`);
-
+  logger.info(`Fallback: PostScript written to ${psFile}`);
   try {
-    const result = await sendPrintJob(printerName, psFile, profile);
-    return result;
+    return await sendPrintJob(printerName, psFile, profile);
   } finally {
     try { fs.unlinkSync(psFile); } catch {}
   }
