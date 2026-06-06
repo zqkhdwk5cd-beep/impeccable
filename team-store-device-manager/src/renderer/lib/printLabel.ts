@@ -75,7 +75,7 @@ export function buildLabelHtml(device: any, cfg: LabelConfig): string {
     text-align: center;
     overflow: hidden;
   }
-  .logo-img    { max-height: 33vh; max-width: 65vw; object-fit: contain; }
+  .logo-img    { max-height: 48vh; max-width: 80vw; object-fit: contain; }
   .logo-row    { display: flex; align-items: center; justify-content: center; gap: 3vw; }
   .brand-text  { display: flex; flex-direction: column; line-height: 1.05; text-align: left; }
   .team        { font-size: 9vw;   font-weight: 900; color: #000; letter-spacing: 0.05em; }

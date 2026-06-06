@@ -248,7 +248,7 @@ export default function DeviceDetail() {
             <div className="flex justify-center py-5 bg-slate-50">
               <div className="bg-white border-2 border-slate-300 rounded-xl px-5 py-3 flex flex-col items-center gap-1.5 shadow-sm" style={{ minWidth: 190 }}>
                 {labelLogo
-                  ? <img src={labelLogo} alt="logo" className="max-h-10 max-w-[130px] object-contain" />
+                  ? <img src={labelLogo} alt="logo" className="max-h-16 max-w-[150px] object-contain" />
                   : (
                     <div className="flex items-center gap-2">
                       <svg width="13" height="18" viewBox="0 0 20 29" fill="none">
