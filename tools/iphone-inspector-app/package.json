@@ -4,7 +4,9 @@
   "description": "فاحص الآيفون — تأكد قبل الشراء",
   "main": "main.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "electron .",
+    "start:web": "node server.js",
+    "build": "electron-builder --mac"
   },
   "build": {
     "appId": "com.iphone-inspector.app",
@@ -15,32 +17,14 @@
       "target": [
         {
           "target": "dmg",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        },
-        {
-          "target": "zip",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
+          "arch": ["x64", "arm64"]
         }
       ]
-    },
-    "dmg": {
-      "title": "فاحص الآيفون",
-      "background": "assets/dmg-bg.png",
-      "window": {
-        "width": 540,
-        "height": 380
-      }
     },
     "files": [
       "main.js",
       "preload.js",
-      "renderer/**/*",
+      "public/**/*",
       "assets/**/*"
     ]
   },

@@ -1,16 +1,20 @@
 #!/bin/bash
-# Double-click this file in Finder to start iPhone Inspector
+# Double-click this file in Finder to open فاحص الآيفون
 
 cd "$(dirname "$0")"
-
-# Make sure node is found
 export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 
-# Check if node is installed
+# Check Node.js
 if ! command -v node &>/dev/null; then
   osascript -e 'display alert "Node.js مش مثبت" message "ثبّتي Node.js من nodejs.org"'
   exit 1
 fi
 
-echo "🚀 بدء تشغيل فاحص الآيفون..."
-node server.js
+# Install dependencies on first run
+if [ ! -f "node_modules/.bin/electron" ] && [ ! -f "node_modules/electron/dist/Electron.app/Contents/MacOS/Electron" ]; then
+  echo "⏳ جاري تثبيت المتطلبات... (مرة واحدة فقط)"
+  npm install --silent
+fi
+
+echo "🚀 جاري فتح فاحص الآيفون..."
+npx electron .

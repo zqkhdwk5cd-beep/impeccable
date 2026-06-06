@@ -2,20 +2,31 @@
 
 let _camCfg = {};
 
-// ── SSE ───────────────────────────────────────────────
-const es    = new EventSource('/events');
+// ── Communication (Electron IPC or Web SSE) ───────────
 const dot   = document.getElementById('connDot');
 const label = document.getElementById('connLabel');
-es.onopen    = () => { dot.className = 'conn-dot connected'; label.textContent = 'متصل'; };
-es.onerror   = () => { dot.className = 'conn-dot error';     label.textContent = 'انقطع الاتصال...'; };
-es.onmessage = e  => render(JSON.parse(e.data));
+
+if (window.electronAPI) {
+  dot.className  = 'conn-dot connected';
+  label.textContent = 'متصل';
+  window.electronAPI.onDeviceUpdate(render);
+} else {
+  const es = new EventSource('/events');
+  es.onopen    = () => { dot.className = 'conn-dot connected'; label.textContent = 'متصل'; };
+  es.onerror   = () => { dot.className = 'conn-dot error';     label.textContent = 'انقطع الاتصال...'; };
+  es.onmessage = e  => render(JSON.parse(e.data));
+}
 
 // ── Retry ─────────────────────────────────────────────
 async function retryDetection() {
   const btns = [document.getElementById('retryBtn'), document.getElementById('retrySideBtn')];
   btns.forEach(b => { if (b) { b.disabled = true; b.textContent = '...'; } });
-  try { const r = await fetch('/api/retry'); render(await r.json()); }
-  catch {}
+  try {
+    const data = window.electronAPI
+      ? await window.electronAPI.retry()
+      : await fetch('/api/retry').then(r => r.json());
+    render(data);
+  } catch {}
   btns.forEach(b => { if (b) { b.disabled = false; b.textContent = '↻ إعادة المحاولة'; } });
 }
 
