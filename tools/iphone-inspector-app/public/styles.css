@@ -44,6 +44,13 @@ html,body { height:100%; background:var(--bg); color:var(--text);
 .waiting-text { font-size:13px; font-weight:600; color:var(--muted); line-height:1.5; }
 .waiting-sub  { font-size:11px; color:var(--faint); margin-top:6px; }
 
+.retry-btn-side { margin-top:12px; width:100%; padding:7px;
+  background:var(--surf2); border:1px solid var(--borders);
+  border-radius:7px; color:var(--muted); font-size:11.5px;
+  font-weight:600; font-family:inherit; cursor:pointer; transition:all .15s; }
+.retry-btn-side:hover { background:var(--golddim); border-color:var(--gold); color:var(--gold); }
+.retry-btn-side:disabled { opacity:.4; cursor:default; }
+
 .device-info { text-align:center; }
 .device-icon { font-size:32px; margin-bottom:6px; }
 .device-name  { font-size:13px; font-weight:700; color:var(--text); margin-bottom:2px; }
@@ -94,12 +101,44 @@ html,body { height:100%; background:var(--bg); color:var(--text);
 .section-sub { font-size:12px; color:var(--muted); margin-bottom:16px; }
 #auto { margin-bottom:32px; }
 
-/* No device */
-.no-device { text-align:center; padding:40px 20px;
-  background:var(--surface); border:1px solid var(--border);
-  border-radius:12px; }
-.no-device span { font-size:32px; display:block; margin-bottom:10px; opacity:.4; }
-.no-device p { font-size:13px; color:var(--faint); }
+/* ── Diagnostics panel ── */
+.diag-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+
+.diag-step { background:var(--surface); border:1px solid var(--border);
+  border-radius:8px; padding:10px 12px; display:flex; align-items:flex-start; gap:10px; }
+.diag-step.ok   { border-color:var(--gring);              background:rgba(63,185,80,.07); }
+.diag-step.warn { border-color:rgba(227,179,65,.4);        background:var(--ydim); }
+.diag-step.fail { border-color:var(--rring);              background:var(--rdim); }
+
+.dstep-icon { width:22px; height:22px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:800; background:var(--surf2); color:var(--faint); }
+.diag-step.ok   .dstep-icon { background:var(--green);  color:#fff; }
+.diag-step.warn .dstep-icon { background:var(--yellow); color:#000; }
+.diag-step.fail .dstep-icon { background:var(--red);    color:#fff; }
+
+.dstep-body { min-width:0; }
+.dstep-title { font-size:11.5px; font-weight:700; color:var(--text); }
+.dstep-sub   { font-size:10.5px; color:var(--muted); margin-top:2px; line-height:1.4; word-break:break-word; }
+.diag-step.fail .dstep-sub { color:#ff9e9a; }
+.diag-step.warn .dstep-sub { color:var(--yellow); }
+
+.diag-guide { background:var(--surface); border:1px solid rgba(212,168,75,.2);
+  border-radius:8px; padding:14px 16px; margin-bottom:0; }
+.diag-guide-title { font-size:12.5px; font-weight:700; color:var(--gold); margin-bottom:10px; }
+.diag-guide ol { padding-right:18px; }
+.diag-guide li { font-size:12px; color:var(--muted); padding:4px 0; line-height:1.55; }
+.diag-guide li strong { color:var(--text); }
+.diag-guide li code { font-family:"SF Mono","Consolas",monospace; font-size:11px;
+  background:var(--surf2); padding:1px 5px; border-radius:3px; color:var(--gold); }
+
+.retry-btn { width:100%; margin-top:12px; padding:10px;
+  background:var(--surf2); border:1px solid var(--borders);
+  border-radius:8px; color:var(--text); font-size:13px;
+  font-weight:600; font-family:inherit; cursor:pointer; transition:all .15s; }
+.retry-btn:hover  { background:var(--golddim); border-color:var(--gold); color:var(--gold); }
+.retry-btn:active { transform:scale(.98); }
+.retry-btn:disabled { opacity:.4; cursor:default; }
 
 /* Auto grid */
 .auto-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }

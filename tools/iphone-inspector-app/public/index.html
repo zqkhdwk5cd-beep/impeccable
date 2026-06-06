@@ -26,8 +26,9 @@
             <path d="M24 36v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           </svg>
         </div>
-        <p class="waiting-text">وصّلي الآيفون<br>بكابل USB</p>
+        <p class="waiting-text" id="waitingText">وصّلي الآيفون<br>بكابل USB</p>
         <p class="waiting-sub" id="waitingSub">واضغطي "ثق" لما يطلب</p>
+        <button class="retry-btn-side" id="retrySideBtn" onclick="retryDetection()">↻ إعادة المحاولة</button>
       </div>
 
       <div class="device-info" id="deviceInfo" style="display:none">
@@ -68,9 +69,11 @@
     <section id="auto">
       <h2 class="section-heading">📊 البيانات المقروءة تلقائياً من الجهاز</h2>
 
-      <div class="no-device" id="noDevice">
-        <span>🔌</span>
-        <p>في انتظار الآيفون...</p>
+      <!-- Diagnostics panel — shown when no device detected -->
+      <div id="diagPanel" style="display:none">
+        <div class="diag-grid" id="diagGrid"></div>
+        <div class="diag-guide" id="diagGuide" style="display:none"></div>
+        <button class="retry-btn" id="retryBtn" onclick="retryDetection()">↻ إعادة المحاولة</button>
       </div>
 
       <div class="auto-grid" id="autoGrid" style="display:none">
