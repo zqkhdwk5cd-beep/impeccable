@@ -180,9 +180,9 @@ function renderPrinters(): void {
   if (printers.length === 0) {
     setHTML('printer-list', `
       <div class="empty-state">
-        <div class="icon">🖨</div>
+        <div class="icon">&#9112;</div>
         <h3>No printers detected</h3>
-        <p>Printer not showing? Try the Diagnostic button above to see raw USB/CUPS output.</p>
+        <p>Printer not showing? Click "Run Diagnostic" to see raw USB/CUPS output.</p>
       </div>`);
     return;
   }
@@ -667,7 +667,7 @@ async function renderBackups(): Promise<void> {
   if (backups.length === 0) {
     setHTML('backup-list', `
       <div class="empty-state">
-        <div class="icon">♻️</div>
+        <div class="icon">&#8635;</div>
         <h3>No backups yet</h3>
         <p>Backups are created automatically before settings changes.</p>
       </div>`);
