@@ -30,17 +30,17 @@
         <p class="waiting-sub" id="waitingSub">واضغطي "ثق" لما يطلب</p>
         <button class="retry-btn-side" id="retrySideBtn" onclick="retryDetection()">↻ إعادة المحاولة</button>
       </div>
-
       <div class="device-info" id="deviceInfo" style="display:none">
         <div class="device-icon">📱</div>
-        <div class="device-name" id="devName">—</div>
+        <div class="device-name"  id="devName">—</div>
         <div class="device-model" id="devModel">—</div>
-        <div class="status-pill status-pill--ok" id="activationPill">—</div>
+        <div class="status-pill status-pill--neutral" id="activationPill">—</div>
       </div>
     </div>
 
     <div class="nav-links">
       <a class="nav-link active" href="#auto">البيانات التلقائية</a>
+      <a class="nav-link" href="#parts">تحليل القطع</a>
       <a class="nav-link" href="#manual">الفحص اليدوي</a>
     </div>
 
@@ -53,23 +53,21 @@
   <!-- Main -->
   <main class="main">
 
-    <!-- Setup banner (shown when deps missing) -->
+    <!-- Setup banner -->
     <div class="setup-banner" id="setupBanner" style="display:none">
       <div class="setup-icon">⚙️</div>
       <div>
         <strong>مطلوب تثبيت أداة واحدة أولاً</strong>
-        <p>افتحي Terminal وشغّلي الأوامر دي:</p>
-        <div class="code-block">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</div>
-        <div class="code-block" style="margin-top:8px">brew install libimobiledevice</div>
-        <p style="margin-top:8px;font-size:12px;opacity:.7">بعدين أغلقي Terminal وافتحيه من جديد، وأعيدي تشغيل npm start</p>
+        <p>افتحي Terminal وشغّلي:</p>
+        <div class="code-block">brew install libimobiledevice</div>
+        <p style="margin-top:8px;font-size:12px;opacity:.7">بعدين أعيدي تشغيل npm start</p>
       </div>
     </div>
 
-    <!-- Auto section -->
+    <!-- ── Auto data ── -->
     <section id="auto">
-      <h2 class="section-heading">📊 البيانات المقروءة تلقائياً من الجهاز</h2>
+      <h2 class="section-heading">📊 البيانات المقروءة تلقائياً</h2>
 
-      <!-- Diagnostics panel — shown when no device detected -->
       <div id="diagPanel" style="display:none">
         <div class="diag-grid" id="diagGrid"></div>
         <div class="diag-guide" id="diagGuide" style="display:none"></div>
@@ -77,35 +75,121 @@
       </div>
 
       <div class="auto-grid" id="autoGrid" style="display:none">
-
-        <!-- Identity -->
         <div class="data-card">
           <div class="card-title">الهوية والموديل</div>
           <div class="data-rows" id="rowsIdentity"></div>
         </div>
-
-        <!-- Battery -->
         <div class="data-card">
           <div class="card-title">البطارية</div>
           <div class="data-rows" id="rowsBattery"></div>
         </div>
-
-        <!-- Network -->
         <div class="data-card">
           <div class="card-title">الشبكة والشريحة</div>
           <div class="data-rows" id="rowsNetwork"></div>
         </div>
-
-        <!-- System -->
         <div class="data-card">
           <div class="card-title">النظام والتخزين</div>
           <div class="data-rows" id="rowsSystem"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Parts analysis ── -->
+    <section id="parts">
+      <h2 class="section-heading">🔧 تحليل القطع والصيانة</h2>
+      <p class="section-sub" id="partsSub" style="display:none">وصّلي الآيفون لرؤية تحليل القطع</p>
+
+      <div class="parts-grid" id="partsGrid" style="display:none">
+
+        <!-- Battery -->
+        <div class="part-card" id="pc-battery">
+          <div class="part-header">
+            <span class="part-icon">🔋</span>
+            <div class="part-info">
+              <div class="part-name">البطارية</div>
+              <div class="part-sub" id="ps-battery">جاري الفحص...</div>
+            </div>
+            <div class="part-verdict" id="pv-battery"></div>
+          </div>
+          <div class="part-rows" id="pr-battery"></div>
+        </div>
+
+        <!-- Screen -->
+        <div class="part-card" id="pc-screen">
+          <div class="part-header">
+            <span class="part-icon">📱</span>
+            <div class="part-info">
+              <div class="part-name">الشاشة</div>
+              <div class="part-sub" id="ps-screen">جاري الفحص...</div>
+            </div>
+            <div class="part-verdict" id="pv-screen"></div>
+          </div>
+          <div class="part-rows" id="pr-screen"></div>
+        </div>
+
+        <!-- iCloud / Activation -->
+        <div class="part-card" id="pc-icloud">
+          <div class="part-header">
+            <span class="part-icon">☁️</span>
+            <div class="part-info">
+              <div class="part-name">iCloud وحالة التفعيل</div>
+              <div class="part-sub" id="ps-icloud">جاري الفحص...</div>
+            </div>
+            <div class="part-verdict" id="pv-icloud"></div>
+          </div>
+          <div class="part-rows" id="pr-icloud"></div>
+        </div>
+
+        <!-- Logic Board -->
+        <div class="part-card" id="pc-board">
+          <div class="part-header">
+            <span class="part-icon">🔩</span>
+            <div class="part-info">
+              <div class="part-name">اللوجيك بورد</div>
+              <div class="part-sub" id="ps-board">جاري الفحص...</div>
+            </div>
+            <div class="part-verdict" id="pv-board"></div>
+          </div>
+          <div class="part-rows" id="pr-board"></div>
+        </div>
+
+        <!-- Camera -->
+        <div class="part-card part-card--manual" id="pc-camera">
+          <div class="part-header">
+            <span class="part-icon">📷</span>
+            <div class="part-info">
+              <div class="part-name">الكاميرا</div>
+              <div class="part-sub">يحتاج فحص يدوي</div>
+            </div>
+            <div class="part-verdict pv-manual">يدوي</div>
+          </div>
+          <div class="part-rows">
+            <div class="part-row"><span class="pr-key">الخطوة</span><span class="pr-val">صوّري في إضاءة عادية ومنخفضة</span></div>
+            <div class="part-row"><span class="pr-key">وميض الفلاش</span><span class="pr-val">يضيء فوراً بدون تأخير</span></div>
+            <div class="part-row"><span class="pr-key">العدسة</span><span class="pr-val">فحص الخدوش تحت الضوء</span></div>
+          </div>
+        </div>
+
+        <!-- Face ID -->
+        <div class="part-card part-card--manual" id="pc-faceid">
+          <div class="part-header">
+            <span class="part-icon">👤</span>
+            <div class="part-info">
+              <div class="part-name">Face ID / Touch ID</div>
+              <div class="part-sub">يحتاج فحص يدوي</div>
+            </div>
+            <div class="part-verdict pv-manual">يدوي</div>
+          </div>
+          <div class="part-rows">
+            <div class="part-row"><span class="pr-key">الاختبار</span><span class="pr-val">قفّلي ثم افتحي بالوجه / البصمة</span></div>
+            <div class="part-row"><span class="pr-key">تعطّل Face ID</span><span class="pr-val">غالباً = شاشة مستبدلة</span></div>
+          </div>
         </div>
 
       </div>
     </section>
 
-    <!-- Manual checks -->
+    <!-- ── Manual checks ── -->
     <section id="manual">
       <h2 class="section-heading">🔍 الفحص اليدوي — ما لا يُقرأ أوتوماتيك</h2>
       <p class="section-sub">هذه النقاط تحتاج فحصاً بصرياً وعملياً مباشرة على الجهاز</p>
@@ -141,7 +225,7 @@
               <button class="ma skip" onclick="mMark(event,'m-faceid','skip')">–</button>
             </div>
           </div>
-          <div class="m-tip">Face ID معطل غالباً = الشاشة اتغيرت بدون معدات Apple المعتمدة. "تعذر تفعيل Face ID" = خصم كبير من السعر.</div>
+          <div class="m-tip">Face ID معطل غالباً = الشاشة اتغيرت بدون معدات Apple المعتمدة.</div>
         </div>
 
         <div class="manual-card" id="m-water">
@@ -157,7 +241,7 @@
               <button class="ma skip" onclick="mMark(event,'m-water','skip')">–</button>
             </div>
           </div>
-          <div class="m-tip">المؤشر أبيض = طبيعي · أحمر أو وردي = تعرض للماء. الجهاز اللي اتلّه ماء قد يعمل الآن ويموت بعد أيام.</div>
+          <div class="m-tip">المؤشر أبيض = طبيعي · أحمر أو وردي = تعرض للماء.</div>
         </div>
 
         <div class="manual-card" id="m-screen-quality">
@@ -173,7 +257,7 @@
               <button class="ma skip" onclick="mMark(event,'m-screen-quality','skip')">–</button>
             </div>
           </div>
-          <div class="m-tip">ضعي السطوع 100% وشوفي على خلفيات ألوان مختلفة. True Tone: الإعدادات ← شاشة العرض والسطوع — لو مش موجود = شاشة مستبدلة.</div>
+          <div class="m-tip">ضعي السطوع 100% وشوفي على خلفيات ألوان مختلفة. True Tone: الإعدادات ← شاشة العرض والسطوع.</div>
         </div>
 
         <div class="manual-card" id="m-camera">
@@ -189,7 +273,7 @@
               <button class="ma skip" onclick="mMark(event,'m-camera','skip')">–</button>
             </div>
           </div>
-          <div class="m-tip">افتحي مركز التحكم وفعّلي المصباح — يضيء فوراً بدون وميض. شوفي العدسة تحت ضوء قوي من زوايا مختلفة للخدوش.</div>
+          <div class="m-tip">افتحي مركز التحكم وفعّلي المصباح — يضيء فوراً بدون وميض.</div>
         </div>
 
         <div class="manual-card" id="m-body">
@@ -205,7 +289,7 @@
               <button class="ma skip" onclick="mMark(event,'m-body','skip')">–</button>
             </div>
           </div>
-          <div class="m-tip">ضعي الجهاز على سطح مستوٍ — لا انحناء. مرّري إصبعك على الحواف — لا فجوات. اختبري كل الأزرار وكابل الشحن.</div>
+          <div class="m-tip">ضعي الجهاز على سطح مستوٍ — لا انحناء. اختبري كل الأزرار وكابل الشحن.</div>
         </div>
 
       </div>
