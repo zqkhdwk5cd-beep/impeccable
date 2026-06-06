@@ -19,35 +19,65 @@ async function run(cmd: string): Promise<{ stdout: string; stderr: string }> {
   }
 }
 
-// ─── CUPS registered printers ────────────────────────────────
+// ─── CUPS registered printers (language-agnostic parsers) ────
+//
+// lpstat output is LOCALIZED — Arabic macOS returns Arabic text.
+// We parse by POSITION and PATTERN, never by English keywords.
 
 function parseLpstatP(output: string): Map<string, PrinterStatus> {
+  // Format in any language: "[localized-word] PRINTER_NAME [localized-status] ..."
+  // The printer name is ALWAYS the second whitespace-separated token.
+  // Printer names are always ASCII (letters, digits, dash, dot, underscore).
   const map = new Map<string, PrinterStatus>();
   for (const line of output.split('\n')) {
-    const m = line.match(/^printer\s+(\S+)\s+is\s+(\w+)/);
-    if (!m) continue;
-    const word = m[2].toLowerCase();
-    let status: PrinterStatus = 'unknown';
-    if (word === 'idle') status = 'idle';
-    else if (word === 'busy' || word === 'printing') status = 'busy';
-    else if (word === 'disabled' || word === 'stopped') status = 'stopped';
-    map.set(m[1], status);
+    const tokens = line.trim().split(/\s+/);
+    if (tokens.length < 2) continue;
+    const name = tokens[1];
+    // Must look like a printer name (ASCII word chars only)
+    if (!name || !/^[\w][\w\-\.]*$/.test(name)) continue;
+    // Skip lines where "name" is actually a keyword like "for", "to", "is"
+    if (name.length <= 3 && /^[a-z]+$/.test(name)) continue;
+    // Detect disabled/stopped by scanning for known markers in any language
+    const lower = line.toLowerCase();
+    let status: PrinterStatus = 'idle';
+    if (lower.includes('disabled') || lower.includes('stopped') ||
+        lower.includes('معطل') || lower.includes('متوقف') || lower.includes('موقوف')) {
+      status = 'stopped';
+    } else if (lower.includes('busy') || lower.includes('printing') || lower.includes('مشغول')) {
+      status = 'busy';
+    }
+    map.set(name, status);
   }
   return map;
 }
 
 function parseLpstatV(output: string): Map<string, string> {
+  // Format: "[localized text] PRINTER_NAME: [invisible-marks]URI"
+  // The URI always contains "://" and is always ASCII.
+  // The printer name is always the ASCII word immediately before ":".
   const map = new Map<string, string>();
   for (const line of output.split('\n')) {
-    const m = line.match(/^device for\s+(\S+):\s+(.+)$/);
-    if (m) map.set(m[1], m[2].trim());
+    // Extract URI: any known CUPS scheme followed by ://
+    const uriM = line.match(/((?:usb|socket|ipp|ipps|lpd|http|https|file|dnssd|bluetooth):\/\/[\S]+)/);
+    if (!uriM) continue;
+    const uri = uriM[1].replace(/[‏‎‫‪]/g, ''); // strip RTL/LTR marks
+
+    // Printer name: ASCII word immediately before the first ":"
+    const nameM = line.match(/([\w][\w\-\.]*)[\s‏‎]*:/);
+    if (!nameM) continue;
+    map.set(nameM[1], uri);
   }
   return map;
 }
 
 function parseDefaultPrinter(output: string): string | null {
-  const m = output.match(/system default destination:\s+(\S+)/);
-  return m ? m[1] : null;
+  // Any language: printer name is the last ASCII word on the relevant line,
+  // OR the word after ":"
+  const m = output.match(/:\s*[‏‎‫‪]*([\w][\w\-\.]*)\s*$/m);
+  if (m) return m[1];
+  // Fallback: last ASCII word-like token anywhere
+  const words = output.match(/[\w][\w\-\.]*/g);
+  return words ? words[words.length - 1] : null;
 }
 
 // ─── lpinfo -v: discovers raw USB/network URIs not yet in CUPS ─
