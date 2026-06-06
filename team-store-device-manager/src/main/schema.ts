@@ -23,6 +23,7 @@ export function runMigrations(db: Database.Database): void {
     { version: 4, sql: migration_004 },
     { version: 5, sql: migration_005 },
     { version: 6, sql: migration_006 },
+    { version: 7, sql: migration_007 },
   ]
 
   for (const m of migrations) {
@@ -352,4 +353,11 @@ ALTER TABLE salespeople ADD COLUMN pin_hash TEXT;
 
 const migration_006 = `
 INSERT OR IGNORE INTO settings (key, value) VALUES ('private_password_hash', '');
+`
+
+const migration_007 = `
+INSERT OR IGNORE INTO settings (key, value) VALUES
+  ('label_width_mm',  '50'),
+  ('label_height_mm', '30'),
+  ('label_warranty',  'ضمان 10 شهور');
 `

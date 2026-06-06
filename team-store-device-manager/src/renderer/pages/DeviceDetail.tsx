@@ -4,52 +4,12 @@ import { api } from '../lib/api'
 import toast from 'react-hot-toast'
 import { ArrowRight, Edit, Tag, Plus, Trash2, Printer } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { openLabelPrint } from '../lib/printLabel'
 
 const STATUS_LABELS: Record<string, string> = { available: 'متاح', sold: 'مباع', reserved: 'محجوز', repair: 'إصلاح', returned: 'مرتجع', archived: 'مؤرشف' }
 const EXPENSE_TYPES: Record<string, string> = { repair: 'إصلاح', cleaning: 'تنظيف', accessories: 'إكسسوار', transport: 'نقل', unlocking: 'فتح', other: 'أخرى' }
 
 function formatDate(d: string) { return d ? new Date(d).toLocaleDateString('ar-EG') : '-' }
-
-function openLabelWindow(device: any, warranty: string) {
-  const model = (device.model || '').replace(/^iPhone\s*/i, '')
-  const storage = (device.storage || '').replace(/GB$/i, '')
-  const battery = device.battery_health ? `${device.battery_health}%` : ''
-  const deviceLine = [model, storage, battery].filter(Boolean).join(' - ')
-
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
-<style>
-@page { size: 58mm 38mm; margin: 0; }
-* { margin:0; padding:0; box-sizing:border-box; }
-body { width:58mm; height:38mm; display:flex; align-items:center; justify-content:center; background:white; font-family:Arial,Helvetica,sans-serif; }
-.label { width:54mm; border:1.5px solid #bbb; border-radius:6px; padding:5mm 4mm; display:flex; flex-direction:column; align-items:center; gap:3.5px; background:white; }
-.logo-row { display:flex; align-items:center; gap:4px; }
-.logo-text { display:flex; flex-direction:column; line-height:1; }
-.team { font-size:13pt; font-weight:900; letter-spacing:1px; color:#000; }
-.store { font-size:6.5pt; letter-spacing:3px; color:#555; }
-.device { font-size:11pt; font-weight:700; color:#111; direction:ltr; letter-spacing:0.3px; margin-top:1px; }
-.warranty { font-size:9pt; color:#333; direction:rtl; }
-</style></head><body>
-<div class="label">
-  <div class="logo-row">
-    <svg width="15" height="21" viewBox="0 0 20 29" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="1.5" y="1.5" width="17" height="26" rx="3.5" stroke="#000" stroke-width="2.2"/>
-      <circle cx="10" cy="5.5" r="1.4" fill="#000"/>
-      <rect x="5.5" y="23" width="9" height="1.8" rx="0.9" fill="#000"/>
-    </svg>
-    <div class="logo-text"><span class="team">TEAM</span><span class="store">STORE</span></div>
-  </div>
-  <div class="device">${deviceLine}</div>
-  <div class="warranty">${warranty}</div>
-</div>
-<script>window.onload=()=>{setTimeout(()=>{window.print();},200);}</script>
-</body></html>`
-
-  const win = window.open('', '_blank', 'width=320,height=240,toolbar=no,menubar=no,scrollbars=no')
-  if (!win) return
-  win.document.open()
-  win.document.write(html)
-  win.document.close()
-}
 
 export default function DeviceDetail() {
   const { id } = useParams<{ id: string }>()
@@ -62,11 +22,25 @@ export default function DeviceDetail() {
   const [expenseForm, setExpenseForm] = useState({ expense_type: 'repair', amount: '', expense_date: new Date().toISOString().slice(0, 10), notes: '' })
   const [showLabelModal, setShowLabelModal] = useState(false)
   const [labelWarranty, setLabelWarranty] = useState('ضمان 10 شهور')
+  const [labelW, setLabelW] = useState(50)
+  const [labelH, setLabelH] = useState(30)
 
   const load = () => {
     setLoading(true)
-    Promise.all([api.devices.getDetail(Number(id)), api.settings.get('currency')])
-      .then(([d, cur]) => { setData(d); setCurrency(cur || 'EGP') })
+    Promise.all([
+      api.devices.getDetail(Number(id)),
+      api.settings.get('currency'),
+      api.settings.get('label_warranty'),
+      api.settings.get('label_width_mm'),
+      api.settings.get('label_height_mm'),
+    ])
+      .then(([d, cur, lw, lwmm, lhmm]) => {
+        setData(d)
+        setCurrency(cur || 'EGP')
+        if (lw) setLabelWarranty(lw)
+        if (lwmm) setLabelW(Number(lwmm) || 50)
+        if (lhmm) setLabelH(Number(lhmm) || 30)
+      })
       .catch((e) => toast.error(e.message))
       .finally(() => setLoading(false))
   }
@@ -293,7 +267,7 @@ export default function DeviceDetail() {
               <div className="flex gap-2 pt-1">
                 <button onClick={() => setShowLabelModal(false)} className="btn-secondary flex-1 justify-center">إلغاء</button>
                 <button
-                  onClick={() => { openLabelWindow(d, labelWarranty); setShowLabelModal(false) }}
+                  onClick={() => { openLabelPrint(d, { warranty: labelWarranty, widthMm: labelW, heightMm: labelH }); setShowLabelModal(false) }}
                   className="btn-primary flex-1 justify-center gap-1.5"
                 >
                   <Printer className="w-4 h-4" /> طباعة

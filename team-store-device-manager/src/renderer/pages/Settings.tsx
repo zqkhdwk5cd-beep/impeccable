@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
-import { Save, Store, Shield, Users, RefreshCw, Smartphone, Plus, Trash2, ChevronUp, ChevronDown, UserCheck, Lock } from 'lucide-react'
+import { Save, Store, Shield, Users, RefreshCw, Smartphone, Plus, Trash2, ChevronUp, ChevronDown, UserCheck, Lock, Printer } from 'lucide-react'
 
-const SETTING_KEYS = ['store_name', 'store_address', 'store_phone', 'invoice_start_number', 'default_policy_text', 'currency', 'backup_location', 'daily_backup_enabled', 'backups_to_keep']
+const SETTING_KEYS = ['store_name', 'store_address', 'store_phone', 'invoice_start_number', 'default_policy_text', 'currency', 'backup_location', 'daily_backup_enabled', 'backups_to_keep', 'label_width_mm', 'label_height_mm', 'label_warranty']
 
 type OptionType = 'model' | 'storage' | 'color'
 interface DeviceOption { id: number; type: OptionType; value: string; sort_order: number }
@@ -321,6 +321,32 @@ export default function SettingsPage() {
       </div>
 
       {/* Backup settings */}
+      {/* Label settings */}
+      <div className="card">
+        <div className="card-header">
+          <h2 className="font-semibold flex items-center gap-2">
+            <Printer className="w-4 h-4 text-brand-600" /> إعدادات الليبل (Xprinter)
+          </h2>
+        </div>
+        <div className="card-body space-y-4">
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="label">عرض الليبل (mm)</label>
+              <input type="number" min="20" max="200" value={s('label_width_mm') || '50'} onChange={(e) => update('label_width_mm', e.target.value)} className="input" dir="ltr" />
+            </div>
+            <div>
+              <label className="label">ارتفاع الليبل (mm)</label>
+              <input type="number" min="15" max="200" value={s('label_height_mm') || '30'} onChange={(e) => update('label_height_mm', e.target.value)} className="input" dir="ltr" />
+            </div>
+            <div>
+              <label className="label">نص الضمان</label>
+              <input value={s('label_warranty') || 'ضمان 10 شهور'} onChange={(e) => update('label_warranty', e.target.value)} className="input" />
+            </div>
+          </div>
+          <p className="text-xs text-slate-400">الحجم الافتراضي 50×30mm مناسب لطابعة Xprinter. غيّره لو الليبلات اللي عندك بحجم مختلف.</p>
+        </div>
+      </div>
+
       <div className="card">
         <div className="card-header">
           <h2 className="font-semibold flex items-center gap-2"><RefreshCw className="w-4 h-4 text-brand-600" /> إعدادات النسخ الاحتياطي</h2>

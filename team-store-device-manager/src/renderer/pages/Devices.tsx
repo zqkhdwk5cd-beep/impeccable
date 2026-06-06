@@ -3,49 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { Plus, Search, Filter, Eye, ChevronRight, ChevronLeft, List, Printer } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { openLabelPrint } from '../lib/printLabel'
 
 const PAGE_SIZE = 50
-
-function printLabel(device: any) {
-  const model = (device.model || '').replace(/^iPhone\s*/i, '')
-  const storage = (device.storage || '').replace(/GB$/i, '')
-  const battery = device.battery_health ? `${device.battery_health}%` : ''
-  const deviceLine = [model, storage, battery].filter(Boolean).join(' - ')
-
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
-<style>
-@page { size: 58mm 38mm; margin: 0; }
-* { margin:0; padding:0; box-sizing:border-box; }
-body { width:58mm; height:38mm; display:flex; align-items:center; justify-content:center; background:white; font-family:Arial,Helvetica,sans-serif; }
-.label { width:54mm; border:1.5px solid #bbb; border-radius:6px; padding:5mm 4mm; display:flex; flex-direction:column; align-items:center; gap:3.5px; background:white; }
-.logo-row { display:flex; align-items:center; gap:4px; }
-.logo-text { display:flex; flex-direction:column; line-height:1; }
-.team { font-size:13pt; font-weight:900; letter-spacing:1px; color:#000; }
-.store { font-size:6.5pt; letter-spacing:3px; color:#555; }
-.device { font-size:11pt; font-weight:700; color:#111; direction:ltr; margin-top:1px; }
-.warranty { font-size:9pt; color:#333; direction:rtl; }
-</style></head><body>
-<div class="label">
-  <div class="logo-row">
-    <svg width="15" height="21" viewBox="0 0 20 29" fill="none">
-      <rect x="1.5" y="1.5" width="17" height="26" rx="3.5" stroke="#000" stroke-width="2.2"/>
-      <circle cx="10" cy="5.5" r="1.4" fill="#000"/>
-      <rect x="5.5" y="23" width="9" height="1.8" rx="0.9" fill="#000"/>
-    </svg>
-    <div class="logo-text"><span class="team">TEAM</span><span class="store">STORE</span></div>
-  </div>
-  <div class="device">${deviceLine}</div>
-  <div class="warranty">ضمان 10 شهور</div>
-</div>
-<script>window.onload=()=>{setTimeout(()=>{window.print();},200);}</script>
-</body></html>`
-
-  const win = window.open('', '_blank', 'width=320,height=240,toolbar=no,menubar=no,scrollbars=no')
-  if (!win) return
-  win.document.open()
-  win.document.write(html)
-  win.document.close()
-}
 
 const STATUS_LABELS: Record<string, string> = {
   available: 'متاح', sold: 'مباع', reserved: 'محجوز',
@@ -71,6 +31,7 @@ export default function DevicesPage() {
   const [page, setPage] = useState(1)
   const [currency, setCurrency] = useState('EGP')
   const [generating, setGenerating] = useState(false)
+  const [labelCfg, setLabelCfg] = useState({ warranty: 'ضمان 10 شهور', widthMm: 50, heightMm: 30 })
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Debounce search input → resets to page 1
@@ -94,11 +55,19 @@ export default function DevicesPage() {
         offset: (page - 1) * PAGE_SIZE,
       }),
       api.settings.get('currency'),
+      api.settings.get('label_warranty'),
+      api.settings.get('label_width_mm'),
+      api.settings.get('label_height_mm'),
     ])
-      .then(([d, cur]) => {
+      .then(([d, cur, lw, lwmm, lhmm]) => {
         setItems(d.items)
         setTotal(d.total)
         setCurrency(cur || 'EGP')
+        setLabelCfg({
+          warranty: lw || 'ضمان 10 شهور',
+          widthMm: Number(lwmm) || 50,
+          heightMm: Number(lhmm) || 30,
+        })
       })
       .catch((e) => toast.error(e.message))
       .finally(() => setLoading(false))
@@ -364,7 +333,7 @@ export default function DevicesPage() {
                             <Eye className="w-3.5 h-3.5" />
                           </button>
                           <button
-                            onClick={() => printLabel(d)}
+                            onClick={() => openLabelPrint(d, labelCfg)}
                             className="btn-ghost btn-sm p-1"
                             title="طباعة ليبل"
                           >
