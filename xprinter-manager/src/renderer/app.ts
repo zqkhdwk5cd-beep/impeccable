@@ -353,6 +353,8 @@ function loadProfileIntoForm(profile: LabelProfile): void {
   (document.getElementById('profile-top-offset') as HTMLInputElement).value = String(profile.topOffsetMm);
   (document.getElementById('profile-speed') as HTMLInputElement).value = String(profile.printSpeed);
   (document.getElementById('profile-darkness') as HTMLInputElement).value = String(profile.darkness);
+  (document.getElementById('profile-direction') as HTMLSelectElement).value = String(profile.tsplDirection ?? 1);
+  (document.getElementById('profile-mirror') as HTMLSelectElement).value = String(profile.tsplMirror ?? 0);
   renderProfileList();
   updateDotsPreview();
   enableIfPrinter();
@@ -362,6 +364,8 @@ function loadProfileIntoForm(profile: LabelProfile): void {
 
 function readProfileFromForm(): LabelProfile {
   const dpi = parseInt((document.getElementById('profile-dpi') as HTMLSelectElement).value) as 203 | 300;
+  const dir = parseInt((document.getElementById('profile-direction') as HTMLSelectElement).value) as 0 | 1;
+  const mir = parseInt((document.getElementById('profile-mirror') as HTMLSelectElement).value) as 0 | 1;
   return {
     id: selectedProfile?.id || '',
     name: (document.getElementById('profile-name') as HTMLInputElement).value.trim() || 'Custom',
@@ -373,6 +377,8 @@ function readProfileFromForm(): LabelProfile {
     topOffsetMm: parseFloat((document.getElementById('profile-top-offset') as HTMLInputElement).value) || 0,
     printSpeed: parseInt((document.getElementById('profile-speed') as HTMLInputElement).value) || 4,
     darkness: parseInt((document.getElementById('profile-darkness') as HTMLInputElement).value) || 8,
+    tsplDirection: dir,
+    tsplMirror: mir,
   };
 }
 

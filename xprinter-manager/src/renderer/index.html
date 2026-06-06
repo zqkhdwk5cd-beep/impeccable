@@ -189,6 +189,25 @@
                     <input type="number" id="profile-darkness" step="1" min="0" max="15" value="8" />
                   </div>
                 </div>
+                <div class="section-label" style="margin-top:12px">TSPL Orientation</div>
+                <div class="form-grid" style="margin-bottom:4px">
+                  <div class="form-group">
+                    <label>Direction</label>
+                    <select id="profile-direction">
+                      <option value="1">1 — Normal (Xprinter default)</option>
+                      <option value="0">0 — Flipped 180°</option>
+                    </select>
+                    <span class="hint">If label prints upside-down, switch this</span>
+                  </div>
+                  <div class="form-group">
+                    <label>Mirror</label>
+                    <select id="profile-mirror">
+                      <option value="0">0 — Normal</option>
+                      <option value="1">1 — Mirror image</option>
+                    </select>
+                    <span class="hint">For peel-off or back-print</span>
+                  </div>
+                </div>
               </div>
 
               <div style="display:flex;justify-content:space-between;align-items:center">

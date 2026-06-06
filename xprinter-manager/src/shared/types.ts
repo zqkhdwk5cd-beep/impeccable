@@ -24,6 +24,11 @@ export interface DriverStatus {
   driverName: string;
 }
 
+// TSPL DIRECTION: 0 = label exits bottom-first, 1 = label exits top-first
+// Mirror: 0 = normal, 1 = mirrored
+// Most Xprinter desktop models need direction=1 (label feeds top-first)
+export type TSPLDirection = 0 | 1;
+
 export interface LabelProfile {
   id: string;
   name: string;
@@ -35,6 +40,8 @@ export interface LabelProfile {
   printSpeed: number;
   darkness: number;
   dpi: DPI;
+  tsplDirection: TSPLDirection;  // 0 = normal, 1 = flip 180° (fixes upside-down)
+  tsplMirror: 0 | 1;             // 0 = normal, 1 = mirror image
 }
 
 export interface UserAlignmentFeedback {
@@ -117,6 +124,8 @@ export const DEFAULT_PROFILES: LabelProfile[] = [
     printSpeed: 4,
     darkness: 8,
     dpi: 203,
+    tsplDirection: 1,
+    tsplMirror: 0,
   },
   {
     id: '50x25',
@@ -129,6 +138,8 @@ export const DEFAULT_PROFILES: LabelProfile[] = [
     printSpeed: 4,
     darkness: 8,
     dpi: 203,
+    tsplDirection: 1,
+    tsplMirror: 0,
   },
   {
     id: '58x40',
@@ -141,6 +152,8 @@ export const DEFAULT_PROFILES: LabelProfile[] = [
     printSpeed: 4,
     darkness: 8,
     dpi: 203,
+    tsplDirection: 1,
+    tsplMirror: 0,
   },
   {
     id: '100x150',
@@ -153,5 +166,7 @@ export const DEFAULT_PROFILES: LabelProfile[] = [
     printSpeed: 3,
     darkness: 8,
     dpi: 203,
+    tsplDirection: 1,
+    tsplMirror: 0,
   },
 ];

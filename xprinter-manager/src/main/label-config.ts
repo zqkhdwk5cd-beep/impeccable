@@ -41,7 +41,7 @@ export function buildTSPL(profile: LabelProfile, content: string): string {
   return [
     `SIZE ${profile.widthMm} mm, ${profile.heightMm} mm`,
     `GAP ${profile.gapMm} mm, 0 mm`,
-    `DIRECTION 0,0`,
+    `DIRECTION ${profile.tsplDirection ?? 1},${profile.tsplMirror ?? 0}`,
     `OFFSET 0 mm`,
     `SPEED ${profile.printSpeed}`,
     `DENSITY ${profile.darkness}`,
