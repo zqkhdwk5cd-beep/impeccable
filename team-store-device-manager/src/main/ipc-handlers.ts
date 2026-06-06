@@ -225,7 +225,7 @@ export function registerIpcHandlers(): void {
           height: Math.round((options.heightMm || 30) * 1000),
         },
         margins: { marginType: 'none' },
-        scaleFactor: 100,
+        scaleFactor: 200,
       }
       if (options.printerName) printOptions.deviceName = options.printerName
 

@@ -38,48 +38,41 @@ export function buildLabelHtml(device: any, cfg: LabelConfig): string {
 <head>
 <meta charset="utf-8">
 <style>
-  @page {
-    size: ${w}mm ${h}mm;
-    margin: 0 !important;
-  }
+  @page { size: ${w}mm ${h}mm; margin: 0; }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
-    width: ${w}mm;
-    height: ${h}mm;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: hidden;
+    width: 100%; height: 100%;
     background: white;
     font-family: Arial, Helvetica, sans-serif;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
-  body { display: flex; align-items: center; justify-content: center; }
   .label {
-    width: ${w}mm;
-    height: ${h}mm;
-    padding: 1mm 2mm;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.4mm;
+    gap: 1.5vh;
+    background: white;
+    padding: 3vh 4vw;
     text-align: center;
     overflow: hidden;
-    background: white;
   }
-  .logo-row { display: flex; align-items: center; justify-content: center; gap: 1.2mm; }
+  .logo-row { display: flex; align-items: center; justify-content: center; gap: 3vw; }
   .brand-text { display: flex; flex-direction: column; line-height: 1.05; text-align: left; }
-  .team  { font-size: ${teamPt}pt;  font-weight: 900; color: #000; letter-spacing: 0.5px; }
-  .store { font-size: ${storePt}pt; font-weight: 800; color: #000; letter-spacing: 2px; }
-  .device-line { font-size: ${devPt}pt; font-weight: 900; color: #000; direction: ltr; letter-spacing: 0.2px; line-height: 1.1; }
-  .sub-line    { font-size: ${subPt}pt; font-weight: 700; color: #000; direction: rtl; line-height: 1.1; }
+  .team        { font-size: 9vw;   font-weight: 900; color: #000; letter-spacing: 0.05em; }
+  .store       { font-size: 3.8vw; font-weight: 800; color: #000; letter-spacing: 0.25em; }
+  .device-line { font-size: 8vw;   font-weight: 900; color: #000; direction: ltr; line-height: 1.1; }
+  .sub-line    { font-size: 5.5vw; font-weight: 700; color: #000; direction: rtl; line-height: 1.1; }
+  .icon        { height: 16vh; width: auto; }
 </style>
 </head>
 <body>
 <div class="label">
   <div class="logo-row">
-    <svg width="${iconW}mm" height="${iconH}mm" viewBox="0 0 20 29" fill="none">
+    <svg class="icon" viewBox="0 0 20 29" fill="none">
       <rect x="1.5" y="1.5" width="17" height="26" rx="3.5" stroke="#000" stroke-width="2.5"/>
       <circle cx="10" cy="5.5" r="1.6" fill="#000"/>
       <rect x="5" y="23" width="10" height="2" rx="1" fill="#000"/>
