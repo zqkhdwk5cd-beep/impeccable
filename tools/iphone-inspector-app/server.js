@@ -12,17 +12,24 @@ const bus  = new EventEmitter();
 bus.setMaxListeners(50);
 
 // ── Find binaries by checking known paths directly ────
-const SEARCH_DIRS = ['/opt/homebrew/bin', '/usr/local/bin', '/usr/bin'];
+const SEARCH_DIRS = [
+  '/opt/homebrew/bin',
+  '/opt/homebrew/Cellar/libimobiledevice/1.4.0/bin',
+  '/usr/local/bin',
+  '/usr/bin',
+];
 
 function findBin(cmd) {
+  // Check known paths first (existsSync avoids permission-check issues on macOS)
   for (const dir of SEARCH_DIRS) {
     const full = path.join(dir, cmd);
-    try { fs.accessSync(full, fs.constants.X_OK); return full; }
-    catch {}
+    if (fs.existsSync(full)) return full;
   }
+  // Fallback: ask the shell (works when brew prefix differs)
   try {
-    const p = execSync(`which ${cmd} 2>/dev/null`, { encoding: 'utf8' }).trim();
-    if (p) return p;
+    const p = execSync(`command -v ${cmd} 2>/dev/null || /opt/homebrew/bin/brew --prefix 2>/dev/null | xargs -I{} echo {}/bin/${cmd}`,
+      { encoding: 'utf8', timeout: 3000 }).trim().split('\n')[0];
+    if (p && fs.existsSync(p)) return p;
   } catch {}
   return null;
 }
