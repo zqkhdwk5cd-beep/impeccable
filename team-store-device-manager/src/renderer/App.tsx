@@ -18,6 +18,7 @@ import InvoiceDetail from './pages/InvoiceDetail'
 import SearchPage from './pages/Search'
 import SettingsPage from './pages/Settings'
 import BackupsPage from './pages/Backups'
+import PaymentsPage from './pages/Payments'
 
 import { api } from './lib/api'
 
@@ -67,6 +68,7 @@ function AppRoutes() {
         <Route path="/contacts/:id" element={<ContactProfile />} />
         <Route path="/invoices" element={<InvoicesPage />} />
         <Route path="/invoices/:id" element={<InvoiceDetail />} />
+        <Route path="/payments" element={<PaymentsPage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/settings" element={<PrivateLock><SettingsPage /></PrivateLock>} />
         <Route path="/backups" element={<BackupsPage />} />
