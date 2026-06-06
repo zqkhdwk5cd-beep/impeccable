@@ -5,10 +5,14 @@ import { logger } from './logger';
 
 const execAsync = promisify(exec);
 
+// Force English locale so lpstat/lpoptions output is always parseable
+// regardless of the system language (Arabic, French, etc.)
+const EN_ENV = { ...process.env, LANG: 'C', LC_ALL: 'C', LC_MESSAGES: 'C' };
+
 async function run(cmd: string): Promise<{ stdout: string; stderr: string }> {
   logger.command(cmd);
   try {
-    const result = await execAsync(cmd, { timeout: 15000 });
+    const result = await execAsync(cmd, { timeout: 15000, env: EN_ENV });
     return result;
   } catch (err: any) {
     return { stdout: err.stdout ?? '', stderr: err.stderr ?? String(err) };

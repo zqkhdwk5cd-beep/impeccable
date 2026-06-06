@@ -5,10 +5,12 @@ import { logger } from './logger';
 
 const execAsync = promisify(exec);
 
+const EN_ENV = { ...process.env, LANG: 'C', LC_ALL: 'C', LC_MESSAGES: 'C' };
+
 async function runSafe(cmd: string): Promise<CommandResult> {
   logger.command(cmd);
   try {
-    const { stdout, stderr } = await execAsync(cmd, { timeout: 30000 });
+    const { stdout, stderr } = await execAsync(cmd, { timeout: 30000, env: EN_ENV });
     const result: CommandResult = { success: true, command: cmd, stdout, stderr };
     if (stdout) logger.info(stdout.trim());
     return result;
@@ -113,7 +115,7 @@ export async function getCurrentCupsOptions(printerName: string): Promise<Record
   const cmd = `lpoptions -p "${printerName}" 2>/dev/null || true`;
   logger.command(cmd);
   try {
-    const { stdout } = await execAsync(cmd, { timeout: 10000 });
+    const { stdout } = await execAsync(cmd, { timeout: 10000, env: EN_ENV });
     const options: Record<string, string> = {};
     const pairs = stdout.trim().split(/\s+/);
     for (const pair of pairs) {
