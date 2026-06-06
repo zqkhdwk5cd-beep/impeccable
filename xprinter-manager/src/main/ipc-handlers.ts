@@ -6,7 +6,7 @@ import type {
   CommandResult,
 } from '../shared/types';
 import { logger } from './logger';
-import { detectPrinters, getPrinterOptions, getDriverStatus } from './printer-detection';
+import { detectPrinters, getPrinterOptions, getDriverStatus, runDiagnostic } from './printer-detection';
 import { applyLabelSettings, cancelAllJobs, getCurrentCupsOptions } from './cups-manager';
 import { selectPPDFile, applyDriverToPrinter, listLocalDrivers } from './driver-manager';
 import { printTestLabel, printPDF, sendRawTSPL, sendRawZPL } from './print-manager';
@@ -37,6 +37,29 @@ export function registerHandlers(): void {
   handle('printers:detect', () => detectPrinters());
   handle('printers:options', (name: string) => getPrinterOptions(name));
   handle('printers:driver-status', (name: string) => getDriverStatus(name));
+  handle('printers:diagnostic', () => runDiagnostic());
+
+  // Add unregistered USB device to CUPS with a generic driver
+  handle('printers:add-to-cups', async (printerName: string, uri: string) => {
+    logger.info(`Adding printer to CUPS: ${printerName} @ ${uri}`);
+    logger.warn(
+      'Adding printer to CUPS requires lpadmin',
+      `Command: lpadmin -p "${printerName}" -v "${uri}" -m drv:///sample.drv/generic.ppd -E\nThis registers the device with a Generic PPD. You can install a proper PPD afterwards.`
+    );
+    const { exec } = await import('child_process');
+    const { promisify } = await import('util');
+    const execAsync = promisify(exec);
+    const cmd = `lpadmin -p "${printerName}" -v "${uri}" -m drv:///sample.drv/generic.ppd -E`;
+    logger.command(cmd);
+    try {
+      const { stdout, stderr } = await execAsync(cmd, { timeout: 30000 });
+      logger.success(`Printer added: ${printerName}`);
+      return { success: true, command: cmd, stdout, stderr } as CommandResult;
+    } catch (err: any) {
+      logger.error('Failed to add printer', err.stderr ?? String(err));
+      return { success: false, command: cmd, stdout: err.stdout ?? '', stderr: err.stderr ?? String(err) } as CommandResult;
+    }
+  });
 
   // Driver management
   handle('drivers:select-ppd', () => selectPPDFile());

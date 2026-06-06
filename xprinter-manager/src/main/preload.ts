@@ -17,6 +17,9 @@ const api = {
     ipcRenderer.invoke('printers:options', name),
   getDriverStatus: (name: string): Promise<DriverStatus> =>
     ipcRenderer.invoke('printers:driver-status', name),
+  runDiagnostic: (): Promise<string> => ipcRenderer.invoke('printers:diagnostic'),
+  addToCUPS: (printerName: string, uri: string): Promise<CommandResult> =>
+    ipcRenderer.invoke('printers:add-to-cups', printerName, uri),
 
   // Drivers
   selectPPDFile: (): Promise<string | null> => ipcRenderer.invoke('drivers:select-ppd'),

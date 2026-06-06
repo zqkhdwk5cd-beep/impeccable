@@ -16,6 +16,8 @@ declare global {
       detectPrinters(): Promise<Printer[]>;
       getPrinterOptions(name: string): Promise<Record<string, string>>;
       getDriverStatus(name: string): Promise<DriverStatus>;
+      runDiagnostic(): Promise<string>;
+      addToCUPS(printerName: string, uri: string): Promise<import('../shared/types').CommandResult>;
       selectPPDFile(): Promise<string | null>;
       listLocalDrivers(): Promise<string[]>;
       applyDriver(ppdPath: string, printerName: string, printerUri: string): Promise<import('../shared/types').CommandResult>;
@@ -180,36 +182,67 @@ function renderPrinters(): void {
       <div class="empty-state">
         <div class="icon">🖨</div>
         <h3>No printers detected</h3>
-        <p>Make sure your printer is connected and CUPS is running.</p>
+        <p>Printer not showing? Try the Diagnostic button above to see raw USB/CUPS output.</p>
       </div>`);
     return;
   }
 
   const html = printers
     .map(
-      (p) => `
-      <div class="printer-item${selectedPrinter?.name === p.name ? ' selected' : ''}" data-name="${p.name}">
-        <div class="printer-name">
-          ${p.name}
-          ${p.isDefault ? '<span class="badge badge-default">default</span>' : ''}
-          ${statusBadge(p.status)}
-        </div>
-        <div class="printer-meta">
-          <span><strong>URI:</strong> ${p.uri || '—'}</span>
-          <span><strong>Connection:</strong> ${connBadge(p.connectionType)}</span>
-          <span><strong>Driver:</strong> ${driverBadge(p.driverType)}</span>
-          <span><strong>PPD:</strong> ${p.ppdPath ? p.ppdPath.split('/').pop() : '—'}</span>
-        </div>
-      </div>`
+      (p) => {
+        const notInCUPS = p.driverType === 'unknown' && p.description.includes('not in CUPS');
+        return `
+        <div class="printer-item${selectedPrinter?.name === p.name ? ' selected' : ''}" data-name="${p.name}" style="${notInCUPS ? 'border-color:rgba(255,183,77,0.35)' : ''}">
+          <div class="printer-name">
+            ${p.name}
+            ${p.isDefault ? '<span class="badge badge-default">default</span>' : ''}
+            ${statusBadge(p.status)}
+            ${notInCUPS ? '<span class="badge badge-generic">not in CUPS</span>' : ''}
+          </div>
+          <div class="printer-meta">
+            <span><strong>URI:</strong> ${p.uri || '—'}</span>
+            <span><strong>Connection:</strong> ${connBadge(p.connectionType)}</span>
+            <span><strong>Driver:</strong> ${driverBadge(p.driverType)}</span>
+            <span><strong>Desc:</strong> ${p.description}</span>
+          </div>
+          ${notInCUPS ? `
+          <div style="margin-top:8px">
+            <button class="btn btn-secondary btn-add-cups" data-name="${p.name}" data-uri="${p.uri}" style="font-size:11.5px;padding:5px 10px">
+              + Add to CUPS (Generic Driver)
+            </button>
+          </div>` : ''}
+        </div>`;
+      }
     )
     .join('');
 
   setHTML('printer-list', html);
 
   document.querySelectorAll('.printer-item').forEach((el) => {
-    el.addEventListener('click', () => {
+    el.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('.btn-add-cups')) return;
       const name = (el as HTMLElement).dataset.name!;
       selectPrinter(printers.find((p) => p.name === name)!);
+    });
+  });
+
+  document.querySelectorAll('.btn-add-cups').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const el = btn as HTMLElement;
+      const name = el.dataset.name!;
+      const uri = el.dataset.uri!;
+      (btn as HTMLButtonElement).disabled = true;
+      (btn as HTMLButtonElement).textContent = 'Adding…';
+      const result = await window.api.addToCUPS(name, uri);
+      if (result.success) {
+        showToast(`${name} added to CUPS. Refreshing…`, 'success');
+        await loadPrinters();
+      } else {
+        showToast('Failed to add printer: ' + (result.stderr || 'unknown error'), 'error');
+        (btn as HTMLButtonElement).disabled = false;
+        (btn as HTMLButtonElement).textContent = '+ Add to CUPS (Generic Driver)';
+      }
     });
   });
 }
@@ -692,6 +725,15 @@ async function init(): Promise<void> {
 
   // Wire up Printers tab
   $('btn-detect').addEventListener('click', loadPrinters);
+  $('btn-diagnostic').addEventListener('click', async () => {
+    const out = $('diagnostic-output');
+    out.style.display = 'block';
+    out.innerHTML = '<div class="result-box" style="color:var(--text-muted)">Running diagnostic…</div>';
+    const text = await window.api.runDiagnostic();
+    out.innerHTML = `<pre class="result-box" style="max-height:300px;overflow-y:auto;white-space:pre-wrap;font-size:10.5px">${escapeHtml(text)}</pre>`;
+    switchTab('logs');
+    setTimeout(() => switchTab('printers'), 100);
+  });
 
   // Wire up Driver tab
   document.querySelector('[data-tab="driver"]')?.addEventListener('click', () => {
