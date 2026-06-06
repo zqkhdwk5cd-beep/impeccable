@@ -1,0 +1,35 @@
+{
+  "name": "iphone-inspector",
+  "version": "1.0.0",
+  "description": "فاحص الآيفون — تأكد قبل الشراء",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "start:web": "node server.js",
+    "build": "electron-builder --mac"
+  },
+  "build": {
+    "appId": "com.iphone-inspector.app",
+    "productName": "فاحص الآيفون",
+    "mac": {
+      "category": "public.app-category.utilities",
+      "icon": "assets/icon.icns",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ]
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "public/**/*",
+      "assets/**/*"
+    ]
+  },
+  "devDependencies": {
+    "electron": "^36.0.0",
+    "electron-builder": "^24.13.0"
+  }
+}

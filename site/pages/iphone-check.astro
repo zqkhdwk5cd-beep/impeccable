@@ -1,0 +1,1458 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base
+  title="فاحص الآيفون — تأكد قبل الشراء"
+  description="أداة فحص شاملة للآيفون المستعمل — اكتشف القطع المتغيرة والصيانة المخفية قبل الشراء"
+  bodyClass="iphone-check-page"
+  mainClass="iphone-check-main"
+  hideHeader={false}
+  hideFooter={false}
+>
+  <div class="ic-root" dir="rtl" lang="ar">
+
+    <!-- ── Hero ── -->
+    <header class="ic-hero">
+      <div class="ic-hero-glow" aria-hidden="true"></div>
+      <div class="ic-hero-inner">
+        <span class="ic-hero-icon">📱</span>
+        <h1 class="ic-hero-title">فاحص الآيفون</h1>
+        <p class="ic-hero-sub">قائمة فحص 29 نقطة — اكتشف القطع المتغيرة والصيانة المخفية قبل الشراء</p>
+      </div>
+    </header>
+
+    <!-- ── Score strip ── -->
+    <div class="ic-score-strip" id="scoreStrip">
+      <div class="ic-score-circle" id="scoreCircle">
+        <svg viewBox="0 0 44 44" fill="none" aria-hidden="true">
+          <circle cx="22" cy="22" r="18" stroke-width="3.5" class="ic-ring-track"/>
+          <circle cx="22" cy="22" r="18" stroke-width="3.5" class="ic-ring-fill"
+            id="ringFill" stroke-dasharray="113" stroke-dashoffset="113"
+            stroke-linecap="round" transform="rotate(-90 22 22)"/>
+        </svg>
+        <span class="ic-score-num" id="scoreNum">—</span>
+      </div>
+      <div class="ic-score-body">
+        <div class="ic-score-label" id="scoreLabel">لم تبدأ الفحص بعد</div>
+        <div class="ic-score-meta">
+          <span id="scoreCount"></span>
+          <span class="ic-score-sep" id="scoreSep" style="display:none"> · </span>
+          <span id="scoreTotal" style="display:none">من 29 نقطة</span>
+        </div>
+      </div>
+      <button class="ic-reset-btn" id="resetBtn" onclick="resetAll()" title="إعادة تعيين">
+        <svg viewBox="0 0 16 16" fill="none" width="14" height="14">
+          <path d="M2 8a6 6 0 1 0 .75-2.9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M2 4.5V8H5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        إعادة
+      </button>
+    </div>
+
+    <!-- ── Verdict ── -->
+    <div class="ic-verdict" id="verdict" aria-live="polite"></div>
+
+    <!-- ── Warnings ── -->
+    <div class="ic-warnings" id="warnings" aria-live="polite"></div>
+
+    <!-- ── Sections ── -->
+    <div class="ic-sections">
+
+      <!-- 1 → قبل اللقاء -->
+      <section class="ic-section ic-section--open" data-section="pre">
+        <button class="ic-section-head" onclick="toggleSection(this)" aria-expanded="true">
+          <span class="ic-section-emoji" aria-hidden="true">🔍</span>
+          <span class="ic-section-name">قبل اللقاء مع البائع</span>
+          <span class="ic-section-prog" id="prog-pre">0 / 3</span>
+          <span class="ic-section-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="ic-section-body">
+          <div class="ic-callout">
+            <span aria-hidden="true">💡</span>
+            <span>اطلب من البائع السيريال نمبر أو IMEI قبل الاجتماع — التحقق المسبق يوفر عليك وقت ورحلة.</span>
+          </div>
+
+          <!-- IMEI tool -->
+          <div class="ic-imei-tool">
+            <label class="ic-imei-label" for="imeiInput">فحص IMEI على موقع Apple مباشرة</label>
+            <div class="ic-imei-row">
+              <input class="ic-imei-input" id="imeiInput" type="tel" placeholder="354687xxxxxxxxx" maxlength="17" dir="ltr" inputmode="numeric">
+              <button class="ic-imei-btn" onclick="openImeiCheck()">فحص ←</button>
+            </div>
+            <p class="ic-imei-hint">الإعدادات ← عام ← معلومات ← IMEI، أو اطلب *#06# من الهاتف</p>
+          </div>
+
+          <div class="ic-items">
+            <div class="ic-item" id="chk-imei-apple">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <span class="ic-badge ic-badge--red">مهم جداً</span>
+                  <strong>IMEI نظيف على موقع Apple</strong>
+                  <p>تحقق أن الجهاز ما عليه حجب أو Activation Lock من Apple</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-imei-apple','ok')">نظيف ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-imei-apple','fail')">مشكلة ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-imei-apple','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                اذهب لـ <code>checkcoverage.apple.com</code> وأدخل الـ IMEI. تحقق من: تاريخ انتهاء الضمان، نوع الجهاز، وأن الضمان لم يُلغَ بسبب السرقة.
+              </div>
+            </div>
+
+            <div class="ic-item" id="chk-stolen">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <span class="ic-badge ic-badge--red">مهم جداً</span>
+                  <strong>ليس مسروقاً أو محجوباً</strong>
+                  <p>فحص IMEI على قواعد بيانات الهواتف المسروقة</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-stolen','ok')">نظيف ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-stolen','fail')">محجوب ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-stolen','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                مواقع للفحص المجاني: <code>imei.info</code> · <code>swappa.com/imei-check</code> · <code>imeipro.info</code><br>
+                ابحث عن: "Clean" أو "Not Blacklisted" — أي علامة حمراء تعني ابعد عن الصفقة.
+              </div>
+            </div>
+
+            <div class="ic-item" id="chk-serial-match">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <strong>السيريال نمبر يطابق الكرتونة</strong>
+                  <p>تأكد أن الكرتونة الأصلية موجودة والسيريال مطابق للجهاز</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-serial-match','ok')">مطابق ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-serial-match','fail')">مختلف ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-serial-match','skip')">لا كرتونة</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                السيريال موجود في الإعدادات ← عام ← معلومات. لو اختلف عن الكرتونة = الجهاز متبدل أو الكرتونة مش أصلية. ليست نهاية العالم لكن نقطة تفاوض.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2 → iCloud -->
+      <section class="ic-section" data-section="icloud">
+        <button class="ic-section-head" onclick="toggleSection(this)" aria-expanded="false">
+          <span class="ic-section-emoji" aria-hidden="true">☁️</span>
+          <span class="ic-section-name">iCloud وقفل التفعيل</span>
+          <span class="ic-section-prog" id="prog-icloud">0 / 3</span>
+          <span class="ic-section-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="ic-section-body" hidden>
+          <div class="ic-callout ic-callout--warn">
+            <span aria-hidden="true">⚠️</span>
+            <span>هذا القسم الأهم — آيفون عليه Activation Lock يساوي <strong>صفر</strong>. لا تشتريه مهما كان السعر مغرياً.</span>
+          </div>
+          <div class="ic-items">
+
+            <div class="ic-item" id="chk-activation-lock">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <span class="ic-badge ic-badge--red">حاسم</span>
+                  <strong>Activation Lock غير مفعل</strong>
+                  <p>تأكد أن قفل التفعيل محذوف وما في iCloud Account</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-activation-lock','ok')">نظيف ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-activation-lock','fail')">مقفل ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-activation-lock','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                <strong>الطريقة الأكيدة:</strong> اطلب من البائع يعمل Factory Reset أمامك وشوف إذا طلب iCloud password أثناء الإعداد.<br><br>
+                البائع الصادق يقدر يحذف الحساب في ثواني. اللي يرفض = خطر كبير.
+              </div>
+            </div>
+
+            <div class="ic-item" id="chk-mdm">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <span class="ic-badge ic-badge--yellow">تحذير</span>
+                  <strong>ما في MDM Profile</strong>
+                  <p>تأكد أن الجهاز ما عليه إدارة مؤسسية من شركة أو مدرسة</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-mdm','ok')">نظيف ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-mdm','fail')">في Profile ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-mdm','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                الإعدادات ← عام ← VPN وإدارة الأجهزة.<br>
+                Profile من شركة = الجهاز ممكن يكون ملك الشركة، أو يُمسح عن بعد في أي وقت.
+              </div>
+            </div>
+
+            <div class="ic-item" id="chk-reset">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <strong>Factory Reset أمامك أو إعداد نظيف</strong>
+                  <p>شوف الإعداد من أوله أو اطلب إعادة ضبط المصنع</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-reset','ok')">نظيف ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-reset','fail')">مرفوض ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-reset','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                الإعدادات ← عام ← نقل أو إعادة تهيئة iPhone ← مسح كل المحتوى والإعدادات.<br>
+                اعمل الإعداد بنفسك وتأكد أنه ما طلب iCloud password.
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- 3 → القطع الأصلية -->
+      <section class="ic-section" data-section="parts">
+        <button class="ic-section-head" onclick="toggleSection(this)" aria-expanded="false">
+          <span class="ic-section-emoji" aria-hidden="true">🔧</span>
+          <span class="ic-section-name">القطع الأصلية وتاريخ الصيانة</span>
+          <span class="ic-section-prog" id="prog-parts">0 / 4</span>
+          <span class="ic-section-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="ic-section-body" hidden>
+          <div class="ic-callout">
+            <span aria-hidden="true">🍎</span>
+            <span>آيفون 12 وما بعده مع iOS 15.2+ يعرضلك تلقائياً أي قطع متغيرة.<br>
+            المسار: <code>الإعدادات ← عام ← معلومات ← قطع وخدمة</code></span>
+          </div>
+          <div class="ic-items">
+
+            <div class="ic-item" id="chk-screen-genuine">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <span class="ic-badge ic-badge--yellow">مهم</span>
+                  <strong>الشاشة أصلية</strong>
+                  <p>في "قطع وخدمة": الشاشة تظهر "قطعة Apple الأصلية"</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-screen-genuine','ok')">أصلية ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-screen-genuine','fail')">مجهولة ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-screen-genuine','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                "قطعة مجهولة" = الشاشة تغيرت بمركز غير معتمد.<br>
+                التأثير: ألوان مختلفة، True Tone معطل، Face ID قد يتعطل، اللمس أبطأ.
+              </div>
+            </div>
+
+            <div class="ic-item" id="chk-battery-genuine">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <span class="ic-badge ic-badge--yellow">مهم</span>
+                  <strong>البطارية أصلية</strong>
+                  <p>في "قطع وخدمة": البطارية تظهر "قطعة Apple الأصلية"</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-battery-genuine','ok')">أصلية ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-battery-genuine','fail')">مجهولة ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-battery-genuine','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                بطارية غير أصلية = عمر أقصر وخطر تسرب أو انتفاخ.<br>
+                حتى لو "أصلية": تحقق من صحة البطارية في الإعدادات ← البطارية ← صحة البطارية. قبول: 80%+.
+              </div>
+            </div>
+
+            <div class="ic-item" id="chk-camera-genuine">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <strong>الكاميرا أصلية</strong>
+                  <p>في "قطع وخدمة": الكاميرا تظهر "قطعة Apple الأصلية"</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-camera-genuine','ok')">أصلية ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-camera-genuine','fail')">مجهولة ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-camera-genuine','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                كاميرا غير أصلية أثرها على جودة التصوير كبير — اختبر في إضاءة عادية ومنخفضة.
+              </div>
+            </div>
+
+            <div class="ic-item" id="chk-faceid-genuine">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <span class="ic-badge ic-badge--yellow">مهم</span>
+                  <strong>Face ID / Touch ID يعمل</strong>
+                  <p>فتح الوجه أو البصمة يشتغلان بشكل طبيعي</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-faceid-genuine','ok')">يعمل ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-faceid-genuine','fail')">معطل ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-faceid-genuine','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                Face ID معطل = الشاشة اتغيرت بدون معدات Apple المعتمدة.<br>
+                اختبار: قفّل الجهاز وانظر إليه — يفتح فوراً. "تعذر تفعيل Face ID" = خصم كبير من السعر.
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- 4 → البطارية -->
+      <section class="ic-section" data-section="battery">
+        <button class="ic-section-head" onclick="toggleSection(this)" aria-expanded="false">
+          <span class="ic-section-emoji" aria-hidden="true">🔋</span>
+          <span class="ic-section-name">البطارية والنظام</span>
+          <span class="ic-section-prog" id="prog-battery">0 / 4</span>
+          <span class="ic-section-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="ic-section-body" hidden>
+          <div class="ic-items">
+
+            <div class="ic-item" id="chk-battery-health">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <span class="ic-badge ic-badge--red">مهم جداً</span>
+                  <strong>صحة البطارية 80%+</strong>
+                  <p>الإعدادات ← البطارية ← صحة البطارية والشحن</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-battery-health','ok')">80%+ ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-battery-health','fail')">أقل ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-battery-health','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                90%+ ممتازة · 85-89% جيدة جداً · 80-84% مقبولة راعي السعر · أقل من 80% تحتاج استبدال قريب.<br>
+                استبدال البطارية في Apple Store يكلف ~99-149 دولار.
+              </div>
+            </div>
+
+            <div class="ic-item" id="chk-battery-throttle">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <strong>ما في تقليل أداء بسبب البطارية</strong>
+                  <p>تأكد من عدم تفعيل "تقليل الأداء الديناميكي"</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-battery-throttle','ok')">طبيعي ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-battery-throttle','fail')">مقلل ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-battery-throttle','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                الإعدادات ← البطارية ← صحة البطارية والشحن.<br>
+                "تقليل الأداء قيد التشغيل" = الجهاز أبطأ بشكل ملحوظ لحماية البطارية المتدهورة.
+              </div>
+            </div>
+
+            <div class="ic-item" id="chk-ios-latest">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <strong>iOS قادر على التحديث</strong>
+                  <p>تأكد من إمكانية تحديث النظام وعدم وجود حجب</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-ios-latest','ok')">يتحدث ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-ios-latest','fail')">مشكلة ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-ios-latest','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                الإعدادات ← عام ← تحديث البرنامج.<br>
+                بعض الأجهزة المتعدل عليها تعجز عن التحديث — هذا مؤشر خطر كبير.
+              </div>
+            </div>
+
+            <div class="ic-item" id="chk-battery-cycles">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <strong>دورات الشحن معقولة</strong>
+                  <p>أقل من 500 دورة للسنة الواحدة يعتبر طبيعي</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-battery-cycles','ok')">معقولة ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-battery-cycles','fail')">عالية ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-battery-cycles','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                الإعدادات ← الخصوصية ← خدمات الموقع ← خدمات النظام ← تقرير تحليلات iPhone.<br>
+                ابحث في الـ Log عن: <code>cycle_count</code>. أكثر من 1000 دورة = بطارية متعبة حتى لو الصحة تبدو عالية.
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- 5 → الشاشة -->
+      <section class="ic-section" data-section="screen">
+        <button class="ic-section-head" onclick="toggleSection(this)" aria-expanded="false">
+          <span class="ic-section-emoji" aria-hidden="true">🖥</span>
+          <span class="ic-section-name">الشاشة والصوت</span>
+          <span class="ic-section-prog" id="prog-screen">0 / 5</span>
+          <span class="ic-section-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="ic-section-body" hidden>
+          <div class="ic-items">
+
+            <div class="ic-item" id="chk-display-dead">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <strong>ما في Dead Pixels أو بقع</strong>
+                  <p>شوف الشاشة على خلفيات: أبيض، أسود، أحمر، أخضر</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-display-dead','ok')">نظيفة ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-display-dead','fail')">فيها عيوب ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-display-dead','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                ضع السطوع على 100% وافتح صورة بكل لون بالكامل. ابحث عن: نقاط ميتة، خطوط، Burn-in على الشاشات OLED.
+              </div>
+            </div>
+
+            <div class="ic-item" id="chk-true-tone">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <strong>True Tone يعمل (iPhone 8+)</strong>
+                  <p>الإعدادات ← شاشة العرض والسطوع</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-true-tone','ok')">يعمل ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-true-tone','fail')">معطل ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-true-tone','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                True Tone مخفي أو معطل = الشاشة على الأرجح غير أصلية. الخيار المفروض يكون موجود وقابل للتفعيل.
+              </div>
+            </div>
+
+            <div class="ic-item" id="chk-touch">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <strong>اللمس يستجيب في كل الزوايا</strong>
+                  <p>اختبر اللمس في جميع أركان الشاشة وحوافها</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-touch','ok')">ممتاز ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-touch','fail')">مشكلة ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-touch','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                افتح Notes وارسم خطوط في كل الاتجاهات. انتبه لزوايا لا تستجيب أو لمسات وهمية بدون لمسك.
+              </div>
+            </div>
+
+            <div class="ic-item" id="chk-speaker">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <strong>المكبر وسماعة الأذن تشتغلان</strong>
+                  <p>اختبر الصوت على أعلى مستوى وأثناء المكالمة</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-speaker','ok')">ممتاز ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-speaker','fail')">مشكلة ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-speaker','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                شغّل موسيقى على أعلى صوت — يجب أن يكون نظيفاً بدون تشويش. اتصل برقم واختبر سماعة الأذن. سجّل مذكرة صوتية لاختبار الميكروفون.
+              </div>
+            </div>
+
+            <div class="ic-item" id="chk-brightness">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <strong>السطوع يصل للحد الأقصى</strong>
+                  <p>الشاشات المستبدلة غالباً أقل سطوعاً بشكل ملحوظ</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-brightness','ok')">ممتاز ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-brightness','fail')">خافت ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-brightness','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                اضبط السطوع لأقصى درجة واخرج في الضوء. شاشات iPhone 13-16 الأصلية تصل 2000 نيت — المقلدة تصل 700-1000 نيت فقط.
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- 6 → الكاميرا -->
+      <section class="ic-section" data-section="camera">
+        <button class="ic-section-head" onclick="toggleSection(this)" aria-expanded="false">
+          <span class="ic-section-emoji" aria-hidden="true">📷</span>
+          <span class="ic-section-name">الكاميرا والتصوير</span>
+          <span class="ic-section-prog" id="prog-camera">0 / 4</span>
+          <span class="ic-section-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="ic-section-body" hidden>
+          <div class="ic-items">
+
+            <div class="ic-item" id="chk-cam-back">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <strong>الكاميرا الخلفية واضحة وتركّز</strong>
+                  <p>صوّر عن قرب وبعيد وتحقق من الوضوح والتركيز التلقائي</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-cam-back','ok')">ممتازة ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-cam-back','fail')">مشكلة ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-cam-back','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                اختبر التصوير عن قرب، التكبير البصري، Portrait Mode، وفيديو 4K. تحقق من عدم وجود حبوب على العدسة داخلياً.
+              </div>
+            </div>
+
+            <div class="ic-item" id="chk-cam-front">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <strong>الكاميرا الأمامية تعمل</strong>
+                  <p>سيلفي واضح والفيديو طبيعي</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-cam-front','ok')">ممتازة ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-cam-front','fail')">مشكلة ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-cam-front','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                السيلفي المشوه أو الضبابي = عدسة مكسورة أو مستبدلة. الكاميرا الأمامية تحتوي على حساسات Face ID.
+              </div>
+            </div>
+
+            <div class="ic-item" id="chk-flash">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <strong>الفلاش يعمل</strong>
+                  <p>اختبر الفلاش أثناء التصوير وكمصباح يدوي</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-flash','ok')">يعمل ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-flash','fail')">مشكلة ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-flash','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                افتح مركز التحكم وفعّل المصباح — يضيء فوراً وبشكل مستمر. إذا يومض أو باهت = مشكلة.
+              </div>
+            </div>
+
+            <div class="ic-item" id="chk-cam-lens">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <strong>العدسة سليمة بدون خدوش</strong>
+                  <p>افحص زجاج الكاميرا تحت إضاءة قوية</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-cam-lens','ok')">سليمة ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-cam-lens','fail')">مخدوشة ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-cam-lens','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                وجّه الجهاز نحو مصدر ضوء قوي وشوف العدسة من زوايا مختلفة. خدش كبير = Lens Flare ومشاكل تباين في الصور.
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- 7 → الاتصال -->
+      <section class="ic-section" data-section="connectivity">
+        <button class="ic-section-head" onclick="toggleSection(this)" aria-expanded="false">
+          <span class="ic-section-emoji" aria-hidden="true">📶</span>
+          <span class="ic-section-name">الاتصال والشبكات</span>
+          <span class="ic-section-prog" id="prog-connectivity">0 / 4</span>
+          <span class="ic-section-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="ic-section-body" hidden>
+          <div class="ic-items">
+
+            <div class="ic-item" id="chk-wifi">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <strong>WiFi يتصل ويعمل بسرعة</strong>
+                  <p>اتصل بشبكة وافتح يوتيوب بجودة عالية</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-wifi','ok')">ممتاز ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-wifi','fail')">مشكلة ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-wifi','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                الإعدادات ← WiFi وتأكد من ظهور شبكات قريبة بإشارة قوية. أجهزة بقطع استبدال رديئة تعاني أحياناً من ضعف WiFi.
+              </div>
+            </div>
+
+            <div class="ic-item" id="chk-cellular">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <strong>شبكة الاتصال تعمل (SIM)</strong>
+                  <p>ضع شريحتك واختبر المكالمات والبيانات</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-cellular','ok')">يعمل ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-cellular','fail')">مشكلة ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-cellular','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                تأكد من ظهور اسم المشغل، إجراء واستقبال المكالمات، وعمل البيانات 4G/5G. إذا الجهاز مقفل على مشغل معين (Carrier Locked) تأكد أنه مناسب لشريحتك.
+              </div>
+            </div>
+
+            <div class="ic-item" id="chk-bluetooth">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <strong>Bluetooth يكتشف الأجهزة</strong>
+                  <p>الإعدادات ← Bluetooth وتأكد من ظهور أجهزة قريبة</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-bluetooth','ok')">يعمل ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-bluetooth','fail')">مشكلة ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-bluetooth','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                فعّل Bluetooth وانتظر 10 ثواني — تظهر أجهزة قريبة. قرّن بسماعة إذا متاح واختبر الصوت.
+              </div>
+            </div>
+
+            <div class="ic-item" id="chk-gps">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <strong>GPS يحدد الموقع بدقة</strong>
+                  <p>افتح خرائط Apple أو Google Maps في الخارج</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-gps','ok')">دقيق ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-gps','fail')">مشكلة ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-gps','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                الموقع يظهر بدقة خلال 30 ثانية في الخارج أو قرب نافذة. GPS الضعيف يؤثر على كل التطبيقات: خرائط، Uber، Careem.
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- 8 → الحالة الجسدية -->
+      <section class="ic-section" data-section="physical">
+        <button class="ic-section-head" onclick="toggleSection(this)" aria-expanded="false">
+          <span class="ic-section-emoji" aria-hidden="true">🔎</span>
+          <span class="ic-section-name">الحالة الجسدية والهيكل</span>
+          <span class="ic-section-prog" id="prog-physical">0 / 5</span>
+          <span class="ic-section-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="ic-section-body" hidden>
+          <div class="ic-items">
+
+            <div class="ic-item" id="chk-water">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <span class="ic-badge ic-badge--red">مهم</span>
+                  <strong>ما في أضرار مياه</strong>
+                  <p>تحقق من مؤشر الرطوبة داخل درج الشريحة</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-water','ok')">نظيف ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-water','fail')">تلف ماء ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-water','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                افتح درج الشريحة SIM. داخل الفتحة يوجد مؤشر أبيض — إذا صار <strong>أحمر أو وردي</strong> = تعرض للماء.<br>
+                جهاز الماء قد يعمل الآن لكن يموت بعد أيام أو أسابيع.
+              </div>
+            </div>
+
+            <div class="ic-item" id="chk-body">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <strong>الهيكل سليم بدون انحناء</strong>
+                  <p>تأكد من استقامة الجهاز وعدم وجود تشوه</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-body','ok')">سليم ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-body','fail')">متشوه ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-body','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                ضع الجهاز على سطح مستوٍ — يجب أن يكون مستوياً ولا يتحرك. الانحناء يؤثر على ختم الجهاز ومقاومته للماء.
+              </div>
+            </div>
+
+            <div class="ic-item" id="chk-buttons">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <strong>كل الأزرار تعمل</strong>
+                  <p>الصوت، التشغيل، الصامت / Action Button</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-buttons','ok')">تعمل ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-buttons','fail')">مشكلة ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-buttons','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                زر التشغيل: قفّل وفعّل · زري الصوت: ارفع/اخفض · زر الصامت أو Action Button. أزرار تحتاج ضغط قوي = تلف أو غبار.
+              </div>
+            </div>
+
+            <div class="ic-item" id="chk-charging-port">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <strong>منفذ الشحن نظيف ويشحن</strong>
+                  <p>Lightning أو USB-C: اختبر الشحن وافحص المنفذ</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-charging-port','ok')">ممتاز ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-charging-port','fail')">مشكلة ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-charging-port','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                افحص المنفذ بضوء — لا يجب أن يكون فيه أتربة أو دبابيس مثنية. وصّل شاحن وتأكد من ظهور أيقونة الشحن فوراً والكابل يدخل بسهولة.
+              </div>
+            </div>
+
+            <div class="ic-item" id="chk-gap">
+              <div class="ic-item-head" onclick="toggleTip(this.closest('.ic-item'))">
+                <div class="ic-bullet"></div>
+                <div class="ic-item-text">
+                  <strong>الشاشة ملتصقة بالهيكل بالتساوي</strong>
+                  <p>تحقق من عدم وجود فجوات أو حواف بارزة</p>
+                </div>
+                <div class="ic-actions">
+                  <button class="ic-btn ic-btn--ok"   onclick="mark(event,'chk-gap','ok')">مثالي ✓</button>
+                  <button class="ic-btn ic-btn--fail" onclick="mark(event,'chk-gap','fail')">فجوات ✗</button>
+                  <button class="ic-btn ic-btn--skip" onclick="mark(event,'chk-gap','skip')">تخطي</button>
+                </div>
+              </div>
+              <div class="ic-tip">
+                مرّر إصبعك على حافة الشاشة — سطح واحد مستوٍ بدون نتوء. الفجوات = تركيب غير احترافي وسماح بدخول الأتربة والرطوبة.
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /ic-sections -->
+
+    <!-- ── Summary ── -->
+    <div class="ic-summary" id="summary">
+      <div class="ic-summary-row">
+        <span>اكتمل</span><span class="ic-sum-ok" id="sumOk">0</span>
+      </div>
+      <div class="ic-summary-row">
+        <span>مشاكل</span><span class="ic-sum-fail" id="sumFail">0</span>
+      </div>
+      <div class="ic-summary-row">
+        <span>تخطي</span><span class="ic-sum-skip" id="sumSkip">0</span>
+      </div>
+      <div class="ic-summary-row">
+        <span>لم يُفحص</span><span id="sumPending">29</span>
+      </div>
+    </div>
+
+  </div><!-- /ic-root -->
+</Base>
+
+<style>
+  /* ── Root shell ── */
+  .iphone-check-page .ic-root {
+    max-width: 660px;
+    margin: 0 auto;
+    padding: 0 1rem 5rem;
+    font-family: var(--ks-font);
+  }
+
+  /* ── Hero ── */
+  .ic-hero {
+    position: relative;
+    text-align: center;
+    padding: 3rem 1rem 2.25rem;
+    overflow: hidden;
+  }
+  .ic-hero-glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 70% 90% at 50% -10%, oklch(45% 0.12 80 / 0.2) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .ic-hero-icon {
+    display: block;
+    font-size: 3.2rem;
+    margin-bottom: .85rem;
+    filter: drop-shadow(0 0 24px oklch(84% 0.19 80.46 / 0.5));
+  }
+  .ic-hero-title {
+    font-family: var(--ks-font-display);
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    font-weight: 300;
+    color: var(--ks-champagne);
+    letter-spacing: -.01em;
+    margin: 0 0 .6rem;
+    line-height: 1.05;
+  }
+  .ic-hero-sub {
+    font-size: .9rem;
+    color: var(--ks-text-muted);
+    line-height: 1.6;
+    max-width: 38ch;
+    margin: 0 auto;
+  }
+
+  /* ── Score strip ── */
+  .ic-score-strip {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--ks-lacquer-raised);
+    border: 1px solid var(--ks-rule);
+    border-radius: 14px;
+    padding: .9rem 1.1rem;
+    margin-bottom: 1rem;
+    position: sticky;
+    top: .5rem;
+    z-index: 90;
+    box-shadow: 0 4px 24px oklch(4% 0 0 / .5);
+  }
+  .ic-score-circle {
+    position: relative;
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+  }
+  .ic-score-circle svg {
+    width: 52px;
+    height: 52px;
+  }
+  .ic-ring-track { stroke: var(--ks-rule); }
+  .ic-ring-fill  { stroke: var(--ks-kinpaku); transition: stroke-dashoffset .5s var(--ks-ease), stroke .3s; }
+  .ic-ring-fill.warn   { stroke: oklch(78% 0.16 70); }
+  .ic-ring-fill.danger { stroke: var(--ks-vermilion); }
+
+  .ic-score-num {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .88rem;
+    font-weight: 800;
+    color: var(--ks-champagne);
+    font-family: var(--ks-font);
+  }
+  .ic-score-body { flex: 1; min-width: 0; }
+  .ic-score-label {
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--ks-champagne);
+    margin-bottom: .15rem;
+  }
+  .ic-score-meta {
+    font-size: .75rem;
+    color: var(--ks-text-muted);
+  }
+  .ic-reset-btn {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    background: none;
+    border: 1px solid var(--ks-rule);
+    border-radius: 7px;
+    color: var(--ks-text-muted);
+    padding: .4rem .75rem;
+    font-size: .75rem;
+    font-family: var(--ks-font);
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .ic-reset-btn:hover { border-color: var(--ks-kinpaku); color: var(--ks-kinpaku); }
+
+  /* ── Verdict ── */
+  .ic-verdict {
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: .75rem;
+    transition: all .3s var(--ks-ease);
+  }
+  .ic-verdict:empty { display: none; }
+  .ic-verdict-inner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.1rem 1.25rem;
+  }
+  .ic-verdict-icon { font-size: 1.75rem; flex-shrink: 0; }
+  .ic-verdict-text strong {
+    display: block;
+    font-size: .95rem;
+    font-weight: 700;
+    margin-bottom: .15rem;
+  }
+  .ic-verdict-text span { font-size: .8rem; opacity: .8; }
+
+  .ic-verdict--good   { background: oklch(22% 0.06 145 / .7); border: 1px solid oklch(50% 0.12 145 / .4); }
+  .ic-verdict--caution{ background: oklch(22% 0.07 75  / .7); border: 1px solid oklch(70% 0.14 75  / .4); }
+  .ic-verdict--bad    { background: oklch(18% 0.07 25  / .7); border: 1px solid var(--ks-vermilion); }
+  .ic-verdict--good   .ic-verdict-text strong { color: oklch(78% 0.14 145); }
+  .ic-verdict--caution .ic-verdict-text strong { color: oklch(82% 0.14 75); }
+  .ic-verdict--bad    .ic-verdict-text strong { color: oklch(75% 0.13 25); }
+  .ic-verdict--good .ic-verdict-text,
+  .ic-verdict--caution .ic-verdict-text,
+  .ic-verdict--bad .ic-verdict-text { color: var(--ks-text); }
+
+  /* ── Warnings ── */
+  .ic-warnings {
+    background: oklch(16% 0.06 25 / .6);
+    border: 1px solid oklch(58% 0.15 35 / .35);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: .75rem;
+  }
+  .ic-warnings:empty { display: none; }
+  .ic-warnings h3 {
+    font-size: .8rem;
+    color: oklch(75% 0.13 25);
+    font-weight: 700;
+    margin: 0 0 .6rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  .ic-warnings ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .ic-warnings li {
+    font-size: .82rem;
+    color: oklch(85% 0.06 25);
+    padding: .25rem 0;
+    border-bottom: 1px solid oklch(58% 0.15 35 / .15);
+  }
+  .ic-warnings li:last-child { border-bottom: none; }
+  .ic-warnings li::before { content: "⚠ "; opacity: .6; }
+
+  /* ── Sections ── */
+  .ic-sections { display: flex; flex-direction: column; gap: .5rem; }
+
+  .ic-section {}
+  .ic-section-head {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .9rem 1.1rem;
+    background: var(--ks-lacquer-raised);
+    border: 1px solid var(--ks-rule);
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: right;
+    font-family: var(--ks-font);
+    color: var(--ks-champagne);
+    transition: border-color .15s, border-radius .15s;
+  }
+  .ic-section-head:hover { border-color: var(--ks-rule-strong); }
+  .ic-section--open .ic-section-head {
+    border-radius: 12px 12px 0 0;
+    border-color: var(--ks-kinpaku-deep);
+    border-bottom-color: transparent;
+  }
+  .ic-section-emoji { font-size: 1.2rem; }
+  .ic-section-name {
+    flex: 1;
+    font-size: .9rem;
+    font-weight: 600;
+  }
+  .ic-section-prog {
+    font-size: .72rem;
+    color: var(--ks-text-muted);
+    background: var(--ks-graphite);
+    border-radius: 99px;
+    padding: .2rem .6rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .ic-section-chevron {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ks-text-faint);
+    transition: transform .2s var(--ks-ease);
+  }
+  .ic-section-chevron::after {
+    content: '';
+    display: block;
+    width: 8px;
+    height: 8px;
+    border-left: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(-45deg) translateY(-2px);
+    transition: transform .2s var(--ks-ease);
+  }
+  .ic-section--open .ic-section-chevron::after {
+    transform: rotate(135deg) translateY(-2px);
+  }
+
+  .ic-section-body {
+    background: var(--ks-lacquer-raised);
+    border: 1px solid var(--ks-kinpaku-deep);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+  }
+
+  /* ── Callout ── */
+  .ic-callout {
+    display: flex;
+    gap: .75rem;
+    padding: .85rem 1.1rem;
+    border-bottom: 1px solid var(--ks-rule);
+    font-size: .8rem;
+    color: var(--ks-text-muted);
+    line-height: 1.55;
+  }
+  .ic-callout--warn { color: oklch(82% 0.12 75); }
+  .ic-callout--warn strong { color: oklch(88% 0.14 75); }
+
+  /* ── IMEI tool ── */
+  .ic-imei-tool {
+    padding: .85rem 1.1rem;
+    border-bottom: 1px solid var(--ks-rule);
+  }
+  .ic-imei-label {
+    display: block;
+    font-size: .75rem;
+    color: var(--ks-text-muted);
+    margin-bottom: .5rem;
+  }
+  .ic-imei-row { display: flex; gap: .5rem; }
+  .ic-imei-input {
+    flex: 1;
+    background: var(--ks-graphite);
+    border: 1px solid var(--ks-rule);
+    border-radius: 7px;
+    color: var(--ks-champagne);
+    padding: .55rem .85rem;
+    font-size: .88rem;
+    font-family: var(--ks-mono);
+    direction: ltr;
+    text-align: left;
+  }
+  .ic-imei-input:focus { outline: none; border-color: var(--ks-kinpaku); }
+  .ic-imei-btn {
+    background: var(--ks-kinpaku);
+    color: var(--ks-lacquer);
+    border: none;
+    border-radius: 7px;
+    padding: .55rem 1.1rem;
+    font-size: .82rem;
+    font-weight: 700;
+    font-family: var(--ks-font);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity .15s;
+  }
+  .ic-imei-btn:hover { opacity: .85; }
+  .ic-imei-hint {
+    font-size: .72rem;
+    color: var(--ks-text-faint);
+    margin-top: .45rem;
+  }
+
+  /* ── Items list ── */
+  .ic-items {}
+
+  .ic-item {
+    border-bottom: 1px solid var(--ks-rule);
+    transition: background .15s;
+  }
+  .ic-item:last-child { border-bottom: none; }
+
+  .ic-item-head {
+    display: grid;
+    grid-template-columns: 20px 1fr auto;
+    gap: .85rem;
+    align-items: start;
+    padding: 1rem 1.1rem;
+    cursor: pointer;
+  }
+  .ic-item-head:hover { background: oklch(84% 0.19 80.46 / .03); }
+
+  .ic-bullet {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--ks-rule);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .7rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    margin-top: 2px;
+    transition: all .2s;
+    color: transparent;
+  }
+  .ic-item.ok   .ic-bullet { background: oklch(55% 0.14 145); border-color: oklch(55% 0.14 145); color: white; }
+  .ic-item.fail .ic-bullet { background: var(--ks-vermilion);  border-color: var(--ks-vermilion);  color: white; }
+  .ic-item.skip .ic-bullet { background: var(--ks-graphite-2); border-color: var(--ks-rule);       color: var(--ks-text-faint); }
+
+  .ic-item-text {
+    min-width: 0;
+  }
+  .ic-item-text strong {
+    display: block;
+    font-size: .88rem;
+    font-weight: 600;
+    color: var(--ks-champagne);
+    margin-bottom: .2rem;
+  }
+  .ic-item-text p {
+    font-size: .78rem;
+    color: var(--ks-text-muted);
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  /* ── Badges ── */
+  .ic-badge {
+    display: inline-block;
+    font-size: .62rem;
+    font-weight: 700;
+    padding: .1rem .42rem;
+    border-radius: 99px;
+    margin-left: .35rem;
+    vertical-align: middle;
+    letter-spacing: .03em;
+  }
+  .ic-badge--red    { background: oklch(18% 0.07 25 / .8);  color: oklch(75% 0.12 25); border: 1px solid oklch(58% 0.15 35 / .35); }
+  .ic-badge--yellow { background: oklch(20% 0.07 75 / .8);  color: oklch(82% 0.13 75); border: 1px solid oklch(70% 0.14 75 / .35); }
+
+  /* ── Action buttons ── */
+  .ic-actions {
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+    flex-shrink: 0;
+    align-items: flex-start;
+  }
+  .ic-btn {
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: .28rem .7rem;
+    font-size: .72rem;
+    font-weight: 600;
+    font-family: var(--ks-font);
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .ic-btn--ok   { background: oklch(22% 0.07 145 / .7); color: oklch(72% 0.12 145); border-color: oklch(45% 0.1 145 / .4); }
+  .ic-btn--fail { background: oklch(18% 0.07 25  / .7); color: oklch(72% 0.12 25);  border-color: oklch(45% 0.1 25  / .4); }
+  .ic-btn--skip { background: var(--ks-graphite);       color: var(--ks-text-faint); border-color: var(--ks-rule); }
+  .ic-btn--ok:hover   { background: oklch(30% 0.1 145 / .8); }
+  .ic-btn--fail:hover { background: oklch(25% 0.1 25  / .8); }
+  .ic-btn--skip:hover { background: var(--ks-graphite-2); color: var(--ks-text-muted); }
+
+  .ic-item.ok   .ic-btn--ok   { background: oklch(42% 0.12 145); color: white; border-color: transparent; }
+  .ic-item.fail .ic-btn--fail { background: var(--ks-vermilion);  color: white; border-color: transparent; }
+  .ic-item.skip .ic-btn--skip { background: var(--ks-graphite-2); color: var(--ks-text-muted); }
+
+  /* ── Tip ── */
+  .ic-tip {
+    display: none;
+    padding: .75rem 1.1rem .85rem 1.1rem;
+    padding-right: calc(1.1rem + 20px + .85rem);
+    background: oklch(84% 0.19 80.46 / .04);
+    border-top: 1px solid var(--ks-kinpaku-deep);
+    font-size: .8rem;
+    color: var(--ks-text-muted);
+    line-height: 1.6;
+  }
+  .ic-tip strong { color: var(--ks-champagne); }
+  .ic-tip code {
+    font-family: var(--ks-mono);
+    background: var(--ks-graphite-2);
+    padding: .1rem .35rem;
+    border-radius: 3px;
+    font-size: .75rem;
+    color: var(--ks-kinpaku);
+  }
+  .ic-item.expanded .ic-tip { display: block; }
+
+  /* ── Summary ── */
+  .ic-summary {
+    background: var(--ks-lacquer-raised);
+    border: 1px solid var(--ks-rule);
+    border-radius: 12px;
+    margin-top: 1.5rem;
+    overflow: hidden;
+  }
+  .ic-summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: .7rem 1.1rem;
+    font-size: .82rem;
+    color: var(--ks-text-muted);
+    border-bottom: 1px solid var(--ks-rule);
+  }
+  .ic-summary-row:last-child { border-bottom: none; }
+  .ic-sum-ok   { color: oklch(65% 0.14 145); font-weight: 700; }
+  .ic-sum-fail { color: oklch(68% 0.13 25);  font-weight: 700; }
+  .ic-sum-skip { color: var(--ks-text-faint); font-weight: 700; }
+
+  /* ── Mobile ── */
+  @media (max-width: 480px) {
+    .ic-actions { flex-direction: row; flex-wrap: wrap; }
+    .ic-item-head { gap: .6rem; }
+    .ic-score-strip { top: 0; border-radius: 0; margin-left: -1rem; margin-right: -1rem; border-left: none; border-right: none; }
+  }
+</style>
+
+<script is:inline>
+const TOTAL = 29;
+const state = {};
+const CRITICAL = {
+  'chk-activation-lock': 'قفل iCloud مفعل — الجهاز غير صالح للاستخدام',
+  'chk-stolen':          'IMEI محجوب أو مسروق — لا تشتري',
+  'chk-imei-apple':      'مشكلة في سجل Apple — تحقق قبل الشراء',
+  'chk-water':           'تلف مياه — الجهاز قد يموت في أي وقت',
+  'chk-faceid-genuine':  'Face ID / Touch ID معطل — مشكلة في الشاشة أو الحساس',
+  'chk-screen-genuine':  'شاشة غير أصلية — جودة وألوان أقل',
+  'chk-battery-genuine': 'بطارية غير أصلية — عمر أقصر وخطر انتفاخ',
+};
+const SECTIONS = {
+  pre:          ['chk-imei-apple','chk-stolen','chk-serial-match'],
+  icloud:       ['chk-activation-lock','chk-mdm','chk-reset'],
+  parts:        ['chk-screen-genuine','chk-battery-genuine','chk-camera-genuine','chk-faceid-genuine'],
+  battery:      ['chk-battery-health','chk-battery-throttle','chk-ios-latest','chk-battery-cycles'],
+  screen:       ['chk-display-dead','chk-true-tone','chk-touch','chk-speaker','chk-brightness'],
+  camera:       ['chk-cam-back','chk-cam-front','chk-flash','chk-cam-lens'],
+  connectivity: ['chk-wifi','chk-cellular','chk-bluetooth','chk-gps'],
+  physical:     ['chk-water','chk-body','chk-buttons','chk-charging-port','chk-gap'],
+};
+
+function toggleSection(btn) {
+  const section = btn.closest('.ic-section');
+  const body = section.querySelector('.ic-section-body');
+  const open = section.classList.toggle('ic-section--open');
+  btn.setAttribute('aria-expanded', String(open));
+  body.hidden = !open;
+}
+
+function toggleTip(item) {
+  item.classList.toggle('expanded');
+}
+
+function mark(evt, id, status) {
+  evt.stopPropagation();
+  const el = document.getElementById(id);
+  el.classList.remove('ok','fail','skip');
+  const bullet = el.querySelector('.ic-bullet');
+
+  if (state[id] === status) {
+    delete state[id];
+    bullet.textContent = '';
+  } else {
+    state[id] = status;
+    el.classList.add(status);
+    bullet.textContent = status === 'ok' ? '✓' : status === 'fail' ? '✗' : '–';
+  }
+  refresh();
+}
+
+function refresh() {
+  const ok    = Object.values(state).filter(v => v === 'ok').length;
+  const fail  = Object.values(state).filter(v => v === 'fail').length;
+  const skip  = Object.values(state).filter(v => v === 'skip').length;
+  const checked = ok + fail + skip;
+
+  // section progress
+  for (const [key, ids] of Object.entries(SECTIONS)) {
+    const done = ids.filter(id => state[id]).length;
+    const el = document.getElementById(`prog-${key}`);
+    if (el) el.textContent = `${done} / ${ids.length}`;
+  }
+
+  // summary
+  document.getElementById('sumOk').textContent    = ok;
+  document.getElementById('sumFail').textContent  = fail;
+  document.getElementById('sumSkip').textContent  = skip;
+  document.getElementById('sumPending').textContent = TOTAL - checked;
+
+  // score
+  const numEl   = document.getElementById('scoreNum');
+  const ringEl  = document.getElementById('ringFill');
+  const labelEl = document.getElementById('scoreLabel');
+  const countEl = document.getElementById('scoreCount');
+  const sepEl   = document.getElementById('scoreSep');
+  const totEl   = document.getElementById('scoreTotal');
+
+  if (checked === 0) {
+    numEl.textContent = '—';
+    ringEl.style.strokeDashoffset = '113';
+    ringEl.className = 'ic-ring-fill';
+    labelEl.textContent = 'لم تبدأ الفحص بعد';
+    countEl.textContent = '';
+    sepEl.style.display = 'none';
+    totEl.style.display = 'none';
+    document.getElementById('verdict').innerHTML = '';
+    document.getElementById('warnings').innerHTML = '';
+    return;
+  }
+
+  let score = 100;
+  for (const [id, v] of Object.entries(state)) {
+    if (v === 'fail') score -= CRITICAL[id] ? 20 : 8;
+  }
+  const unanswered = TOTAL - checked;
+  score = Math.max(0, Math.min(100, score - Math.floor(unanswered * 0.4)));
+
+  const circumference = 113;
+  const offset = circumference - (score / 100) * circumference;
+  ringEl.style.strokeDashoffset = String(offset);
+
+  const cls = score >= 75 ? '' : score >= 50 ? 'warn' : 'danger';
+  ringEl.className = `ic-ring-fill${cls ? ' ' + cls : ''}`;
+  numEl.textContent = checked >= 5 ? String(score) : '—';
+
+  sepEl.style.display = 'inline';
+  totEl.style.display = 'inline';
+  countEl.textContent = `${checked} فحص`;
+
+  if (score >= 90)      labelEl.textContent = 'ممتاز — صفقة جيدة';
+  else if (score >= 75) labelEl.textContent = 'جيد — مع ملاحظات';
+  else if (score >= 55) labelEl.textContent = 'يحتاج تفاوض على السعر';
+  else if (score >= 35) labelEl.textContent = 'مشاكل كثيرة — احذر';
+  else                  labelEl.textContent = 'غير مناسب للشراء';
+
+  // verdict
+  if (checked >= 5) {
+    const verdictEl = document.getElementById('verdict');
+    const hasCritical = Object.entries(state).some(([id, v]) => v === 'fail' && CRITICAL[id]);
+    let vcls, vicon, vtitle, vsub;
+    if (hasCritical) {
+      vcls = 'bad'; vicon = '🚨'; vtitle = 'لا توصي بالشراء';
+      vsub = 'مشكلة حاسمة مكتشفة — راجع التحذيرات أدناه';
+    } else if (fail >= 4) {
+      vcls = 'bad'; vicon = '⛔'; vtitle = 'مشاكل متعددة — ابعد';
+      vsub = `${fail} مشكلة مكتشفة — ليست صفقة جيدة`;
+    } else if (fail >= 2) {
+      vcls = 'caution'; vicon = '⚠️'; vtitle = 'تفاوض على السعر';
+      vsub = `${fail} مشاكل — اطلب تخفيضاً في السعر`;
+    } else if (fail === 1) {
+      vcls = 'caution'; vicon = '🟡'; vtitle = 'مقبول مع تحفظ';
+      vsub = 'مشكلة واحدة — ناقش مع البائع';
+    } else {
+      vcls = 'good'; vicon = '✅'; vtitle = 'يبدو جيداً — اشتري';
+      vsub = 'لم تُكتشف مشاكل واضحة';
+    }
+    verdictEl.innerHTML = `<div class="ic-verdict-inner ic-verdict--${vcls}">
+      <span class="ic-verdict-icon">${vicon}</span>
+      <div class="ic-verdict-text"><strong>${vtitle}</strong><span>${vsub}</span></div>
+    </div>`;
+  }
+
+  // warnings
+  const warningsEl = document.getElementById('warnings');
+  const fails = Object.entries(state).filter(([, v]) => v === 'fail');
+  if (fails.length === 0) {
+    warningsEl.innerHTML = '';
+  } else {
+    const items = fails.map(([id]) => {
+      const el = document.getElementById(id);
+      const strong = el.querySelector('.ic-item-text strong');
+      return `<li>${strong ? strong.textContent : id}</li>`;
+    }).join('');
+    warningsEl.innerHTML = `<h3>مشاكل مكتشفة</h3><ul>${items}</ul>`;
+  }
+}
+
+function resetAll() {
+  if (!confirm('إعادة تعيين كل الإجابات؟')) return;
+  for (const k of Object.keys(state)) delete state[k];
+  document.querySelectorAll('.ic-item').forEach(el => {
+    el.classList.remove('ok','fail','skip','expanded');
+    const b = el.querySelector('.ic-bullet');
+    if (b) b.textContent = '';
+  });
+  refresh();
+}
+
+function openImeiCheck() {
+  const imei = document.getElementById('imeiInput').value.replace(/\s/g, '');
+  if (imei.length >= 14) {
+    window.open(`https://checkcoverage.apple.com/?sn=${imei}`, '_blank');
+  } else {
+    alert('أدخل رقم IMEI الكامل (14-15 رقم)');
+  }
+}
+</script>
