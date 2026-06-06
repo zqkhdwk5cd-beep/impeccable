@@ -7,313 +7,1359 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
 <div class="shell">
 
-  <!-- Sidebar -->
-  <nav class="sidebar">
+  <!-- ══════════════ Sidebar ══════════════ -->
+  <aside class="sidebar">
+
     <div class="brand"><span>📱</span><span>فاحص الآيفون</span></div>
 
+    <!-- Device slot -->
     <div class="device-slot">
-      <div class="device-waiting" id="waitingState">
-        <div class="plug-anim">
-          <svg viewBox="0 0 48 48" fill="none" width="40" height="40">
-            <rect x="16" y="4" width="16" height="12" rx="3" stroke="currentColor" stroke-width="2"/>
-            <path d="M12 16h24v8a12 12 0 0 1-24 0v-8z" stroke="currentColor" stroke-width="2"/>
-            <path d="M24 36v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
+      <div id="waitingState">
+        <div class="device-waiting">
+          <div class="plug-anim">
+            <svg viewBox="0 0 48 48" fill="none" width="36" height="36">
+              <rect x="16" y="4" width="16" height="12" rx="3" stroke="currentColor" stroke-width="2"/>
+              <path d="M12 16h24v8a12 12 0 0 1-24 0v-8z" stroke="currentColor" stroke-width="2"/>
+              <path d="M24 36v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <p class="waiting-text" id="waitingText">وصّل الآيفون<br>بكابل USB</p>
+          <p class="waiting-sub" id="waitingSub">ثم اضغط "ثق" عند الطلب</p>
         </div>
-        <p class="waiting-text" id="waitingText">وصّلي الآيفون<br>بكابل USB</p>
-        <p class="waiting-sub" id="waitingSub">واضغطي "ثق" لما يطلب</p>
-        <button class="retry-btn-side" id="retrySideBtn" onclick="retryDetection()">↻ إعادة المحاولة</button>
       </div>
-      <div class="device-info" id="deviceInfo" style="display:none">
-        <div class="device-icon">📱</div>
-        <div class="device-name"  id="devName">—</div>
-        <div class="device-model" id="devModel">—</div>
-        <div class="status-pill status-pill--neutral" id="activationPill">—</div>
+
+      <div id="sideDevice">
+        <div class="side-device-card">
+          <div class="side-device-top">
+            <div class="side-dev-icon">📱</div>
+            <div>
+              <div class="side-dev-name" id="sideDevName">—</div>
+              <div class="side-dev-model" id="sideDevModel">—</div>
+            </div>
+          </div>
+          <div class="side-score-row">
+            <div class="score-ring-wrap">
+              <svg class="score-ring" viewBox="0 0 48 48">
+                <circle class="score-ring-bg" cx="24" cy="24" r="19.2"/>
+                <circle class="score-ring-progress" cx="24" cy="24" r="19.2"/>
+              </svg>
+              <div class="score-number" id="sideScore">—</div>
+            </div>
+            <div class="score-label">
+              <div class="score-condition-text" id="sideCondition">—</div>
+              <div style="font-size:10px;color:var(--faint);margin-top:2px;">نقطة من 100</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
+    <!-- Navigation -->
     <div class="nav-links">
-      <a class="nav-link active" href="#auto">البيانات</a>
-      <a class="nav-link" href="#parts">تحليل القطع</a>
-      <a class="nav-link" href="#manual">الاختبارات</a>
+
+      <div class="nav-group-label">الهوية</div>
+      <a class="nav-link" data-section="identity" onclick="navTo('identity')">📋 هوية الجهاز</a>
+      <a class="nav-link" data-section="battery" onclick="navTo('battery')">🔋 البطارية</a>
+      <a class="nav-link" data-section="capabilities" onclick="navTo('capabilities')">🔬 خريطة القدرات</a>
+
+      <div class="nav-group-label">الاختبارات</div>
+      <a class="nav-link" data-section="display" onclick="navTo('display')">📱 الشاشة</a>
+      <a class="nav-link" data-section="cameras" onclick="navTo('cameras')">📷 الكاميرات</a>
+      <a class="nav-link" data-section="biometric" onclick="navTo('biometric')">👤 <span id="nav-bio-label">Face ID / Touch ID</span></a>
+      <a class="nav-link" data-section="audio" onclick="navTo('audio')">🔊 الصوت</a>
+      <a class="nav-link" data-section="connectivity" onclick="navTo('connectivity')">📡 الاتصال</a>
+      <a class="nav-link" data-section="sensors" onclick="navTo('sensors')">🧭 الحساسات والأزرار</a>
+      <a class="nav-link" data-section="charging" onclick="navTo('charging')">⚡ الشحن</a>
+
+      <div class="nav-group-label">التقييم</div>
+      <a class="nav-link" data-section="security" onclick="navTo('security')">🔒 الأمان</a>
+      <a class="nav-link" data-section="score" onclick="navTo('score')">🏆 النتيجة التقنية</a>
+      <a class="nav-link" data-section="report" onclick="navTo('report')">📄 التقرير</a>
+      <a class="nav-link" data-section="diagnostics" onclick="navTo('diagnostics')">🛠 البيانات الخام</a>
+
     </div>
 
     <div class="sidebar-bottom">
-      <div class="conn-dot" id="connDot"></div>
-      <span class="conn-label" id="connLabel">جاري الانتظار...</span>
+      <div class="conn-row">
+        <div class="conn-dot" id="connDot"></div>
+        <span class="conn-label" id="connLabel">جاري الانتظار...</span>
+      </div>
+      <button class="retry-btn-side" id="retrySideBtn" onclick="retryDetection()">↻ إعادة المحاولة</button>
     </div>
-  </nav>
+  </aside>
 
-  <!-- Main -->
+  <!-- ══════════════ Main ══════════════ -->
   <main class="main">
 
-    <div class="setup-banner" id="setupBanner" style="display:none">
-      <div class="setup-icon">⚙️</div>
-      <div>
-        <strong>مطلوب تثبيت أداة واحدة أولاً</strong>
-        <p>افتحي Terminal وشغّلي:</p>
-        <div class="code-block">brew install libimobiledevice</div>
-        <p style="margin-top:8px;font-size:12px;opacity:.7">بعدين أعيدي تشغيل npm start</p>
+    <!-- ── Welcome / No device ── -->
+    <section id="sec-welcome" class="page active">
+      <div id="setupBanner" style="display:none">
+        <div class="setup-banner">
+          <div class="setup-icon">⚙️</div>
+          <div>
+            <strong>مطلوب تثبيت أداة أولاً</strong>
+            <p>افتح Terminal وشغّل:</p>
+            <div class="code-block">brew install libimobiledevice</div>
+            <p style="margin-top:8px;font-size:12px;opacity:.7">ثم أعد تشغيل التطبيق</p>
+          </div>
+        </div>
       </div>
-    </div>
-
-    <!-- ── البيانات التلقائية ── -->
-    <section id="auto">
-      <h2 class="section-heading">📊 البيانات التلقائية</h2>
 
       <div id="diagPanel" style="display:none">
         <div class="diag-grid" id="diagGrid"></div>
         <div class="diag-guide" id="diagGuide" style="display:none"></div>
-        <button class="retry-btn" id="retryBtn" onclick="retryDetection()">↻ إعادة المحاولة</button>
+        <button class="retry-btn" onclick="retryDetection()">↻ إعادة المحاولة</button>
       </div>
 
-      <div class="auto-grid" id="autoGrid" style="display:none">
-        <div class="data-card"><div class="card-title">الهوية والموديل</div><div class="data-rows" id="rowsIdentity"></div></div>
-        <div class="data-card"><div class="card-title">البطارية</div><div class="data-rows" id="rowsBattery"></div></div>
-        <div class="data-card"><div class="card-title">الشبكة والشريحة</div><div class="data-rows" id="rowsNetwork"></div></div>
-        <div class="data-card"><div class="card-title">النظام والتخزين</div><div class="data-rows" id="rowsSystem"></div></div>
-      </div>
-    </section>
-
-    <!-- ── تحليل القطع ── -->
-    <section id="parts">
-      <h2 class="section-heading">🔧 تحليل القطع والصيانة</h2>
-      <p class="section-sub" id="partsSub">وصّلي الآيفون لرؤية تحليل القطع</p>
-
-      <div class="parts-grid" id="partsGrid" style="display:none">
-
-        <!-- البطارية -->
-        <div class="part-card" id="pc-battery">
-          <div class="part-header">
-            <span class="part-icon">🔋</span>
-            <div class="part-info"><div class="part-name">البطارية</div><div class="part-sub" id="ps-battery">جاري الفحص...</div></div>
-            <div class="part-verdict" id="pv-battery"></div>
-          </div>
-          <div class="part-rows" id="pr-battery"></div>
-        </div>
-
-        <!-- الشاشة -->
-        <div class="part-card" id="pc-screen">
-          <div class="part-header">
-            <span class="part-icon">📱</span>
-            <div class="part-info"><div class="part-name">الشاشة</div><div class="part-sub" id="ps-screen">جاري الفحص...</div></div>
-            <div class="part-verdict" id="pv-screen"></div>
-          </div>
-          <div class="part-rows" id="pr-screen"></div>
-        </div>
-
-        <!-- الكاميرا -->
-        <div class="part-card" id="pc-camera">
-          <div class="part-header">
-            <span class="part-icon">📷</span>
-            <div class="part-info"><div class="part-name">الكاميرا</div><div class="part-sub" id="ps-camera">جاري الفحص...</div></div>
-            <div class="part-verdict" id="pv-camera"></div>
-          </div>
-          <div class="part-rows" id="pr-camera"></div>
-        </div>
-
-        <!-- المعرّف البيومتري -->
-        <div class="part-card" id="pc-biometric">
-          <div class="part-header">
-            <span class="part-icon">👤</span>
-            <div class="part-info"><div class="part-name">المعرّف البيومتري</div><div class="part-sub" id="ps-biometric">جاري الفحص...</div></div>
-            <div class="part-verdict" id="pv-biometric"></div>
-          </div>
-          <div class="part-rows" id="pr-biometric"></div>
-        </div>
-
-        <!-- الحساسات والاتصال — full width -->
-        <div class="part-card part-card--wide" id="pc-sensors">
-          <div class="part-header">
-            <span class="part-icon">🧭</span>
-            <div class="part-info"><div class="part-name">الحساسات والاتصال</div><div class="part-sub" id="ps-sensors">جاري الفحص...</div></div>
-            <div class="part-verdict" id="pv-sensors"></div>
-          </div>
-          <div class="cap-chips" id="chips-sensors"></div>
-        </div>
-
-        <!-- iCloud -->
-        <div class="part-card" id="pc-icloud">
-          <div class="part-header">
-            <span class="part-icon">☁️</span>
-            <div class="part-info"><div class="part-name">iCloud والتفعيل</div><div class="part-sub" id="ps-icloud">جاري الفحص...</div></div>
-            <div class="part-verdict" id="pv-icloud"></div>
-          </div>
-          <div class="part-rows" id="pr-icloud"></div>
-        </div>
-
-        <!-- اللوجيك بورد -->
-        <div class="part-card" id="pc-board">
-          <div class="part-header">
-            <span class="part-icon">🔩</span>
-            <div class="part-info"><div class="part-name">اللوجيك بورد</div><div class="part-sub" id="ps-board">جاري الفحص...</div></div>
-            <div class="part-verdict" id="pv-board"></div>
-          </div>
-          <div class="part-rows" id="pr-board"></div>
-        </div>
-
+      <div class="welcome-center" id="welcomeCenter">
+        <div class="welcome-icon">📱</div>
+        <div class="welcome-title">فاحص الآيفون</div>
+        <div class="welcome-sub">وصّل جهاز iPhone بكابل USB للبدء في الفحص الكامل</div>
+        <ol class="welcome-steps">
+          <li>وصّل الآيفون بكابل USB أصلي</li>
+          <li>افتح الآيفون واضغط <strong>"ثق"</strong> عند الطلب</li>
+          <li>انتظر ثانيتين — ستظهر بيانات الجهاز تلقائياً</li>
+        </ol>
+        <button class="retry-btn" style="max-width:280px;margin:0 auto;" onclick="retryDetection()">↻ إعادة المحاولة</button>
       </div>
     </section>
 
-    <!-- ── الاختبارات الوظيفية ── -->
-    <section id="manual">
-      <h2 class="section-heading">🧪 الاختبارات الوظيفية</h2>
-      <p class="section-sub">اختبري كل وظيفة بنفسك وسجّلي النتيجة</p>
-
-      <div class="manual-grid">
-
-        <div class="manual-card" id="m-screen">
-          <div class="manual-head" onclick="toggleM('m-screen')">
-            <div class="m-bullet" id="mb-screen"></div>
-            <div class="m-body"><div class="m-title">قطع Apple الأصلية</div><div class="m-desc">الإعدادات ← عام ← معلومات ← قطع وخدمة</div></div>
-            <div class="m-acts">
-              <button class="ma ok"   onclick="mMark(event,'m-screen','ok')">✓</button>
-              <button class="ma fail" onclick="mMark(event,'m-screen','fail')">✗</button>
-              <button class="ma skip" onclick="mMark(event,'m-screen','skip')">–</button>
-            </div>
-          </div>
-          <div class="m-tip"><ol class="m-steps"><li>افتحي الإعدادات ← عام ← معلومات ← قطع وخدمة</li><li>ابحثي عن كل قطعة — "قطعة Apple الأصلية" = طبيعي</li><li>"قطعة مجهولة" أو "غير قادر على التحقق" = قطعة مستبدلة</li></ol></div>
+    <!-- ── هوية الجهاز ── -->
+    <section id="sec-identity" class="page">
+      <div class="section-hdr">
+        <div class="section-hdr-icon">📋</div>
+        <div class="section-hdr-info">
+          <h2>هوية الجهاز</h2>
+          <p>المعلومات الأساسية والمعرّفات التقنية للجهاز المتصل</p>
         </div>
+      </div>
 
-        <div class="manual-card" id="m-faceid">
-          <div class="manual-head" onclick="toggleM('m-faceid')">
-            <div class="m-bullet" id="mb-faceid"></div>
-            <div class="m-body"><div class="m-title">Face ID / Touch ID</div><div class="m-desc">قفّلي الجهاز وجرّبي فتحه</div></div>
-            <div class="m-acts">
-              <button class="ma ok"   onclick="mMark(event,'m-faceid','ok')">✓</button>
-              <button class="ma fail" onclick="mMark(event,'m-faceid','fail')">✗</button>
-              <button class="ma skip" onclick="mMark(event,'m-faceid','skip')">–</button>
-            </div>
-          </div>
-          <div class="m-tip"><ol class="m-steps"><li>قفّلي الشاشة واتركي الآيفون</li><li>اقتربي بوجهك — المفروض يفتح فوراً (Face ID)</li><li>لو "تعذر تفعيل Face ID" = الشاشة اتغيرت بمركز غير معتمد</li></ol></div>
+      <div class="data-grid">
+        <div class="data-card">
+          <div class="card-title">المعلومات الأساسية</div>
+          <div class="data-rows" id="id-basic"></div>
         </div>
-
-        <div class="manual-card" id="m-screen-quality">
-          <div class="manual-head" onclick="toggleM('m-screen-quality')">
-            <div class="m-bullet" id="mb-screen-quality"></div>
-            <div class="m-body"><div class="m-title">جودة الشاشة</div><div class="m-desc">Dead pixels، Burn-in، True Tone، سطوع</div></div>
-            <div class="m-acts">
-              <button class="ma ok"   onclick="mMark(event,'m-screen-quality','ok')">✓</button>
-              <button class="ma fail" onclick="mMark(event,'m-screen-quality','fail')">✗</button>
-              <button class="ma skip" onclick="mMark(event,'m-screen-quality','skip')">–</button>
-            </div>
-          </div>
-          <div class="m-tip"><ol class="m-steps"><li>ارفعي السطوع 100% — شوفي على خلفية بيضاء كاملة</li><li>شوفي نقاط ميتة أو احتراق (Burn-in) على خلفية داكنة</li><li>الإعدادات ← شاشة العرض — لو True Tone غير موجود = شاشة مستبدلة</li></ol></div>
+        <div class="data-card">
+          <div class="card-title">المعرّفات التقنية</div>
+          <div class="data-rows" id="id-technical"></div>
         </div>
-
-        <div class="manual-card" id="m-touch">
-          <div class="manual-head" onclick="toggleM('m-touch')">
-            <div class="m-bullet" id="mb-touch"></div>
-            <div class="m-body"><div class="m-title">الشاشة اللمسية</div><div class="m-desc">دقة اللمس وحساسية كل الزوايا</div></div>
-            <div class="m-acts">
-              <button class="ma ok"   onclick="mMark(event,'m-touch','ok')">✓</button>
-              <button class="ma fail" onclick="mMark(event,'m-touch','fail')">✗</button>
-              <button class="ma skip" onclick="mMark(event,'m-touch','skip')">–</button>
-            </div>
-          </div>
-          <div class="m-tip"><ol class="m-steps"><li>افتحي Notes وارسمي خطوطاً في كل زوايا الشاشة</li><li>تأكدي إن اللمس مستجيب في كل الأركان والحواف</li><li>جرّبي Multi-touch: افتحي الصور وكبّري بإصبعين</li></ol></div>
+        <div class="data-card">
+          <div class="card-title">الشبكة والاتصال</div>
+          <div class="data-rows" id="id-network"></div>
         </div>
-
-        <div class="manual-card" id="m-speaker">
-          <div class="manual-head" onclick="toggleM('m-speaker')">
-            <div class="m-bullet" id="mb-speaker"></div>
-            <div class="m-body"><div class="m-title">الصوت والمكبر</div><div class="m-desc">مكبر القاع + سماعة الأذن + Ring/Silent</div></div>
-            <div class="m-acts">
-              <button class="ma ok"   onclick="mMark(event,'m-speaker','ok')">✓</button>
-              <button class="ma fail" onclick="mMark(event,'m-speaker','fail')">✗</button>
-              <button class="ma skip" onclick="mMark(event,'m-speaker','skip')">–</button>
-            </div>
-          </div>
-          <div class="m-tip"><ol class="m-steps"><li>شغّلي أي موسيقى وارفعي الصوت — يُسمع نظيف بدون طشطشة</li><li>اتصلي بنفسك — السماعة الأذنية فوق الشاشة تشتغل</li><li>اضغطي زر Ring/Silent على الجانب — يهتز ويتحوّل للصامت</li></ol></div>
+        <div class="data-card">
+          <div class="card-title">التفعيل والحالة</div>
+          <div class="data-rows" id="id-activation"></div>
         </div>
+      </div>
+    </section>
 
-        <div class="manual-card" id="m-mic">
-          <div class="manual-head" onclick="toggleM('m-mic')">
-            <div class="m-bullet" id="mb-mic"></div>
-            <div class="m-body"><div class="m-title">المايكروفون</div><div class="m-desc">3 مايكروفونات — أمام، أسفل، خلف</div></div>
-            <div class="m-acts">
-              <button class="ma ok"   onclick="mMark(event,'m-mic','ok')">✓</button>
-              <button class="ma fail" onclick="mMark(event,'m-mic','fail')">✗</button>
-              <button class="ma skip" onclick="mMark(event,'m-mic','skip')">–</button>
-            </div>
-          </div>
-          <div class="m-tip"><ol class="m-steps"><li>افتحي Voice Memos (المذكرات الصوتية) وسجّلي صوتك</li><li>اشغلي التسجيل — يُسمع الصوت واضحاً بدون تشويش</li><li>جرّبي مكالمة فيديو — الطرف الآخر يسمعك كويس</li></ol></div>
+    <!-- ── البطارية ── -->
+    <section id="sec-battery" class="page">
+      <div class="section-hdr">
+        <div class="section-hdr-icon">🔋</div>
+        <div class="section-hdr-info">
+          <h2>البطارية</h2>
+          <p>صحة البطارية وحالة الشحن والاختبارات اليدوية</p>
         </div>
+      </div>
 
-        <div class="manual-card" id="m-camera">
-          <div class="manual-head" onclick="toggleM('m-camera')">
-            <div class="m-bullet" id="mb-camera"></div>
-            <div class="m-body"><div class="m-title">الكاميرا والفلاش</div><div class="m-desc">كل العدسات + الفلاش + الكاميرا الأمامية</div></div>
-            <div class="m-acts">
-              <button class="ma ok"   onclick="mMark(event,'m-camera','ok')">✓</button>
-              <button class="ma fail" onclick="mMark(event,'m-camera','fail')">✗</button>
-              <button class="ma skip" onclick="mMark(event,'m-camera','skip')">–</button>
-            </div>
-          </div>
-          <div class="m-tip"><ol class="m-steps"><li>افتحي الكاميرا وجرّبي كل تكبير (0.5× 1× 2× 5×)</li><li>افتحي مركز التحكم وفعّلي المصباح — يضيء فوراً</li><li>انتقلي للكاميرا الأمامية — صورة نظيفة بدون ضبابية</li><li>شوفي العدسات تحت الضوء — لا خدوش أو بقع</li></ol></div>
+      <div class="data-grid">
+        <div class="data-card">
+          <div class="card-title">بيانات البطارية</div>
+          <div class="data-rows" id="batt-rows"></div>
         </div>
-
-        <div class="manual-card" id="m-haptics">
-          <div class="manual-head" onclick="toggleM('m-haptics')">
-            <div class="m-bullet" id="mb-haptics"></div>
-            <div class="m-body"><div class="m-title">الاهتزاز والتابتيك</div><div class="m-desc">Taptic Engine + محرك الاهتزاز</div></div>
-            <div class="m-acts">
-              <button class="ma ok"   onclick="mMark(event,'m-haptics','ok')">✓</button>
-              <button class="ma fail" onclick="mMark(event,'m-haptics','fail')">✗</button>
-              <button class="ma skip" onclick="mMark(event,'m-haptics','skip')">–</button>
-            </div>
-          </div>
-          <div class="m-tip"><ol class="m-steps"><li>الإعدادات ← الأصوات والتعليقات الصوتية ← اضغطي "تشغيل الاهتزاز للاختبار"</li><li>يُفترض أن تشعري بنبضات نظيفة ومنتظمة</li><li>لو اهتزاز خشن أو طنين = محرك الاهتزاز متلف</li></ol></div>
+        <div class="data-card">
+          <div class="card-title">تقييم البطارية</div>
+          <div id="batt-verdict-container" style="padding:12px 14px;"></div>
         </div>
+      </div>
 
-        <div class="manual-card" id="m-charging">
-          <div class="manual-head" onclick="toggleM('m-charging')">
-            <div class="m-bullet" id="mb-charging"></div>
-            <div class="m-body"><div class="m-title">الشحن ومنفذ الكابل</div><div class="m-desc">Lightning / USB-C + شحن لاسلكي</div></div>
-            <div class="m-acts">
-              <button class="ma ok"   onclick="mMark(event,'m-charging','ok')">✓</button>
-              <button class="ma fail" onclick="mMark(event,'m-charging','fail')">✗</button>
-              <button class="ma skip" onclick="mMark(event,'m-charging','skip')">–</button>
-            </div>
+      <div class="test-card" id="t-charge-cable">
+        <div class="test-head" onclick="toggleTest('t-charge-cable')">
+          <span class="test-icon">🔌</span>
+          <div class="test-info">
+            <div class="test-title">الشحن بالكابل</div>
+            <div class="test-desc">تحقق من الشحن عبر المنفذ</div>
           </div>
-          <div class="m-tip"><ol class="m-steps"><li>وصّلي شاحن أصلي — يظهر رمز الشحن فوراً</li><li>جرّبي كابلين مختلفين — لو شاحن يشتغل والثاني لا = المشكلة في الكابل</li><li>الإعدادات ← البطارية — تأكدي إن "يشحن" ظاهر</li></ol></div>
-        </div>
-
-        <div class="manual-card" id="m-water">
-          <div class="manual-head" onclick="toggleM('m-water')">
-            <div class="m-bullet" id="mb-water"></div>
-            <div class="m-body"><div class="m-title"><span class="badge-r">مهم</span> مؤشر الماء</div><div class="m-desc">درج الشريحة — المؤشر الأبيض داخله</div></div>
-            <div class="m-acts">
-              <button class="ma ok"   onclick="mMark(event,'m-water','ok')">✓</button>
-              <button class="ma fail" onclick="mMark(event,'m-water','fail')">✗</button>
-              <button class="ma skip" onclick="mMark(event,'m-water','skip')">–</button>
-            </div>
+          <span class="badge-interactive">تفاعلي</span>
+          <span class="test-status-icon" id="ts-t-charge-cable">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-charge-cable','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-charge-cable','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-charge-cable','skip')">—</button>
           </div>
-          <div class="m-tip"><ol class="m-steps"><li>افتحي درج الشريحة بالدبوس</li><li>المؤشر أبيض = طبيعي ✓</li><li>أحمر أو وردي = تعرّض للماء ✗ — الجهاز قد يموت بعد أيام</li></ol></div>
         </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>وصّل شاحناً أصلياً — يجب أن تظهر أيقونة الشحن فوراً</li>
+            <li>الإعدادات ← البطارية — تأكد أن "يشحن" ظاهر</li>
+            <li>جرّب كابلين مختلفين للتأكد من أن المشكلة ليست في الكابل</li>
+          </ol>
+        </div>
+      </div>
 
-        <div class="manual-card" id="m-body">
-          <div class="manual-head" onclick="toggleM('m-body')">
-            <div class="m-bullet" id="mb-body"></div>
-            <div class="m-body"><div class="m-title">الهيكل والأزرار</div><div class="m-desc">انحناء، فجوات، أزرار الصوت والجانبي</div></div>
-            <div class="m-acts">
-              <button class="ma ok"   onclick="mMark(event,'m-body','ok')">✓</button>
-              <button class="ma fail" onclick="mMark(event,'m-body','fail')">✗</button>
-              <button class="ma skip" onclick="mMark(event,'m-body','skip')">–</button>
-            </div>
+      <div class="test-card" id="t-charge-fast">
+        <div class="test-head" onclick="toggleTest('t-charge-fast')">
+          <span class="test-icon">⚡</span>
+          <div class="test-info">
+            <div class="test-title">الشحن السريع</div>
+            <div class="test-desc">يظهر في الإشعارات عند الشحن السريع</div>
           </div>
-          <div class="m-tip"><ol class="m-steps"><li>ضعي الجهاز على سطح مستوٍ — لا انحناء في الهيكل</li><li>مرّري إصبعك على الحواف — لا فجوات بين الشاشة والهيكل</li><li>اضغطي كل الأزرار: صوت↑ صوت↓ Mute الجانبي — كل واحد يستجيب</li></ol></div>
+          <span class="badge-manual">يدوي</span>
+          <span class="test-status-icon" id="ts-t-charge-fast">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-charge-fast','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-charge-fast','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-charge-fast','skip')">—</button>
+          </div>
         </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>وصّل شاحن USB-C بقدرة 20W أو أكثر</li>
+            <li>يجب أن تظهر رسالة "الشحن السريع" على الشاشة</li>
+            <li>إذا لم تظهر الرسالة مع شاحن مناسب = مشكلة في منفذ الشحن أو البطارية</li>
+          </ol>
+        </div>
+      </div>
 
+      <div class="test-card" id="t-charge-wireless" style="display:none">
+        <div class="test-head" onclick="toggleTest('t-charge-wireless')">
+          <span class="test-icon">🔄</span>
+          <div class="test-info">
+            <div class="test-title">الشحن اللاسلكي MagSafe</div>
+            <div class="test-desc">اختبار الشحن اللاسلكي</div>
+          </div>
+          <span class="badge-manual">يدوي</span>
+          <span class="test-status-icon" id="ts-t-charge-wireless">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-charge-wireless','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-charge-wireless','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-charge-wireless','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>ضع الجهاز على شاحن MagSafe أو Qi</li>
+            <li>يجب أن تظهر أيقونة الشحن اللاسلكي على الشاشة</li>
+            <li>إذا لم يشحن = مشكلة في ملف الشحن اللاسلكي</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── خريطة القدرات ── -->
+    <section id="sec-capabilities" class="page">
+      <div class="section-hdr">
+        <div class="section-hdr-icon">🔬</div>
+        <div class="section-hdr-info">
+          <h2>خريطة القدرات</h2>
+          <p>مقارنة مواصفات الموديل مع البيانات المقروءة من الجهاز</p>
+        </div>
+      </div>
+      <div id="capabilities-container"></div>
+    </section>
+
+    <!-- ── الشاشة ── -->
+    <section id="sec-display" class="page">
+      <div class="section-hdr">
+        <div class="section-hdr-icon">📱</div>
+        <div class="section-hdr-info">
+          <h2>الشاشة</h2>
+          <p>اختبارات جودة الشاشة واللمس والألوان</p>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-display-deadpixel">
+        <div class="test-head" onclick="toggleTest('t-display-deadpixel')">
+          <span class="test-icon">🔴</span>
+          <div class="test-info">
+            <div class="test-title">البكسلات الميتة والحروق</div>
+            <div class="test-desc">فحص البكسلات المعطوبة وآثار الاحتراق</div>
+          </div>
+          <span class="badge-interactive">تفاعلي</span>
+          <span class="test-status-icon" id="ts-t-display-deadpixel">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-display-deadpixel','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-display-deadpixel','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-display-deadpixel','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>ارفع السطوع إلى 100% واجعل الخلفية بيضاء كاملة</li>
+            <li>ابحث عن نقاط داكنة أو خضراء أو زرقاء لا تختفي</li>
+            <li>اجعل الخلفية سوداء كاملة وابحث عن نقاط مضيئة</li>
+            <li>شاهد بزاوية مائلة: احتراق OLED يظهر كـ"شبح" للأيقونات</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-display-touch">
+        <div class="test-head" onclick="toggleTest('t-display-touch')">
+          <span class="test-icon">👆</span>
+          <div class="test-info">
+            <div class="test-title">دقة اللمس والاستجابة</div>
+            <div class="test-desc">فحص الحساسية في كل زوايا الشاشة</div>
+          </div>
+          <span class="badge-interactive">تفاعلي</span>
+          <span class="test-status-icon" id="ts-t-display-touch">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-display-touch','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-display-touch','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-display-touch','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>افتح تطبيق Notes وارسم خطوطاً في جميع زوايا وأركان الشاشة</li>
+            <li>تأكد من أن اللمس مستجيب في كل الحواف والأطراف</li>
+            <li>ابحث عن مناطق لا تستجيب أو تستجيب بتأخير</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-display-multitouch">
+        <div class="test-head" onclick="toggleTest('t-display-multitouch')">
+          <span class="test-icon">🤏</span>
+          <div class="test-info">
+            <div class="test-title">اللمس المتعدد</div>
+            <div class="test-desc">اختبار Pinch/Zoom بإصبعين</div>
+          </div>
+          <span class="badge-interactive">تفاعلي</span>
+          <span class="test-status-icon" id="ts-t-display-multitouch">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-display-multitouch','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-display-multitouch','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-display-multitouch','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>افتح الصور وجرّب التكبير والتصغير بإصبعين</li>
+            <li>جرّب فتح مركز التحكم بسحب إصبعين في نفس الوقت</li>
+            <li>يجب أن تكون الحركة سلسة ومستجيبة بدون تقطع</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-display-brightness">
+        <div class="test-head" onclick="toggleTest('t-display-brightness')">
+          <span class="test-icon">☀️</span>
+          <div class="test-info">
+            <div class="test-title">السطوع القصوى</div>
+            <div class="test-desc">اختبار أعلى مستوى سطوع ممكن</div>
+          </div>
+          <span class="badge-interactive">تفاعلي</span>
+          <span class="test-status-icon" id="ts-t-display-brightness">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-display-brightness','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-display-brightness','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-display-brightness','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>اذهب للإعدادات ← شاشة العرض والسطوع</li>
+            <li>اسحب شريط السطوع إلى أقصى اليمين</li>
+            <li>يجب أن تكون الشاشة ساطعة جداً وغير باهتة</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-display-truetone">
+        <div class="test-head" onclick="toggleTest('t-display-truetone')">
+          <span class="test-icon">🎨</span>
+          <div class="test-info">
+            <div class="test-title">True Tone وقطع Apple</div>
+            <div class="test-desc">الإعدادات ← عام ← معلومات ← قطع وخدمة</div>
+          </div>
+          <span class="badge-manual">يدوي</span>
+          <span class="test-status-icon" id="ts-t-display-truetone">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-display-truetone','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-display-truetone','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-display-truetone','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>الإعدادات ← شاشة العرض والسطوع — تحقق من وجود خيار "True Tone"</li>
+            <li>الإعدادات ← عام ← معلومات ← قطع وخدمة</li>
+            <li>"قطعة Apple الأصلية" = شاشة أصلية ✓</li>
+            <li>"قطعة مجهولة" أو "غير قادر على التحقق" = شاشة مستبدلة</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-display-parts">
+        <div class="test-head" onclick="toggleTest('t-display-parts')">
+          <span class="test-icon">🔧</span>
+          <div class="test-info">
+            <div class="test-title">قطع وخدمة Apple</div>
+            <div class="test-desc">فحص أصالة الشاشة من قسم قطع وخدمة</div>
+          </div>
+          <span class="badge-manual">يدوي</span>
+          <span class="test-status-icon" id="ts-t-display-parts">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-display-parts','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-display-parts','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-display-parts','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>الإعدادات ← عام ← معلومات ← قطع وخدمة</li>
+            <li>تحقق من حالة الشاشة: "قطعة Apple الأصلية" = لا توجد مشكلة</li>
+            <li>"غير معروفة" = الشاشة استُبدلت بقطعة غير رسمية</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── الكاميرات ── -->
+    <section id="sec-cameras" class="page">
+      <div class="section-hdr">
+        <div class="section-hdr-icon">📷</div>
+        <div class="section-hdr-info">
+          <h2>الكاميرات</h2>
+          <p>اختبار كل كاميرا وعدسة في الجهاز</p>
+        </div>
+      </div>
+      <div id="cameras-container"></div>
+    </section>
+
+    <!-- ── Face ID / Touch ID ── -->
+    <section id="sec-biometric" class="page">
+      <div class="section-hdr">
+        <div class="section-hdr-icon">👤</div>
+        <div class="section-hdr-info">
+          <h2 id="bio-section-title">Face ID / Touch ID</h2>
+          <p id="bio-section-desc">اختبار المعرّف البيومتري</p>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-bio-unlock">
+        <div class="test-head" onclick="toggleTest('t-bio-unlock')">
+          <span class="test-icon">🔓</span>
+          <div class="test-info">
+            <div class="test-title" id="bio-unlock-title">فتح القفل بالبيومتري</div>
+            <div class="test-desc">قفّل الجهاز وجرّب فتحه</div>
+          </div>
+          <span class="badge-interactive">تفاعلي</span>
+          <span class="test-status-icon" id="ts-t-bio-unlock">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-bio-unlock','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-bio-unlock','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-bio-unlock','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps" id="bio-unlock-steps">
+            <li>اضغط زر الجانب لقفل الشاشة</li>
+            <li>اقترب بوجهك — يجب أن ينفتح فوراً (Face ID)</li>
+            <li>إذا ظهرت رسالة "تعذّر تفعيل Face ID" = الشاشة تغيرت بمركز غير معتمد</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-bio-appauth">
+        <div class="test-head" onclick="toggleTest('t-bio-appauth')">
+          <span class="test-icon">📲</span>
+          <div class="test-info">
+            <div class="test-title" id="bio-app-title">المصادقة في التطبيقات</div>
+            <div class="test-desc">جرّب في تطبيق يطلب المصادقة</div>
+          </div>
+          <span class="badge-interactive">تفاعلي</span>
+          <span class="test-status-icon" id="ts-t-bio-appauth">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-bio-appauth','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-bio-appauth','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-bio-appauth','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>افتح تطبيق بنكي أو أي تطبيق يطلب المصادقة</li>
+            <li>جرّب الدخول بالوجه أو البصمة</li>
+            <li>يجب أن يتعرف عليك بسرعة وبدون أخطاء متكررة</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-bio-warning">
+        <div class="test-head" onclick="toggleTest('t-bio-warning')">
+          <span class="test-icon">⚠️</span>
+          <div class="test-info">
+            <div class="test-title">فحص تحذيرات TrueDepth</div>
+            <div class="test-desc">هل توجد تحذيرات في الإعدادات؟</div>
+          </div>
+          <span class="badge-manual">يدوي</span>
+          <span class="test-status-icon" id="ts-t-bio-warning">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-bio-warning','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-bio-warning','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-bio-warning','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>الإعدادات ← Face ID / Touch ID</li>
+            <li>هل يوجد تحذير أو رسالة خطأ عند الدخول؟</li>
+            <li>تحذير "تعذّر إعداد Face ID" = مشكلة في كاميرا TrueDepth</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── الصوت ── -->
+    <section id="sec-audio" class="page">
+      <div class="section-hdr">
+        <div class="section-hdr-icon">🔊</div>
+        <div class="section-hdr-info">
+          <h2>الصوت والمايكروفون</h2>
+          <p>اختبار مكبرات الصوت والمايكروفونات</p>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-audio-bottom-speaker">
+        <div class="test-head" onclick="toggleTest('t-audio-bottom-speaker')">
+          <span class="test-icon">🔈</span>
+          <div class="test-info">
+            <div class="test-title">مكبر القاع</div>
+            <div class="test-desc">المكبر السفلي عند قاع الجهاز</div>
+          </div>
+          <span class="badge-interactive">تفاعلي</span>
+          <span class="test-status-icon" id="ts-t-audio-bottom-speaker">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-audio-bottom-speaker','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-audio-bottom-speaker','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-audio-bottom-speaker','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>شغّل موسيقى أو فيديو وارفع الصوت إلى أقصاه</li>
+            <li>يجب أن يُسمع الصوت نظيفاً بدون طشطشة أو انقطاع</li>
+            <li>غطّ الشق العلوي بيدك — يجب أن يبقى الصوت واضحاً</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-audio-earpiece">
+        <div class="test-head" onclick="toggleTest('t-audio-earpiece')">
+          <span class="test-icon">📞</span>
+          <div class="test-info">
+            <div class="test-title">سماعة الأذن</div>
+            <div class="test-desc">السماعة العلوية للمكالمات</div>
+          </div>
+          <span class="badge-interactive">تفاعلي</span>
+          <span class="test-status-icon" id="ts-t-audio-earpiece">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-audio-earpiece','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-audio-earpiece','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-audio-earpiece','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>اتصل بأي رقم (حتى خدمة العملاء)</li>
+            <li>أمسك الجهاز بطريقة المكالمة العادية</li>
+            <li>يجب أن يُسمع الصوت واضحاً عبر السماعة العلوية</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-audio-mic-bottom">
+        <div class="test-head" onclick="toggleTest('t-audio-mic-bottom')">
+          <span class="test-icon">🎙️</span>
+          <div class="test-info">
+            <div class="test-title">المايكروفون السفلي</div>
+            <div class="test-desc">مايكروفون قاع الجهاز</div>
+          </div>
+          <span class="badge-interactive">تفاعلي</span>
+          <span class="test-status-icon" id="ts-t-audio-mic-bottom">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-audio-mic-bottom','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-audio-mic-bottom','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-audio-mic-bottom','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>افتح تطبيق "المذكرات الصوتية" وسجّل صوتك</li>
+            <li>اشغل التسجيل — يجب أن يُسمع واضحاً بدون تشويش</li>
+            <li>مستوى الصوت يجب أن يكون طبيعياً وليس خافتاً</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-audio-mic-front">
+        <div class="test-head" onclick="toggleTest('t-audio-mic-front')">
+          <span class="test-icon">🎤</span>
+          <div class="test-info">
+            <div class="test-title">المايكروفون الأمامي</div>
+            <div class="test-desc">مايكروفون مكالمات الفيديو</div>
+          </div>
+          <span class="badge-interactive">تفاعلي</span>
+          <span class="test-status-icon" id="ts-t-audio-mic-front">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-audio-mic-front','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-audio-mic-front','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-audio-mic-front','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>افتح كاميرا الفيديو من الكاميرا الأمامية</li>
+            <li>سجّل مقطعاً قصيراً وتحقق من جودة الصوت</li>
+            <li>أو جرّب مكالمة فيديو — الطرف الآخر يجب أن يسمعك بوضوح</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-audio-mute">
+        <div class="test-head" onclick="toggleTest('t-audio-mute')">
+          <span class="test-icon">🔕</span>
+          <div class="test-info">
+            <div class="test-title">مفتاح الصامت / Action</div>
+            <div class="test-desc">زر تحويل الصوت للصامت على الجانب</div>
+          </div>
+          <span class="badge-interactive">تفاعلي</span>
+          <span class="test-status-icon" id="ts-t-audio-mute">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-audio-mute','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-audio-mute','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-audio-mute','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>حرّك مفتاح الصامت للأمام والخلف عدة مرات</li>
+            <li>يجب أن تشعر بالاهتزاز عند التحويل ويظهر مؤشر على الشاشة</li>
+            <li>في أجهزة iPhone 15 Pro وما بعد: يحمل وظيفة Action Button — تحقق من ضغطه</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── الاتصال ── -->
+    <section id="sec-connectivity" class="page">
+      <div class="section-hdr">
+        <div class="section-hdr-icon">📡</div>
+        <div class="section-hdr-info">
+          <h2>الاتصال والشبكة</h2>
+          <p>بيانات الشبكة والسيم والاختبارات اليدوية</p>
+        </div>
+      </div>
+
+      <div class="data-grid">
+        <div class="data-card data-card--full">
+          <div class="card-title">بيانات الشبكة</div>
+          <div class="data-rows" id="conn-rows"></div>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-conn-wifi">
+        <div class="test-head" onclick="toggleTest('t-conn-wifi')">
+          <span class="test-icon">📶</span>
+          <div class="test-info">
+            <div class="test-title">الواي فاي</div>
+            <div class="test-desc">الاتصال بشبكة WiFi واختبار السرعة</div>
+          </div>
+          <span class="badge-manual">يدوي</span>
+          <span class="test-status-icon" id="ts-t-conn-wifi">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-conn-wifi','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-conn-wifi','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-conn-wifi','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>الإعدادات ← WiFi — اتصل بشبكة معروفة</li>
+            <li>افتح Safari وتصفح موقعاً — يجب أن يفتح بسرعة</li>
+            <li>افتح سرعة الإشارة في الإعدادات ← WiFi</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-conn-bt">
+        <div class="test-head" onclick="toggleTest('t-conn-bt')">
+          <span class="test-icon">🔵</span>
+          <div class="test-info">
+            <div class="test-title">البلوتوث</div>
+            <div class="test-desc">الإقران مع جهاز بلوتوث</div>
+          </div>
+          <span class="badge-manual">يدوي</span>
+          <span class="test-status-icon" id="ts-t-conn-bt">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-conn-bt','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-conn-bt','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-conn-bt','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>الإعدادات ← البلوتوث — شغّله</li>
+            <li>تأكد أن الجهاز يكتشف الأجهزة المجاورة</li>
+            <li>قارن مع سماعة أو جهاز آخر</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-conn-gps">
+        <div class="test-head" onclick="toggleTest('t-conn-gps')">
+          <span class="test-icon">🌍</span>
+          <div class="test-info">
+            <div class="test-title">GPS والموقع</div>
+            <div class="test-desc">اختبار دقة تحديد الموقع</div>
+          </div>
+          <span class="badge-interactive">تفاعلي</span>
+          <span class="test-status-icon" id="ts-t-conn-gps">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-conn-gps','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-conn-gps','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-conn-gps','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>افتح تطبيق الخرائط Maps</li>
+            <li>اضغط أيقونة الموقع — يجب أن يتحدد موقعك بدقة</li>
+            <li>دقة أقل من 10 أمتار = GPS يعمل بشكل جيد</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-conn-nfc" style="display:none">
+        <div class="test-head" onclick="toggleTest('t-conn-nfc')">
+          <span class="test-icon">📲</span>
+          <div class="test-info">
+            <div class="test-title">NFC</div>
+            <div class="test-desc">اختبار الدفع اللاسلكي Apple Pay</div>
+          </div>
+          <span class="badge-manual">يدوي</span>
+          <span class="test-status-icon" id="ts-t-conn-nfc">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-conn-nfc','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-conn-nfc','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-conn-nfc','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>الإعدادات ← Wallet وApple Pay — تحقق من إعداد البطاقات</li>
+            <li>جرّب النقر مرتين على زر الجانب لتفعيل Apple Pay</li>
+            <li>أو اقترب من محطة دفع NFC — يجب أن يتفاعل الجهاز</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── الحساسات والأزرار ── -->
+    <section id="sec-sensors" class="page">
+      <div class="section-hdr">
+        <div class="section-hdr-icon">🧭</div>
+        <div class="section-hdr-info">
+          <h2>الحساسات والأزرار</h2>
+          <p>اختبار الأزرار الجانبية وكل الحساسات</p>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-btn-power">
+        <div class="test-head" onclick="toggleTest('t-btn-power')">
+          <span class="test-icon">⏻</span>
+          <div class="test-info">
+            <div class="test-title">زر التشغيل الجانبي</div>
+            <div class="test-desc">الزر الجانبي للإيقاف والتشغيل</div>
+          </div>
+          <span class="badge-interactive">تفاعلي</span>
+          <span class="test-status-icon" id="ts-t-btn-power">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-btn-power','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-btn-power','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-btn-power','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>اضغط الزر الجانبي لإطفاء الشاشة ثم لإضاءتها</li>
+            <li>اضغط مطولاً — يجب أن تظهر قائمة الإيقاف</li>
+            <li>الزر يجب أن يكون صلباً غير مترجرج</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-btn-vol-up">
+        <div class="test-head" onclick="toggleTest('t-btn-vol-up')">
+          <span class="test-icon">🔊</span>
+          <div class="test-info">
+            <div class="test-title">زر رفع الصوت</div>
+            <div class="test-desc">زر الصوت العلوي</div>
+          </div>
+          <span class="badge-interactive">تفاعلي</span>
+          <span class="test-status-icon" id="ts-t-btn-vol-up">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-btn-vol-up','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-btn-vol-up','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-btn-vol-up','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>اضغط زر الصوت للأعلى — يجب أن يرتفع الصوت</li>
+            <li>يظهر مؤشر الصوت على الشاشة عند الضغط</li>
+            <li>الزر يجب أن يكون مستجيباً وغير صامت</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-btn-vol-down">
+        <div class="test-head" onclick="toggleTest('t-btn-vol-down')">
+          <span class="test-icon">🔉</span>
+          <div class="test-info">
+            <div class="test-title">زر خفض الصوت</div>
+            <div class="test-desc">زر الصوت السفلي</div>
+          </div>
+          <span class="badge-interactive">تفاعلي</span>
+          <span class="test-status-icon" id="ts-t-btn-vol-down">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-btn-vol-down','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-btn-vol-down','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-btn-vol-down','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>اضغط زر الصوت للأسفل — يجب أن ينخفض الصوت</li>
+            <li>يظهر مؤشر الصوت على الشاشة</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-btn-mute-action">
+        <div class="test-head" onclick="toggleTest('t-btn-mute-action')">
+          <span class="test-icon">🔕</span>
+          <div class="test-info">
+            <div class="test-title">مفتاح الصامت / Action Button</div>
+            <div class="test-desc">الزر الجانبي الصغير</div>
+          </div>
+          <span class="badge-interactive">تفاعلي</span>
+          <span class="test-status-icon" id="ts-t-btn-mute-action">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-btn-mute-action','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-btn-mute-action','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-btn-mute-action','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>حرّك المفتاح أو اضغطه — يجب أن تشعر باهتزاز وتظهر إشارة على الشاشة</li>
+            <li>في iPhone 15 Pro وما بعد: Action Button يمكن ضبطه على وظائف متعددة</li>
+            <li>تحقق في الإعدادات ← Action Button</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-sensor-taptic">
+        <div class="test-head" onclick="toggleTest('t-sensor-taptic')">
+          <span class="test-icon">📳</span>
+          <div class="test-info">
+            <div class="test-title">Taptic Engine</div>
+            <div class="test-desc">محرك الاهتزاز التكتيل</div>
+          </div>
+          <span class="badge-interactive">تفاعلي</span>
+          <span class="test-status-icon" id="ts-t-sensor-taptic">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-sensor-taptic','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-sensor-taptic','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-sensor-taptic','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>الإعدادات ← الأصوات والتعليقات الصوتية ← اهتزاز</li>
+            <li>اضغط "تشغيل الاهتزاز للاختبار"</li>
+            <li>يجب أن تشعر بنبضات نظيفة ومنتظمة — اهتزاز خشن = محرك متلف</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-sensor-proximity">
+        <div class="test-head" onclick="toggleTest('t-sensor-proximity')">
+          <span class="test-icon">👁️</span>
+          <div class="test-info">
+            <div class="test-title">حساس القرب</div>
+            <div class="test-desc">يطفئ الشاشة أثناء المكالمة</div>
+          </div>
+          <span class="badge-interactive">تفاعلي</span>
+          <span class="test-status-icon" id="ts-t-sensor-proximity">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-sensor-proximity','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-sensor-proximity','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-sensor-proximity','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>أجرِ مكالمة هاتفية</li>
+            <li>ضع الجهاز بالقرب من أذنك — يجب أن تنطفئ الشاشة تلقائياً</li>
+            <li>أبعد الجهاز عن أذنك — يجب أن تضيء الشاشة</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-sensor-light">
+        <div class="test-head" onclick="toggleTest('t-sensor-light')">
+          <span class="test-icon">💡</span>
+          <div class="test-info">
+            <div class="test-title">حساس الإضاءة</div>
+            <div class="test-desc">ضبط السطوع التلقائي</div>
+          </div>
+          <span class="badge-manual">يدوي</span>
+          <span class="test-status-icon" id="ts-t-sensor-light">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-sensor-light','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-sensor-light','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-sensor-light','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>تأكد أن "السطوع التلقائي" مفعّل في الإعدادات ← إمكانية الوصول ← شاشة العرض</li>
+            <li>انتقل من مكان مضاء لمكان مظلم — يجب أن يتغير السطوع تلقائياً</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-sensor-accel">
+        <div class="test-head" onclick="toggleTest('t-sensor-accel')">
+          <span class="test-icon">📐</span>
+          <div class="test-info">
+            <div class="test-title">مقياس التسارع</div>
+            <div class="test-desc">استشعار توجه الشاشة</div>
+          </div>
+          <span class="badge-interactive">تفاعلي</span>
+          <span class="test-status-icon" id="ts-t-sensor-accel">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-sensor-accel','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-sensor-accel','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-sensor-accel','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>تأكد أن قفل الاتجاه معطّل من مركز التحكم</li>
+            <li>قلّب الجهاز أفقياً — يجب أن تتحول الشاشة للوضع الأفقي</li>
+            <li>قلّبه عمودياً — تعود للوضع العمودي</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-sensor-gyro">
+        <div class="test-head" onclick="toggleTest('t-sensor-gyro')">
+          <span class="test-icon">🔄</span>
+          <div class="test-info">
+            <div class="test-title">الجيروسكوب</div>
+            <div class="test-desc">حساس الحركة والاتجاه ثلاثي الأبعاد</div>
+          </div>
+          <span class="badge-interactive">تفاعلي</span>
+          <span class="test-status-icon" id="ts-t-sensor-gyro">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-sensor-gyro','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-sensor-gyro','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-sensor-gyro','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>افتح تطبيق الخرائط وضغط الاتجاهات</li>
+            <li>حرّك الجهاز في كل الاتجاهات — يجب أن تتحرك الخريطة</li>
+            <li>أو جرّب لعبة تعتمد على الجيروسكوب</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-sensor-compass">
+        <div class="test-head" onclick="toggleTest('t-sensor-compass')">
+          <span class="test-icon">🧭</span>
+          <div class="test-info">
+            <div class="test-title">البوصلة</div>
+            <div class="test-desc">حساس المغناطيس والاتجاهات</div>
+          </div>
+          <span class="badge-interactive">تفاعلي</span>
+          <span class="test-status-icon" id="ts-t-sensor-compass">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-sensor-compass','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-sensor-compass','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-sensor-compass','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>افتح تطبيق البوصلة</li>
+            <li>اتبع تعليمات المعايرة (دوّر الجهاز في حركة دائرية)</li>
+            <li>يجب أن تشير البوصلة بثبات نحو الشمال</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-sensor-baro" style="display:none">
+        <div class="test-head" onclick="toggleTest('t-sensor-baro')">
+          <span class="test-icon">🌬️</span>
+          <div class="test-info">
+            <div class="test-title">الباروميتر</div>
+            <div class="test-desc">حساس الضغط الجوي والارتفاع</div>
+          </div>
+          <span class="badge-manual">يدوي</span>
+          <span class="test-status-icon" id="ts-t-sensor-baro">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-sensor-baro','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-sensor-baro','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-sensor-baro','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>افتح تطبيق الصحة Health</li>
+            <li>ابحث عن "الطوابق المصعودة" — يجب أن تسجّل بيانات</li>
+            <li>أو استخدم تطبيق طقس يُظهر ضغط الهواء</li>
+          </ol>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ── الشحن والمنفذ ── -->
+    <section id="sec-charging" class="page">
+      <div class="section-hdr">
+        <div class="section-hdr-icon">⚡</div>
+        <div class="section-hdr-info">
+          <h2>الشحن والمنفذ</h2>
+          <p>اختبار منفذ الشحن والشحن اللاسلكي</p>
+        </div>
+      </div>
+
+      <div class="data-grid">
+        <div class="data-card data-card--full">
+          <div class="card-title">حالة الاتصال عبر USB</div>
+          <div class="data-rows" id="charge-rows"></div>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-port-cable">
+        <div class="test-head" onclick="toggleTest('t-port-cable')">
+          <span class="test-icon">🔌</span>
+          <div class="test-info">
+            <div class="test-title">منفذ الشحن</div>
+            <div class="test-desc">حالة المنفذ من الداخل</div>
+          </div>
+          <span class="badge-manual">يدوي</span>
+          <span class="test-status-icon" id="ts-t-port-cable">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-port-cable','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-port-cable','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-port-cable','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>أضئ مصباح واستعرض داخل المنفذ — لا يوجد اعوجاج أو قمامة</li>
+            <li>جرّب الكابل بلطف — لا يخرج بسهولة ولا يتحرك كثيراً</li>
+            <li>الكابل يجب أن يدخل بسلاسة بدون إجبار</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-port-fast">
+        <div class="test-head" onclick="toggleTest('t-port-fast')">
+          <span class="test-icon">⚡</span>
+          <div class="test-info">
+            <div class="test-title">الشحن السريع عبر الكابل</div>
+            <div class="test-desc">25W أو أكثر</div>
+          </div>
+          <span class="badge-manual">يدوي</span>
+          <span class="test-status-icon" id="ts-t-port-fast">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-port-fast','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-port-fast','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-port-fast','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>وصّل شاحن USB-C بقدرة 20W على الأقل</li>
+            <li>يجب أن تظهر رسالة "الشحن السريع" خلال دقيقة</li>
+            <li>لو لم تظهر = قد يكون هناك مشكلة في منفذ الشحن أو كابل البيانات</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-port-wireless" style="display:none">
+        <div class="test-head" onclick="toggleTest('t-port-wireless')">
+          <span class="test-icon">🔄</span>
+          <div class="test-info">
+            <div class="test-title">الشحن اللاسلكي</div>
+            <div class="test-desc">MagSafe أو Qi</div>
+          </div>
+          <span class="badge-manual">يدوي</span>
+          <span class="test-status-icon" id="ts-t-port-wireless">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-port-wireless','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-port-wireless','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-port-wireless','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>ضع الجهاز على شاحن MagSafe أو Qi معتمد</li>
+            <li>يظهر رمز الشحن اللاسلكي خلال 5 ثوانٍ</li>
+            <li>إذا لم يشحن مع شاحن يعمل مع جهاز آخر = مشكلة في ملف الشحن الداخلي</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-port-condition">
+        <div class="test-head" onclick="toggleTest('t-port-condition')">
+          <span class="test-icon">🔍</span>
+          <div class="test-info">
+            <div class="test-title">مؤشر الماء</div>
+            <div class="test-desc">درج الشريحة — المؤشر الداخلي</div>
+          </div>
+          <span class="badge-manual">يدوي</span>
+          <span class="test-status-icon" id="ts-t-port-condition">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-port-condition','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-port-condition','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-port-condition','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>افتح درج الشريحة بالدبوس الصغير</li>
+            <li>المؤشر أبيض = لم يتعرض للماء ✓</li>
+            <li>أحمر أو وردي = تعرّض للماء — الجهاز قد يكون معرضاً للأعطال</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── الأمان ── -->
+    <section id="sec-security" class="page">
+      <div class="section-hdr">
+        <div class="section-hdr-icon">🔒</div>
+        <div class="section-hdr-info">
+          <h2>الأمان والتفعيل</h2>
+          <p>حالة iCloud والإشراف والتفعيل</p>
+        </div>
+      </div>
+
+      <div id="security-flags-container"></div>
+
+      <div class="data-grid">
+        <div class="data-card data-card--full">
+          <div class="card-title">بيانات الأمان</div>
+          <div class="data-rows" id="sec-rows"></div>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-sec-findmy">
+        <div class="test-head" onclick="toggleTest('t-sec-findmy')">
+          <span class="test-icon">📍</span>
+          <div class="test-info">
+            <div class="test-title">Find My iPhone</div>
+            <div class="test-desc">تحقق من حالة قفل الملكية</div>
+          </div>
+          <span class="badge-manual">يدوي</span>
+          <span class="test-status-icon" id="ts-t-sec-findmy">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-sec-findmy','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-sec-findmy','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-sec-findmy','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>الإعدادات ← الاسم ← Find My</li>
+            <li>إذا كان "Find My iPhone" مفعّلاً = الجهاز مرتبط بحساب iCloud</li>
+            <li>اطلب من البائع إيقافه قبل الشراء — هذا ضروري</li>
+            <li>إذا رفض أو لم يستطع = خطر Activation Lock</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-sec-icloud">
+        <div class="test-head" onclick="toggleTest('t-sec-icloud')">
+          <span class="test-icon">☁️</span>
+          <div class="test-info">
+            <div class="test-title">تسجيل الخروج من iCloud</div>
+            <div class="test-desc">تحقق من قدرتك على حذف الحساب</div>
+          </div>
+          <span class="badge-manual">يدوي</span>
+          <span class="test-status-icon" id="ts-t-sec-icloud">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-sec-icloud','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-sec-icloud','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-sec-icloud','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>الإعدادات ← الاسم ← تسجيل الخروج</li>
+            <li>إذا طلب كلمة مرور Apple ID = لا يمكن الإزالة بدون صاحب الحساب</li>
+            <li>يجب أن يتمكن البائع من تسجيل الخروج أمامك قبل البيع</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-card" id="t-sec-erase">
+        <div class="test-head" onclick="toggleTest('t-sec-erase')">
+          <span class="test-icon">🗑️</span>
+          <div class="test-info">
+            <div class="test-title">إمكانية المسح والإعداد</div>
+            <div class="test-desc">التأكد من أن الجهاز يمكن تهيئته بحسابك</div>
+          </div>
+          <span class="badge-manual">يدوي</span>
+          <span class="test-status-icon" id="ts-t-sec-erase">○</span>
+          <div class="test-acts">
+            <button class="t-pass" onclick="markTest(event,'t-sec-erase','pass')">✓</button>
+            <button class="t-fail" onclick="markTest(event,'t-sec-erase','fail')">✗</button>
+            <button class="t-skip" onclick="markTest(event,'t-sec-erase','skip')">—</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>تأكد أن البائع سجّل الخروج من iCloud أولاً</li>
+            <li>الإعدادات ← عام ← نقل أو إعادة تعيين الـiPhone ← مسح المحتوى والإعدادات</li>
+            <li>بعد المسح يجب أن يبدأ الجهاز من شاشة "مرحباً" بدون قفل iCloud</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── النتيجة التقنية ── -->
+    <section id="sec-score" class="page">
+      <div class="section-hdr">
+        <div class="section-hdr-icon">🏆</div>
+        <div class="section-hdr-info">
+          <h2>النتيجة التقنية</h2>
+          <p>تقييم شامل بناءً على البيانات والاختبارات</p>
+        </div>
+      </div>
+
+      <div id="condition-banner-container"></div>
+
+      <div style="display:flex;align-items:center;justify-content:center;margin-bottom:24px;">
+        <div class="score-ring-large-wrap">
+          <svg class="score-ring-large" viewBox="0 0 140 140">
+            <circle class="score-ring-large-bg" cx="70" cy="70" r="56"/>
+            <circle class="score-ring-large-progress" cx="70" cy="70" r="56"/>
+          </svg>
+          <div class="score-number-large">
+            <span id="scoreBig">—</span>
+            <span class="score-pts-label">/ 100</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="score-grid" id="score-breakdown-grid"></div>
+    </section>
+
+    <!-- ── التقرير ── -->
+    <section id="sec-report" class="page">
+      <div class="section-hdr no-print">
+        <div class="section-hdr-icon">📄</div>
+        <div class="section-hdr-info">
+          <h2>التقرير الكامل</h2>
+          <p>تقرير قابل للطباعة يشمل كل بيانات الجهاز ونتائج الاختبارات</p>
+        </div>
+      </div>
+
+      <div class="report-section">
+        <div class="report-section-title">هوية الجهاز</div>
+        <table class="report-table" id="rep-identity-table"></table>
+      </div>
+
+      <div class="report-section">
+        <div class="report-section-title">البطارية</div>
+        <table class="report-table" id="rep-battery-table"></table>
+      </div>
+
+      <div class="report-section">
+        <div class="report-section-title">نتائج الاختبارات</div>
+        <table class="report-table" id="rep-tests-table"></table>
+      </div>
+
+      <div class="report-section">
+        <div class="report-section-title">النتيجة الإجمالية</div>
+        <table class="report-table" id="rep-score-table"></table>
+      </div>
+
+      <div class="no-print">
+        <button class="pdf-btn" id="pdfBtn" onclick="generatePdf()">🖨️ تصدير PDF</button>
+      </div>
+    </section>
+
+    <!-- ── البيانات الخام ── -->
+    <section id="sec-diagnostics" class="page">
+      <div class="section-hdr">
+        <div class="section-hdr-icon">🛠</div>
+        <div class="section-hdr-info">
+          <h2>البيانات الخام</h2>
+          <p>مخرجات أوامر التشخيص الخام للمطورين</p>
+        </div>
+      </div>
+
+      <button class="raw-load-btn" id="rawLoadBtn" onclick="loadRawDiagnostics()">
+        تحميل البيانات الخام
+      </button>
+
+      <div class="raw-block">
+        <div class="raw-block-title">
+          <span class="raw-block-name">idevice_id -l</span>
+          <button class="raw-copy-btn" onclick="copyRaw('raw-idevice_id')">نسخ</button>
+        </div>
+        <pre class="raw-pre" id="raw-idevice_id">— لم يتم التحميل —</pre>
+      </div>
+
+      <div class="raw-block">
+        <div class="raw-block-title">
+          <span class="raw-block-name">ideviceinfo</span>
+          <button class="raw-copy-btn" onclick="copyRaw('raw-ideviceinfo_all')">نسخ</button>
+        </div>
+        <pre class="raw-pre" id="raw-ideviceinfo_all">— لم يتم التحميل —</pre>
+      </div>
+
+      <div class="raw-block">
+        <div class="raw-block-title">
+          <span class="raw-block-name">idevicepair validate</span>
+          <button class="raw-copy-btn" onclick="copyRaw('raw-idevicepair')">نسخ</button>
+        </div>
+        <pre class="raw-pre" id="raw-idevicepair">— لم يتم التحميل —</pre>
+      </div>
+
+      <div class="raw-block">
+        <div class="raw-block-title">
+          <span class="raw-block-name">idevicediagnostics IORegistry</span>
+          <button class="raw-copy-btn" onclick="copyRaw('raw-idevicediagnostics')">نسخ</button>
+        </div>
+        <pre class="raw-pre" id="raw-idevicediagnostics">— لم يتم التحميل —</pre>
+      </div>
+
+      <div class="raw-block">
+        <div class="raw-block-title">
+          <span class="raw-block-name">system_profiler SPUSBDataType</span>
+          <button class="raw-copy-btn" onclick="copyRaw('raw-system_profiler')">نسخ</button>
+        </div>
+        <pre class="raw-pre" id="raw-system_profiler">— لم يتم التحميل —</pre>
       </div>
     </section>
 
   </main>
 </div>
-
 <script src="app.js"></script>
 </body>
 </html>

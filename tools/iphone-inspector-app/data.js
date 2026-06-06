@@ -132,7 +132,7 @@ const CAMERA_CONFIG = {
   // iPhone 16 (2024)
   'iPhone17,1':[3,true, true, true], 'iPhone17,2':[3,true, true, true],
   'iPhone17,3':[2,false,false,true], 'iPhone17,4':[2,false,false,true],
-  'iPhone17,5':[2,false,false,false],  // 16e — Touch ID
+  'iPhone17,5':[1,false,false,true],  // 16e — 1 rear cam, Face ID
   // iPhone 15 (2023)
   'iPhone16,3':[3,true, true, true], 'iPhone16,4':[3,true, true, true],
   'iPhone16,1':[2,false,false,true], 'iPhone16,2':[2,false,false,true],
@@ -169,6 +169,74 @@ const CAMERA_CONFIG = {
   'iPhone5,1':[1,false,false,false], 'iPhone5,2':[1,false,false,false],
   'iPhone5,3':[1,false,false,false], 'iPhone5,4':[1,false,false,false],
   'iPhone4,1':[1,false,false,false],
+};
+
+// ── Model capability map ──────────────────────────────
+// { rearCams, faceID, lidar, magsafe, usbc, c5g, esim, actionBtn, barometer }
+const MODEL_CAPS = {
+  // ─── iPhone 6S (2015) — no 5G, no eSIM, no FaceID, no MagSafe, Lightning
+  'iPhone8,1': { rearCams:1, faceID:false, lidar:false, magsafe:false, usbc:false, c5g:false, esim:false, actionBtn:false, barometer:true },
+  'iPhone8,2': { rearCams:1, faceID:false, lidar:false, magsafe:false, usbc:false, c5g:false, esim:false, actionBtn:false, barometer:true },
+  // ─── iPhone SE 1st gen (2016) — no barometer
+  'iPhone8,4': { rearCams:1, faceID:false, lidar:false, magsafe:false, usbc:false, c5g:false, esim:false, actionBtn:false, barometer:false },
+  // ─── iPhone 7 (2016)
+  'iPhone9,1': { rearCams:1, faceID:false, lidar:false, magsafe:false, usbc:false, c5g:false, esim:false, actionBtn:false, barometer:true },
+  'iPhone9,3': { rearCams:1, faceID:false, lidar:false, magsafe:false, usbc:false, c5g:false, esim:false, actionBtn:false, barometer:true },
+  'iPhone9,2': { rearCams:2, faceID:false, lidar:false, magsafe:false, usbc:false, c5g:false, esim:false, actionBtn:false, barometer:true },
+  'iPhone9,4': { rearCams:2, faceID:false, lidar:false, magsafe:false, usbc:false, c5g:false, esim:false, actionBtn:false, barometer:true },
+  // ─── iPhone 8 (2017)
+  'iPhone10,1':{ rearCams:1, faceID:false, lidar:false, magsafe:false, usbc:false, c5g:false, esim:false, actionBtn:false, barometer:true },
+  'iPhone10,4':{ rearCams:1, faceID:false, lidar:false, magsafe:false, usbc:false, c5g:false, esim:false, actionBtn:false, barometer:true },
+  'iPhone10,2':{ rearCams:2, faceID:false, lidar:false, magsafe:false, usbc:false, c5g:false, esim:false, actionBtn:false, barometer:true },
+  'iPhone10,5':{ rearCams:2, faceID:false, lidar:false, magsafe:false, usbc:false, c5g:false, esim:false, actionBtn:false, barometer:true },
+  // ─── iPhone X (2017)
+  'iPhone10,3':{ rearCams:2, faceID:true,  lidar:false, magsafe:false, usbc:false, c5g:false, esim:false, actionBtn:false, barometer:true },
+  'iPhone10,6':{ rearCams:2, faceID:true,  lidar:false, magsafe:false, usbc:false, c5g:false, esim:false, actionBtn:false, barometer:true },
+  // ─── iPhone XS / XR (2018) — first eSIM
+  'iPhone11,2':{ rearCams:2, faceID:true,  lidar:false, magsafe:false, usbc:false, c5g:false, esim:true,  actionBtn:false, barometer:true },
+  'iPhone11,4':{ rearCams:2, faceID:true,  lidar:false, magsafe:false, usbc:false, c5g:false, esim:true,  actionBtn:false, barometer:true },
+  'iPhone11,6':{ rearCams:2, faceID:true,  lidar:false, magsafe:false, usbc:false, c5g:false, esim:true,  actionBtn:false, barometer:true },
+  'iPhone11,8':{ rearCams:1, faceID:true,  lidar:false, magsafe:false, usbc:false, c5g:false, esim:true,  actionBtn:false, barometer:true },
+  // ─── iPhone 11 (2019)
+  'iPhone12,1':{ rearCams:2, faceID:true,  lidar:false, magsafe:false, usbc:false, c5g:false, esim:true,  actionBtn:false, barometer:true },
+  'iPhone12,3':{ rearCams:3, faceID:true,  lidar:false, magsafe:false, usbc:false, c5g:false, esim:true,  actionBtn:false, barometer:true },
+  'iPhone12,5':{ rearCams:3, faceID:true,  lidar:false, magsafe:false, usbc:false, c5g:false, esim:true,  actionBtn:false, barometer:true },
+  // ─── iPhone SE 2nd gen (2020) — no barometer, no eSIM, no 5G
+  'iPhone12,8':{ rearCams:1, faceID:false, lidar:false, magsafe:false, usbc:false, c5g:false, esim:false, actionBtn:false, barometer:false },
+  // ─── iPhone 12 (2020) — first MagSafe, first 5G
+  'iPhone13,1':{ rearCams:2, faceID:true,  lidar:false, magsafe:true,  usbc:false, c5g:true,  esim:true,  actionBtn:false, barometer:true },
+  'iPhone13,2':{ rearCams:2, faceID:true,  lidar:false, magsafe:true,  usbc:false, c5g:true,  esim:true,  actionBtn:false, barometer:true },
+  'iPhone13,3':{ rearCams:3, faceID:true,  lidar:true,  magsafe:true,  usbc:false, c5g:true,  esim:true,  actionBtn:false, barometer:true },
+  'iPhone13,4':{ rearCams:3, faceID:true,  lidar:true,  magsafe:true,  usbc:false, c5g:true,  esim:true,  actionBtn:false, barometer:true },
+  // ─── iPhone 13 (2021)
+  'iPhone14,4':{ rearCams:2, faceID:true,  lidar:false, magsafe:true,  usbc:false, c5g:true,  esim:true,  actionBtn:false, barometer:true },
+  'iPhone14,5':{ rearCams:2, faceID:true,  lidar:false, magsafe:true,  usbc:false, c5g:true,  esim:true,  actionBtn:false, barometer:true },
+  'iPhone14,2':{ rearCams:3, faceID:true,  lidar:true,  magsafe:true,  usbc:false, c5g:true,  esim:true,  actionBtn:false, barometer:true },
+  'iPhone14,3':{ rearCams:3, faceID:true,  lidar:true,  magsafe:true,  usbc:false, c5g:true,  esim:true,  actionBtn:false, barometer:true },
+  // ─── iPhone SE 3rd gen (2022) — 5G yes, MagSafe no, no eSIM, no barometer
+  'iPhone14,6':{ rearCams:1, faceID:false, lidar:false, magsafe:false, usbc:false, c5g:true,  esim:false, actionBtn:false, barometer:false },
+  // ─── iPhone 14 (2022)
+  'iPhone14,7':{ rearCams:2, faceID:true,  lidar:false, magsafe:true,  usbc:false, c5g:true,  esim:true,  actionBtn:false, barometer:true },
+  'iPhone14,8':{ rearCams:2, faceID:true,  lidar:false, magsafe:true,  usbc:false, c5g:true,  esim:true,  actionBtn:false, barometer:true },
+  'iPhone15,2':{ rearCams:3, faceID:true,  lidar:true,  magsafe:true,  usbc:false, c5g:true,  esim:true,  actionBtn:false, barometer:true },
+  'iPhone15,3':{ rearCams:3, faceID:true,  lidar:true,  magsafe:true,  usbc:false, c5g:true,  esim:true,  actionBtn:false, barometer:true },
+  // ─── iPhone 15 (2023) — first USB-C
+  'iPhone16,1':{ rearCams:2, faceID:true,  lidar:false, magsafe:true,  usbc:true,  c5g:true,  esim:true,  actionBtn:false, barometer:true },
+  'iPhone16,2':{ rearCams:2, faceID:true,  lidar:false, magsafe:true,  usbc:true,  c5g:true,  esim:true,  actionBtn:false, barometer:true },
+  'iPhone16,3':{ rearCams:3, faceID:true,  lidar:true,  magsafe:true,  usbc:true,  c5g:true,  esim:true,  actionBtn:true,  barometer:true },
+  'iPhone16,4':{ rearCams:3, faceID:true,  lidar:true,  magsafe:true,  usbc:true,  c5g:true,  esim:true,  actionBtn:true,  barometer:true },
+  // ─── iPhone 16 (2024)
+  'iPhone17,1':{ rearCams:3, faceID:true,  lidar:true,  magsafe:true,  usbc:true,  c5g:true,  esim:true,  actionBtn:true,  barometer:true },
+  'iPhone17,2':{ rearCams:3, faceID:true,  lidar:true,  magsafe:true,  usbc:true,  c5g:true,  esim:true,  actionBtn:true,  barometer:true },
+  'iPhone17,3':{ rearCams:2, faceID:true,  lidar:false, magsafe:true,  usbc:true,  c5g:true,  esim:true,  actionBtn:true,  barometer:true },
+  'iPhone17,4':{ rearCams:2, faceID:true,  lidar:false, magsafe:true,  usbc:true,  c5g:true,  esim:true,  actionBtn:true,  barometer:true },
+  // ─── iPhone 16e (2025) — Face ID, MagSafe, USB-C, 1 rear cam, no Action Button
+  'iPhone17,5':{ rearCams:1, faceID:true,  lidar:false, magsafe:true,  usbc:true,  c5g:true,  esim:true,  actionBtn:false, barometer:true },
+  // ─── iPhone 17 (2025)
+  'iPhone18,1':{ rearCams:2, faceID:true,  lidar:false, magsafe:true,  usbc:true,  c5g:true,  esim:true,  actionBtn:true,  barometer:true },
+  'iPhone18,2':{ rearCams:3, faceID:true,  lidar:true,  magsafe:true,  usbc:true,  c5g:true,  esim:true,  actionBtn:true,  barometer:true },
+  'iPhone18,3':{ rearCams:3, faceID:true,  lidar:true,  magsafe:true,  usbc:true,  c5g:true,  esim:true,  actionBtn:true,  barometer:true },
+  'iPhone18,4':{ rearCams:2, faceID:true,  lidar:false, magsafe:true,  usbc:true,  c5g:true,  esim:true,  actionBtn:true,  barometer:true },
 };
 
 // ── Color names (DeviceColor hex → Arabic name) ───────
@@ -247,4 +315,4 @@ const COLOR_NAMES = {
   '#50968f':'تيل',
 };
 
-module.exports = { MODEL_NAMES, MODEL_YEAR, CAMERA_CONFIG, COLOR_NAMES };
+module.exports = { MODEL_NAMES, MODEL_YEAR, CAMERA_CONFIG, COLOR_NAMES, MODEL_CAPS };

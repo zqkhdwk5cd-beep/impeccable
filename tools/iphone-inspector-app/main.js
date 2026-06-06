@@ -1,9 +1,9 @@
 'use strict';
-const { app, BrowserWindow, ipcMain, Menu, nativeTheme, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, nativeTheme, shell, dialog } = require('electron');
 const path    = require('path');
 const fs      = require('fs');
 const { execSync } = require('child_process');
-const { MODEL_NAMES, MODEL_YEAR, CAMERA_CONFIG, COLOR_NAMES } = require('./data');
+const { MODEL_NAMES, MODEL_YEAR, CAMERA_CONFIG, COLOR_NAMES, MODEL_CAPS } = require('./data');
 
 // ── Single-instance lock ──────────────────────────────
 const gotLock = app.requestSingleInstanceLock();
@@ -34,6 +34,7 @@ const BIN = {
   ideviceinfo:        findBin('ideviceinfo'),
   idevicediagnostics: findBin('idevicediagnostics'),
   idevicepair:        findBin('idevicepair'),
+  system_profiler:    findBin('system_profiler'),
 };
 
 const DEPS = {
@@ -80,6 +81,7 @@ function readDevice(udid) {
     'TotalDiskCapacity','TotalSystemAvailable',
     'UniqueDeviceID','MLBSerialNumber','WifiAddress','BluetoothAddress',
     'RegionInfo','SIMTrayStatus','InternationalMobileSubscriberIdentity',
+    'UniqueChipID','BasebandVersion','ModelNumber','IsSupervised','PasswordProtected',
   ];
   for (const k of keys) {
     const v = getKey(u, k);
@@ -208,7 +210,7 @@ function getStatus() {
   const udids   = getDevices();
   const devices = udids.map(u => ({ ...readDevice(u), ...readComponents(u), ...readGestalt(u) }));
   const diag    = runDiagnostics();
-  return { udids, devices, deps: DEPS, diag, camCfg: CAMERA_CONFIG };
+  return { udids, devices, deps: DEPS, diag, camCfg: CAMERA_CONFIG, caps: MODEL_CAPS };
 }
 
 // ── Electron window ───────────────────────────────────
@@ -220,10 +222,10 @@ function createWindow() {
   nativeTheme.themeSource = 'dark';
 
   win = new BrowserWindow({
-    width: 1120,
-    height: 760,
-    minWidth: 820,
-    minHeight: 580,
+    width: 1280,
+    height: 820,
+    minWidth: 900,
+    minHeight: 620,
     title: 'فاحص الآيفون',
     backgroundColor: '#0d0d12',
     webPreferences: {
@@ -270,6 +272,61 @@ function startPolling() {
 ipcMain.handle('retry', async () => {
   lastUDIDs = [];
   return getStatus();
+});
+
+ipcMain.handle('raw-diagnostics', async () => {
+  const result = {};
+
+  // idevice_id
+  result.idevice_id = BIN.idevice_id
+    ? (run(`"${BIN.idevice_id}" -l 2>&1`) || '(لا مخرجات)')
+    : '(الأداة غير موجودة)';
+
+  // ideviceinfo (no domain)
+  result.ideviceinfo_all = BIN.ideviceinfo
+    ? (run(`"${BIN.ideviceinfo}" 2>&1`) || '(لا مخرجات)')
+    : '(الأداة غير موجودة)';
+
+  // idevicepair
+  result.idevicepair = BIN.idevicepair
+    ? (run(`"${BIN.idevicepair}" validate 2>&1`) || '(لا مخرجات)')
+    : '(الأداة غير موجودة)';
+
+  // idevicediagnostics
+  result.idevicediagnostics = BIN.idevicediagnostics
+    ? (run(`"${BIN.idevicediagnostics}" diagnostics IORegistry 2>&1`) || '(لا مخرجات)')
+    : '(الأداة غير موجودة)';
+
+  // system_profiler SPUSBDataType
+  result.system_profiler = BIN.system_profiler
+    ? (run(`"${BIN.system_profiler}" SPUSBDataType 2>&1`) || '(لا مخرجات)')
+    : (run('system_profiler SPUSBDataType 2>&1') || '(لا مخرجات)');
+
+  return result;
+});
+
+ipcMain.handle('generate-pdf', async () => {
+  if (!win) return { ok: false, error: 'no window' };
+
+  const { filePath, canceled } = await dialog.showSaveDialog(win, {
+    title: 'حفظ تقرير PDF',
+    defaultPath: 'iphone-report.pdf',
+    filters: [{ name: 'PDF', extensions: ['pdf'] }],
+  });
+
+  if (canceled || !filePath) return { ok: false, error: 'canceled' };
+
+  try {
+    const data = await win.webContents.printToPDF({
+      printBackground: true,
+      pageSize: 'A4',
+    });
+    fs.writeFileSync(filePath, data);
+    await shell.openPath(filePath);
+    return { ok: true, filePath };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
 });
 
 // ── App lifecycle ─────────────────────────────────────
