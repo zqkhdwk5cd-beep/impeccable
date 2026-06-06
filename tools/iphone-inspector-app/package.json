@@ -4,9 +4,7 @@
   "description": "فاحص الآيفون — تأكد قبل الشراء",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
-    "build": "electron-builder --mac --dir",
-    "dist": "electron-builder --mac"
+    "start": "node server.js"
   },
   "build": {
     "appId": "com.iphone-inspector.app",

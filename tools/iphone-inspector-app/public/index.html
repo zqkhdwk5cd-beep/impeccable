@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>فاحص الآيفون</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="brand">
+      <span>📱</span>
+      <span>فاحص الآيفون</span>
+    </div>
+
+    <div class="device-slot" id="deviceSlot">
+      <div class="device-waiting" id="waitingState">
+        <div class="plug-anim">
+          <svg viewBox="0 0 48 48" fill="none" width="40" height="40">
+            <rect x="16" y="4" width="16" height="12" rx="3" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 16h24v8a12 12 0 0 1-24 0v-8z" stroke="currentColor" stroke-width="2"/>
+            <path d="M24 36v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <p class="waiting-text">وصّلي الآيفون<br>بكابل USB</p>
+        <p class="waiting-sub" id="waitingSub">واضغطي "ثق" لما يطلب</p>
+      </div>
+
+      <div class="device-info" id="deviceInfo" style="display:none">
+        <div class="device-icon">📱</div>
+        <div class="device-name" id="devName">—</div>
+        <div class="device-model" id="devModel">—</div>
+        <div class="status-pill status-pill--ok" id="activationPill">—</div>
+      </div>
+    </div>
+
+    <div class="nav-links">
+      <a class="nav-link active" href="#auto">البيانات التلقائية</a>
+      <a class="nav-link" href="#manual">الفحص اليدوي</a>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="conn-dot" id="connDot"></div>
+      <span class="conn-label" id="connLabel">جاري الانتظار...</span>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Setup banner (shown when deps missing) -->
+    <div class="setup-banner" id="setupBanner" style="display:none">
+      <div class="setup-icon">⚙️</div>
+      <div>
+        <strong>مطلوب تثبيت أداة واحدة أولاً</strong>
+        <p>افتحي Terminal وشغّلي الأوامر دي:</p>
+        <div class="code-block">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</div>
+        <div class="code-block" style="margin-top:8px">brew install libimobiledevice</div>
+        <p style="margin-top:8px;font-size:12px;opacity:.7">بعدين أغلقي Terminal وافتحيه من جديد، وأعيدي تشغيل npm start</p>
+      </div>
+    </div>
+
+    <!-- Auto section -->
+    <section id="auto">
+      <h2 class="section-heading">📊 البيانات المقروءة تلقائياً من الجهاز</h2>
+
+      <div class="no-device" id="noDevice">
+        <span>🔌</span>
+        <p>في انتظار الآيفون...</p>
+      </div>
+
+      <div class="auto-grid" id="autoGrid" style="display:none">
+
+        <!-- Identity -->
+        <div class="data-card">
+          <div class="card-title">الهوية والموديل</div>
+          <div class="data-rows" id="rowsIdentity"></div>
+        </div>
+
+        <!-- Battery -->
+        <div class="data-card">
+          <div class="card-title">البطارية</div>
+          <div class="data-rows" id="rowsBattery"></div>
+        </div>
+
+        <!-- Network -->
+        <div class="data-card">
+          <div class="card-title">الشبكة والشريحة</div>
+          <div class="data-rows" id="rowsNetwork"></div>
+        </div>
+
+        <!-- System -->
+        <div class="data-card">
+          <div class="card-title">النظام والتخزين</div>
+          <div class="data-rows" id="rowsSystem"></div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Manual checks -->
+    <section id="manual">
+      <h2 class="section-heading">🔍 الفحص اليدوي — ما لا يُقرأ أوتوماتيك</h2>
+      <p class="section-sub">هذه النقاط تحتاج فحصاً بصرياً وعملياً مباشرة على الجهاز</p>
+
+      <div class="manual-grid">
+
+        <div class="manual-card" id="m-screen">
+          <div class="manual-head" onclick="toggleM('m-screen')">
+            <div class="m-bullet" id="mb-screen"></div>
+            <div class="m-body">
+              <div class="m-title">الشاشة والقطع الأصلية</div>
+              <div class="m-desc">الإعدادات ← عام ← معلومات ← قطع وخدمة</div>
+            </div>
+            <div class="m-acts">
+              <button class="ma ok"   onclick="mMark(event,'m-screen','ok')">✓</button>
+              <button class="ma fail" onclick="mMark(event,'m-screen','fail')">✗</button>
+              <button class="ma skip" onclick="mMark(event,'m-screen','skip')">–</button>
+            </div>
+          </div>
+          <div class="m-tip">ابحثي عن "قطعة Apple الأصلية" بجانب الشاشة والبطارية والكاميرا. "قطعة مجهولة" = قطعة متغيرة بمركز غير معتمد.</div>
+        </div>
+
+        <div class="manual-card" id="m-faceid">
+          <div class="manual-head" onclick="toggleM('m-faceid')">
+            <div class="m-bullet" id="mb-faceid"></div>
+            <div class="m-body">
+              <div class="m-title">Face ID / Touch ID</div>
+              <div class="m-desc">قفّلي الجهاز وجرّبي فتحه بالوجه أو البصمة</div>
+            </div>
+            <div class="m-acts">
+              <button class="ma ok"   onclick="mMark(event,'m-faceid','ok')">✓</button>
+              <button class="ma fail" onclick="mMark(event,'m-faceid','fail')">✗</button>
+              <button class="ma skip" onclick="mMark(event,'m-faceid','skip')">–</button>
+            </div>
+          </div>
+          <div class="m-tip">Face ID معطل غالباً = الشاشة اتغيرت بدون معدات Apple المعتمدة. "تعذر تفعيل Face ID" = خصم كبير من السعر.</div>
+        </div>
+
+        <div class="manual-card" id="m-water">
+          <div class="manual-head" onclick="toggleM('m-water')">
+            <div class="m-bullet" id="mb-water"></div>
+            <div class="m-body">
+              <div class="m-title"><span class="badge-r">مهم</span> مؤشر الماء</div>
+              <div class="m-desc">افتحي درج الشريحة — المؤشر الأبيض داخله</div>
+            </div>
+            <div class="m-acts">
+              <button class="ma ok"   onclick="mMark(event,'m-water','ok')">✓</button>
+              <button class="ma fail" onclick="mMark(event,'m-water','fail')">✗</button>
+              <button class="ma skip" onclick="mMark(event,'m-water','skip')">–</button>
+            </div>
+          </div>
+          <div class="m-tip">المؤشر أبيض = طبيعي · أحمر أو وردي = تعرض للماء. الجهاز اللي اتلّه ماء قد يعمل الآن ويموت بعد أيام.</div>
+        </div>
+
+        <div class="manual-card" id="m-screen-quality">
+          <div class="manual-head" onclick="toggleM('m-screen-quality')">
+            <div class="m-bullet" id="mb-screen-quality"></div>
+            <div class="m-body">
+              <div class="m-title">جودة الشاشة</div>
+              <div class="m-desc">Dead pixels، Burn-in، True Tone، سطوع</div>
+            </div>
+            <div class="m-acts">
+              <button class="ma ok"   onclick="mMark(event,'m-screen-quality','ok')">✓</button>
+              <button class="ma fail" onclick="mMark(event,'m-screen-quality','fail')">✗</button>
+              <button class="ma skip" onclick="mMark(event,'m-screen-quality','skip')">–</button>
+            </div>
+          </div>
+          <div class="m-tip">ضعي السطوع 100% وشوفي على خلفيات ألوان مختلفة. True Tone: الإعدادات ← شاشة العرض والسطوع — لو مش موجود = شاشة مستبدلة.</div>
+        </div>
+
+        <div class="manual-card" id="m-camera">
+          <div class="manual-head" onclick="toggleM('m-camera')">
+            <div class="m-bullet" id="mb-camera"></div>
+            <div class="m-body">
+              <div class="m-title">الكاميرا والفلاش</div>
+              <div class="m-desc">صوّري في إضاءة عادية ومنخفضة، اختبري الفلاش</div>
+            </div>
+            <div class="m-acts">
+              <button class="ma ok"   onclick="mMark(event,'m-camera','ok')">✓</button>
+              <button class="ma fail" onclick="mMark(event,'m-camera','fail')">✗</button>
+              <button class="ma skip" onclick="mMark(event,'m-camera','skip')">–</button>
+            </div>
+          </div>
+          <div class="m-tip">افتحي مركز التحكم وفعّلي المصباح — يضيء فوراً بدون وميض. شوفي العدسة تحت ضوء قوي من زوايا مختلفة للخدوش.</div>
+        </div>
+
+        <div class="manual-card" id="m-body">
+          <div class="manual-head" onclick="toggleM('m-body')">
+            <div class="m-bullet" id="mb-body"></div>
+            <div class="m-body">
+              <div class="m-title">الهيكل والأزرار</div>
+              <div class="m-desc">انحناء، فجوات الشاشة، أزرار، منفذ الشحن</div>
+            </div>
+            <div class="m-acts">
+              <button class="ma ok"   onclick="mMark(event,'m-body','ok')">✓</button>
+              <button class="ma fail" onclick="mMark(event,'m-body','fail')">✗</button>
+              <button class="ma skip" onclick="mMark(event,'m-body','skip')">–</button>
+            </div>
+          </div>
+          <div class="m-tip">ضعي الجهاز على سطح مستوٍ — لا انحناء. مرّري إصبعك على الحواف — لا فجوات. اختبري كل الأزرار وكابل الشحن.</div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
