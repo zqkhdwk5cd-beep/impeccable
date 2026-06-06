@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { BrowserMultiFormatReader } from '@zxing/browser'
 import { BarcodeFormat, DecodeHintType } from '@zxing/library'
-import { X, Camera, CheckCircle, Settings, RefreshCw } from 'lucide-react'
+import { X, Camera, CheckCircle, Settings } from 'lucide-react'
 import { api } from '../lib/api'
 
 export interface BoxScanResult {
@@ -10,15 +10,14 @@ export interface BoxScanResult {
   imei2?: string
 }
 
-// Returns null if barcode is useless (e.g. EID), or a result object
 function parseBoxCode(raw: string): BoxScanResult | null {
   const result: BoxScanResult = {}
   const text = raw.trim()
 
-  // EID barcodes start with 89 and are 32 digits — skip them
+  // Skip EID barcodes (32 digits starting with 89)
   if (/^89\d{30}$/.test(text)) return null
 
-  // JSON format
+  // JSON
   try {
     const json = JSON.parse(text)
     if (json.serialNumber || json.SerialNumber)
@@ -27,33 +26,22 @@ function parseBoxCode(raw: string): BoxScanResult | null {
       result.imei1 = String(json.imei || json.IMEI || json.IMEINumber1)
     if (json.imei2 || json.IMEI2 || json.IMEINumber2)
       result.imei2 = String(json.imei2 || json.IMEI2 || json.IMEINumber2)
-    return result
+    if (result.serial_number || result.imei1) return result
   } catch {}
 
-  // GS1-128: (21)SERIAL and (240)IMEI1IMEI2
-  const gs1Serial = text.match(/\(21\)([A-Z0-9]{8,15})/i)
-  if (gs1Serial) result.serial_number = gs1Serial[1].toUpperCase()
-  const gs1Imei = text.match(/\(240\)(\d{15,30})/i)
-  if (gs1Imei) {
-    result.imei1 = gs1Imei[1].slice(0, 15)
-    if (gs1Imei[1].length > 15) result.imei2 = gs1Imei[1].slice(15, 30)
-  }
-  if (result.serial_number || result.imei1) return result
-
-  // Standalone 15-digit → IMEI
+  // 15-digit IMEI
   const imeiMatches = [...text.matchAll(/\b(\d{15})\b/g)]
   if (imeiMatches[0]) result.imei1 = imeiMatches[0][1]
   if (imeiMatches[1]) result.imei2 = imeiMatches[1][1]
   if (result.imei1) return result
 
-  // Apple serial: 12 alphanumeric chars (mix of letters + digits)
-  // e.g. DX3FXFP8N73J
+  // Apple serial: exactly 12 alphanumeric (letters + digits)
   if (/^[A-Z][A-Z0-9]{11}$/i.test(text) && /[A-Z]/i.test(text) && /[0-9]/.test(text)) {
     result.serial_number = text.toUpperCase()
     return result
   }
 
-  // Broader serial match inside longer string
+  // Serial inside longer string
   const candidates = [...text.matchAll(/\b([A-Z][A-Z0-9]{9,14})\b/gi)]
   for (const [, s] of candidates) {
     if (/[A-Z]/i.test(s) && /[0-9]/.test(s)) {
@@ -65,74 +53,104 @@ function parseBoxCode(raw: string): BoxScanResult | null {
   return null
 }
 
-type ScreenState = 'requesting' | 'denied' | 'scanning' | 'scanned' | 'wrong' | 'error'
+const ZX_HINTS = new Map([
+  [DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.CODE_128, BarcodeFormat.QR_CODE]],
+  [DecodeHintType.TRY_HARDER, true],
+])
+
+type Screen = 'requesting' | 'denied' | 'scanning' | 'scanned'
 
 interface Props {
   onResult: (data: BoxScanResult) => void
   onClose: () => void
 }
 
-// ZXing hints: only try Code 128 and QR Code (the two formats on iPhone boxes)
-const HINTS = new Map([
-  [DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.CODE_128, BarcodeFormat.QR_CODE]],
-  [DecodeHintType.TRY_HARDER, true],
-])
-
 export default function BoxScanner({ onResult, onClose }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null)
-  const controlsRef = useRef<{ stop: () => void } | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const zxControlsRef = useRef<{ stop: () => void } | null>(null)
+  const scanTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const doneRef = useRef(false)
-  const [screen, setScreen] = useState<ScreenState>('requesting')
-  const [rawScan, setRawScan] = useState('')
+  const [screen, setScreen] = useState<Screen>('requesting')
+  const [hint, setHint] = useState('')
+
+  const handleRaw = (raw: string) => {
+    if (doneRef.current) return
+    const parsed = parseBoxCode(raw)
+    if (!parsed) {
+      setHint('باركود EID — اسكان الباركود التاني')
+      setTimeout(() => setHint(''), 1800)
+      return
+    }
+    doneRef.current = true
+    if (scanTimerRef.current) clearTimeout(scanTimerRef.current)
+    zxControlsRef.current?.stop()
+    setScreen('scanned')
+    setTimeout(() => onResult(parsed), 500)
+  }
 
   useEffect(() => {
     let cancelled = false
 
     const init = async () => {
-      // Step 1: ask macOS for camera permission via main process
+      // 1. Request macOS camera permission
       let granted = true
-      try {
-        granted = await api.camera.requestAccess()
-      } catch {
-        // non-macOS or IPC error — proceed and let getUserMedia decide
-      }
-
+      try { granted = await api.camera.requestAccess() } catch {}
       if (cancelled) return
+      if (!granted) { setScreen('denied'); return }
 
-      if (!granted) {
-        setScreen('denied')
-        return
-      }
-
-      // Step 2: start ZXing scanner with Code128 + QR hints
+      // 2. Open camera stream
+      let stream: MediaStream
       try {
-        const reader = new BrowserMultiFormatReader(HINTS)
-        const controls = await reader.decodeFromVideoDevice(
-          undefined,
-          videoRef.current!,
-          (result) => {
-            if (!result || doneRef.current) return
-            const raw = result.getText()
-            const parsed = parseBoxCode(raw)
-
-            // EID or unrecognised barcode — keep scanning, flash a hint
-            if (!parsed) {
-              setRawScan('باركود EID — اسكان الباركود التاني')
-              setTimeout(() => setRawScan(''), 1500)
-              return
-            }
-
-            doneRef.current = true
-            controls.stop()
-            setRawScan(raw)
-            setScreen('scanned')
-            setTimeout(() => onResult(parsed), 600)
-          }
-        )
-        controlsRef.current = controls
-        if (!cancelled) setScreen('scanning')
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 1280 }, height: { ideal: 720 } }
+        })
       } catch {
         if (!cancelled) setScreen('denied')
+        return
+      }
+      if (cancelled) { stream.getTracks().forEach(t => t.stop()); return }
+
+      streamRef.current = stream
+      videoRef.current!.srcObject = stream
+      await videoRef.current!.play()
+      if (!cancelled) setScreen('scanning')
+
+      // 3. Use native BarcodeDetector (Apple Vision) if available, else ZXing
+      const hasBD = 'BarcodeDetector' in window
+      if (hasBD) {
+        let detector: any
+        try {
+          detector = new (window as any).BarcodeDetector({ formats: ['code_128', 'qr_code'] })
+        } catch {
+          detector = new (window as any).BarcodeDetector()
+        }
+
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')!
+
+        const loop = async () => {
+          if (doneRef.current || !videoRef.current) return
+          const v = videoRef.current
+          if (v.readyState >= 2 && v.videoWidth > 0) {
+            canvas.width = v.videoWidth
+            canvas.height = v.videoHeight
+            ctx.drawImage(v, 0, 0)
+            try {
+              const codes: any[] = await detector.detect(canvas)
+              if (codes.length > 0) handleRaw(codes[0].rawValue)
+            } catch {}
+          }
+          if (!doneRef.current) scanTimerRef.current = setTimeout(loop, 250)
+        }
+        loop()
+      } else {
+        // ZXing fallback
+        const reader = new BrowserMultiFormatReader(ZX_HINTS)
+        const controls = await reader.decodeFromStream(stream, videoRef.current!, (result) => {
+          if (result) handleRaw(result.getText())
+        })
+        zxControlsRef.current = controls
       }
     }
 
@@ -141,7 +159,9 @@ export default function BoxScanner({ onResult, onClose }: Props) {
     return () => {
       cancelled = true
       doneRef.current = true
-      controlsRef.current?.stop()
+      if (scanTimerRef.current) clearTimeout(scanTimerRef.current)
+      zxControlsRef.current?.stop()
+      streamRef.current?.getTracks().forEach(t => t.stop())
     }
   }, [])
 
@@ -160,7 +180,7 @@ export default function BoxScanner({ onResult, onClose }: Props) {
           </button>
         </div>
 
-        {/* Denied screen */}
+        {/* Denied */}
         {screen === 'denied' && (
           <div className="p-8 flex flex-col items-center gap-4 text-center">
             <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center">
@@ -168,48 +188,42 @@ export default function BoxScanner({ onResult, onClose }: Props) {
             </div>
             <div>
               <p className="font-semibold text-slate-800 mb-1">التطبيق محتاج إذن الكاميرا</p>
-              <p className="text-sm text-slate-500">اضغط الزرار واذن للتطبيق، ثم ارجع وافتح السكان من جديد</p>
+              <p className="text-sm text-slate-500">اضغط وأذن للتطبيق، ثم ارجع وافتح السكان من جديد</p>
             </div>
-            <button
-              onClick={() => api.camera.openSettings()}
-              className="btn-primary w-full justify-center gap-2"
-            >
+            <button onClick={() => api.camera.openSettings()} className="btn-primary w-full justify-center gap-2">
               <Settings className="w-4 h-4" />
               افتح إعدادات الخصوصية
             </button>
           </div>
         )}
 
-        {/* Camera viewport — shown during requesting/scanning/scanned */}
+        {/* Camera */}
         {(screen === 'requesting' || screen === 'scanning' || screen === 'scanned') && (
           <>
-            <div className="relative bg-slate-900" style={{ height: 300 }}>
+            <div className="relative bg-slate-900" style={{ height: 320 }}>
               <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
 
-              {/* Scan overlay */}
+              {screen === 'requesting' && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <p className="text-slate-400 text-sm animate-pulse">جاري تشغيل الكاميرا...</p>
+                </div>
+              )}
+
               {screen === 'scanning' && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.35)' }} />
-                  <div className="relative w-52 h-44">
-                    <div className="absolute inset-0 rounded-lg" style={{ boxShadow: '0 0 0 9999px rgba(0,0,0,0.35)' }} />
+                  <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.3)' }} />
+                  <div className="relative w-56 h-40">
+                    <div className="absolute inset-0 rounded-lg" style={{ boxShadow: '0 0 0 9999px rgba(0,0,0,0.3)' }} />
                     <div className="absolute top-0 left-0 w-6 h-6 border-t-[3px] border-l-[3px] border-brand-400 rounded-tl-md" />
                     <div className="absolute top-0 right-0 w-6 h-6 border-t-[3px] border-r-[3px] border-brand-400 rounded-tr-md" />
                     <div className="absolute bottom-0 left-0 w-6 h-6 border-b-[3px] border-l-[3px] border-brand-400 rounded-bl-md" />
                     <div className="absolute bottom-0 right-0 w-6 h-6 border-b-[3px] border-r-[3px] border-brand-400 rounded-br-md" />
-                    <div className="absolute inset-x-3 h-px bg-brand-400 opacity-80"
-                      style={{ top: '50%', boxShadow: '0 0 6px 2px rgba(99,102,241,0.7)' }} />
+                    <div className="absolute inset-x-3 h-px bg-brand-400"
+                      style={{ top: '50%', boxShadow: '0 0 8px 2px rgba(99,102,241,0.8)' }} />
                   </div>
                 </div>
               )}
 
-              {/* Loading */}
-              {screen === 'requesting' && (
-                <div className="absolute inset-0 flex items-center justify-center bg-slate-900">
-                  <div className="text-slate-400 text-sm animate-pulse">جاري تشغيل الكاميرا...</div>
-                </div>
-              )}
-
-              {/* Success */}
               {screen === 'scanned' && (
                 <div className="absolute inset-0 bg-green-500/20 flex items-center justify-center">
                   <div className="bg-white rounded-full p-3 shadow-2xl">
@@ -222,12 +236,12 @@ export default function BoxScanner({ onResult, onClose }: Props) {
             <div className="px-5 py-4 text-center min-h-[68px] flex flex-col items-center justify-center gap-1">
               {screen === 'scanned' ? (
                 <p className="text-sm font-semibold text-green-600">تم السكان! جاري تعبئة البيانات...</p>
-              ) : rawScan ? (
-                <p className="text-sm font-medium text-amber-600">{rawScan}</p>
+              ) : hint ? (
+                <p className="text-sm font-medium text-amber-600">{hint}</p>
               ) : (
                 <>
-                  <p className="text-sm text-slate-600 font-medium">اسكان الباركود جنب السريال أو IMEI</p>
-                  <p className="text-xs text-slate-400">مش الباركود الكبير فوق</p>
+                  <p className="text-sm text-slate-700 font-medium">اسكان الباركود جنب Serial No. أو IMEI</p>
+                  <p className="text-xs text-slate-400">مش الباركود الكبير اللي فوق</p>
                 </>
               )}
             </div>

@@ -9,6 +9,9 @@ let mainWindow: BrowserWindow | null = null
 // __dirname = dist/main/main/ (in both dev and packaged)
 // preload  = dist/main/preload/index.js  → one level up  → ../preload/index.js
 // renderer = dist/renderer/index.html    → two levels up → ../../renderer/index.html
+// Enable native BarcodeDetector (Apple Vision on macOS)
+app.commandLine.appendSwitch('enable-features', 'ShapeDetection')
+
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged
 const PRELOAD_PATH = path.join(__dirname, '../preload/index.js')
 const RENDERER_PATH = path.join(__dirname, '../../renderer/index.html')
