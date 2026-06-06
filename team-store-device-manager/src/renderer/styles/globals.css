@@ -184,11 +184,32 @@
   body {
     background: white !important;
     direction: rtl;
+    overflow: visible !important;
+    height: auto !important;
   }
-  .no-print {
+  html {
+    overflow: visible !important;
+    height: auto !important;
+  }
+  #root {
+    height: auto !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+  .no-print,
+  .print-app-shell {
     display: none !important;
   }
-  .print-only {
-    display: block !important;
+  .print-main {
+    padding: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+  .print-invoice {
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
   }
 }

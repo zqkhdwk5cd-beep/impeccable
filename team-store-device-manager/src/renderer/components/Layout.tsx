@@ -12,10 +12,14 @@ export default function Layout({ children }: Props) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-100">
-      <Sidebar open={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
+      <div className="print-app-shell">
+        <Sidebar open={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
+      </div>
       <div className="flex flex-col flex-1 overflow-hidden">
-        <TopBar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-        <main className="flex-1 overflow-y-auto p-6">
+        <div className="print-app-shell">
+          <TopBar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+        </div>
+        <main className="flex-1 overflow-y-auto p-6 print-main">
           {children}
         </main>
       </div>
