@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { BrowserMultiFormatReader } from '@zxing/browser'
-import { X, Camera, AlertCircle, CheckCircle, Settings } from 'lucide-react'
+import { BarcodeFormat, DecodeHintType } from '@zxing/library'
+import { X, Camera, CheckCircle, Settings, RefreshCw } from 'lucide-react'
 import { api } from '../lib/api'
 
 export interface BoxScanResult {
@@ -9,9 +10,13 @@ export interface BoxScanResult {
   imei2?: string
 }
 
-function parseBoxCode(raw: string): BoxScanResult {
+// Returns null if barcode is useless (e.g. EID), or a result object
+function parseBoxCode(raw: string): BoxScanResult | null {
   const result: BoxScanResult = {}
   const text = raw.trim()
+
+  // EID barcodes start with 89 and are 32 digits — skip them
+  if (/^89\d{30}$/.test(text)) return null
 
   // JSON format
   try {
@@ -35,54 +40,50 @@ function parseBoxCode(raw: string): BoxScanResult {
   }
   if (result.serial_number || result.imei1) return result
 
-  // Key-value: S:SERIAL or Serial: XXXXX
-  const kvSerial = text.match(/(?:^|[\s,;])(?:S|SN|Serial(?:Number)?)\s*[:=]\s*([A-Z0-9]{8,15})/i)
-  if (kvSerial) result.serial_number = kvSerial[1].toUpperCase()
-  const kvImeis = [...text.matchAll(/IMEI\s*\d?\s*[:=]\s*(\d{15})/gi)]
-  if (kvImeis[0]) result.imei1 = kvImeis[0][1]
-  if (kvImeis[1]) result.imei2 = kvImeis[1][1]
-  if (result.serial_number || result.imei1) return result
-
   // Standalone 15-digit → IMEI
   const imeiMatches = [...text.matchAll(/\b(\d{15})\b/g)]
   if (imeiMatches[0]) result.imei1 = imeiMatches[0][1]
   if (imeiMatches[1]) result.imei2 = imeiMatches[1][1]
+  if (result.imei1) return result
 
-  // Apple serial: alphanumeric mix, 10–15 chars
-  if (!result.serial_number) {
-    const candidates = [...text.matchAll(/\b([A-Z][A-Z0-9]{9,14})\b/gi)]
-    for (const [, s] of candidates) {
-      if (/[A-Z]/i.test(s) && /[0-9]/.test(s)) {
-        result.serial_number = s.toUpperCase()
-        break
-      }
+  // Apple serial: 12 alphanumeric chars (mix of letters + digits)
+  // e.g. DX3FXFP8N73J
+  if (/^[A-Z][A-Z0-9]{11}$/i.test(text) && /[A-Z]/i.test(text) && /[0-9]/.test(text)) {
+    result.serial_number = text.toUpperCase()
+    return result
+  }
+
+  // Broader serial match inside longer string
+  const candidates = [...text.matchAll(/\b([A-Z][A-Z0-9]{9,14})\b/gi)]
+  for (const [, s] of candidates) {
+    if (/[A-Z]/i.test(s) && /[0-9]/.test(s)) {
+      result.serial_number = s.toUpperCase()
+      return result
     }
   }
 
-  // Fallback: whole string is serial or IMEI
-  if (!result.serial_number && !result.imei1) {
-    if (/^\d{15}$/.test(text)) {
-      result.imei1 = text
-    } else if (/^[A-Z0-9]{10,15}$/i.test(text) && /[A-Z]/i.test(text) && /[0-9]/.test(text)) {
-      result.serial_number = text.toUpperCase()
-    }
-  }
-
-  return result
+  return null
 }
 
-type ScreenState = 'requesting' | 'denied' | 'scanning' | 'scanned' | 'error'
+type ScreenState = 'requesting' | 'denied' | 'scanning' | 'scanned' | 'wrong' | 'error'
 
 interface Props {
   onResult: (data: BoxScanResult) => void
   onClose: () => void
 }
 
+// ZXing hints: only try Code 128 and QR Code (the two formats on iPhone boxes)
+const HINTS = new Map([
+  [DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.CODE_128, BarcodeFormat.QR_CODE]],
+  [DecodeHintType.TRY_HARDER, true],
+])
+
 export default function BoxScanner({ onResult, onClose }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsRef = useRef<{ stop: () => void } | null>(null)
   const doneRef = useRef(false)
   const [screen, setScreen] = useState<ScreenState>('requesting')
+  const [rawScan, setRawScan] = useState('')
 
   useEffect(() => {
     let cancelled = false
@@ -103,18 +104,29 @@ export default function BoxScanner({ onResult, onClose }: Props) {
         return
       }
 
-      // Step 2: start ZXing scanner
+      // Step 2: start ZXing scanner with Code128 + QR hints
       try {
-        const reader = new BrowserMultiFormatReader()
+        const reader = new BrowserMultiFormatReader(HINTS)
         const controls = await reader.decodeFromVideoDevice(
           undefined,
           videoRef.current!,
           (result) => {
             if (!result || doneRef.current) return
+            const raw = result.getText()
+            const parsed = parseBoxCode(raw)
+
+            // EID or unrecognised barcode — keep scanning, flash a hint
+            if (!parsed) {
+              setRawScan('باركود EID — اسكان الباركود التاني')
+              setTimeout(() => setRawScan(''), 1500)
+              return
+            }
+
             doneRef.current = true
             controls.stop()
+            setRawScan(raw)
             setScreen('scanned')
-            setTimeout(() => onResult(parseBoxCode(result.getText())), 500)
+            setTimeout(() => onResult(parsed), 600)
           }
         )
         controlsRef.current = controls
@@ -207,11 +219,16 @@ export default function BoxScanner({ onResult, onClose }: Props) {
               )}
             </div>
 
-            <div className="px-5 py-4 text-center min-h-[56px] flex items-center justify-center">
+            <div className="px-5 py-4 text-center min-h-[68px] flex flex-col items-center justify-center gap-1">
               {screen === 'scanned' ? (
                 <p className="text-sm font-semibold text-green-600">تم السكان! جاري تعبئة البيانات...</p>
+              ) : rawScan ? (
+                <p className="text-sm font-medium text-amber-600">{rawScan}</p>
               ) : (
-                <p className="text-sm text-slate-500">وجّه الكاميرا نحو الباركود أو QR على علبة الأيفون</p>
+                <>
+                  <p className="text-sm text-slate-600 font-medium">اسكان الباركود جنب السريال أو IMEI</p>
+                  <p className="text-xs text-slate-400">مش الباركود الكبير فوق</p>
+                </>
               )}
             </div>
           </>
