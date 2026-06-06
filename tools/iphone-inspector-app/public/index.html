@@ -12,12 +12,9 @@
 
   <!-- Sidebar -->
   <nav class="sidebar">
-    <div class="brand">
-      <span>📱</span>
-      <span>فاحص الآيفون</span>
-    </div>
+    <div class="brand"><span>📱</span><span>فاحص الآيفون</span></div>
 
-    <div class="device-slot" id="deviceSlot">
+    <div class="device-slot">
       <div class="device-waiting" id="waitingState">
         <div class="plug-anim">
           <svg viewBox="0 0 48 48" fill="none" width="40" height="40">
@@ -39,9 +36,9 @@
     </div>
 
     <div class="nav-links">
-      <a class="nav-link active" href="#auto">البيانات التلقائية</a>
+      <a class="nav-link active" href="#auto">البيانات</a>
       <a class="nav-link" href="#parts">تحليل القطع</a>
-      <a class="nav-link" href="#manual">الفحص اليدوي</a>
+      <a class="nav-link" href="#manual">الاختبارات</a>
     </div>
 
     <div class="sidebar-bottom">
@@ -53,7 +50,6 @@
   <!-- Main -->
   <main class="main">
 
-    <!-- Setup banner -->
     <div class="setup-banner" id="setupBanner" style="display:none">
       <div class="setup-icon">⚙️</div>
       <div>
@@ -64,9 +60,9 @@
       </div>
     </div>
 
-    <!-- ── Auto data ── -->
+    <!-- ── البيانات التلقائية ── -->
     <section id="auto">
-      <h2 class="section-heading">📊 البيانات المقروءة تلقائياً</h2>
+      <h2 class="section-heading">📊 البيانات التلقائية</h2>
 
       <div id="diagPanel" style="display:none">
         <div class="diag-grid" id="diagGrid"></div>
@@ -75,221 +71,241 @@
       </div>
 
       <div class="auto-grid" id="autoGrid" style="display:none">
-        <div class="data-card">
-          <div class="card-title">الهوية والموديل</div>
-          <div class="data-rows" id="rowsIdentity"></div>
-        </div>
-        <div class="data-card">
-          <div class="card-title">البطارية</div>
-          <div class="data-rows" id="rowsBattery"></div>
-        </div>
-        <div class="data-card">
-          <div class="card-title">الشبكة والشريحة</div>
-          <div class="data-rows" id="rowsNetwork"></div>
-        </div>
-        <div class="data-card">
-          <div class="card-title">النظام والتخزين</div>
-          <div class="data-rows" id="rowsSystem"></div>
-        </div>
+        <div class="data-card"><div class="card-title">الهوية والموديل</div><div class="data-rows" id="rowsIdentity"></div></div>
+        <div class="data-card"><div class="card-title">البطارية</div><div class="data-rows" id="rowsBattery"></div></div>
+        <div class="data-card"><div class="card-title">الشبكة والشريحة</div><div class="data-rows" id="rowsNetwork"></div></div>
+        <div class="data-card"><div class="card-title">النظام والتخزين</div><div class="data-rows" id="rowsSystem"></div></div>
       </div>
     </section>
 
-    <!-- ── Parts analysis ── -->
+    <!-- ── تحليل القطع ── -->
     <section id="parts">
       <h2 class="section-heading">🔧 تحليل القطع والصيانة</h2>
-      <p class="section-sub" id="partsSub" style="display:none">وصّلي الآيفون لرؤية تحليل القطع</p>
+      <p class="section-sub" id="partsSub">وصّلي الآيفون لرؤية تحليل القطع</p>
 
       <div class="parts-grid" id="partsGrid" style="display:none">
 
-        <!-- Battery -->
+        <!-- البطارية -->
         <div class="part-card" id="pc-battery">
           <div class="part-header">
             <span class="part-icon">🔋</span>
-            <div class="part-info">
-              <div class="part-name">البطارية</div>
-              <div class="part-sub" id="ps-battery">جاري الفحص...</div>
-            </div>
+            <div class="part-info"><div class="part-name">البطارية</div><div class="part-sub" id="ps-battery">جاري الفحص...</div></div>
             <div class="part-verdict" id="pv-battery"></div>
           </div>
           <div class="part-rows" id="pr-battery"></div>
         </div>
 
-        <!-- Screen -->
+        <!-- الشاشة -->
         <div class="part-card" id="pc-screen">
           <div class="part-header">
             <span class="part-icon">📱</span>
-            <div class="part-info">
-              <div class="part-name">الشاشة</div>
-              <div class="part-sub" id="ps-screen">جاري الفحص...</div>
-            </div>
+            <div class="part-info"><div class="part-name">الشاشة</div><div class="part-sub" id="ps-screen">جاري الفحص...</div></div>
             <div class="part-verdict" id="pv-screen"></div>
           </div>
           <div class="part-rows" id="pr-screen"></div>
         </div>
 
-        <!-- iCloud / Activation -->
+        <!-- الكاميرا -->
+        <div class="part-card" id="pc-camera">
+          <div class="part-header">
+            <span class="part-icon">📷</span>
+            <div class="part-info"><div class="part-name">الكاميرا</div><div class="part-sub" id="ps-camera">جاري الفحص...</div></div>
+            <div class="part-verdict" id="pv-camera"></div>
+          </div>
+          <div class="part-rows" id="pr-camera"></div>
+        </div>
+
+        <!-- المعرّف البيومتري -->
+        <div class="part-card" id="pc-biometric">
+          <div class="part-header">
+            <span class="part-icon">👤</span>
+            <div class="part-info"><div class="part-name">المعرّف البيومتري</div><div class="part-sub" id="ps-biometric">جاري الفحص...</div></div>
+            <div class="part-verdict" id="pv-biometric"></div>
+          </div>
+          <div class="part-rows" id="pr-biometric"></div>
+        </div>
+
+        <!-- الحساسات والاتصال — full width -->
+        <div class="part-card part-card--wide" id="pc-sensors">
+          <div class="part-header">
+            <span class="part-icon">🧭</span>
+            <div class="part-info"><div class="part-name">الحساسات والاتصال</div><div class="part-sub" id="ps-sensors">جاري الفحص...</div></div>
+            <div class="part-verdict" id="pv-sensors"></div>
+          </div>
+          <div class="cap-chips" id="chips-sensors"></div>
+        </div>
+
+        <!-- iCloud -->
         <div class="part-card" id="pc-icloud">
           <div class="part-header">
             <span class="part-icon">☁️</span>
-            <div class="part-info">
-              <div class="part-name">iCloud وحالة التفعيل</div>
-              <div class="part-sub" id="ps-icloud">جاري الفحص...</div>
-            </div>
+            <div class="part-info"><div class="part-name">iCloud والتفعيل</div><div class="part-sub" id="ps-icloud">جاري الفحص...</div></div>
             <div class="part-verdict" id="pv-icloud"></div>
           </div>
           <div class="part-rows" id="pr-icloud"></div>
         </div>
 
-        <!-- Logic Board -->
+        <!-- اللوجيك بورد -->
         <div class="part-card" id="pc-board">
           <div class="part-header">
             <span class="part-icon">🔩</span>
-            <div class="part-info">
-              <div class="part-name">اللوجيك بورد</div>
-              <div class="part-sub" id="ps-board">جاري الفحص...</div>
-            </div>
+            <div class="part-info"><div class="part-name">اللوجيك بورد</div><div class="part-sub" id="ps-board">جاري الفحص...</div></div>
             <div class="part-verdict" id="pv-board"></div>
           </div>
           <div class="part-rows" id="pr-board"></div>
         </div>
 
-        <!-- Camera -->
-        <div class="part-card part-card--manual" id="pc-camera">
-          <div class="part-header">
-            <span class="part-icon">📷</span>
-            <div class="part-info">
-              <div class="part-name">الكاميرا</div>
-              <div class="part-sub">يحتاج فحص يدوي</div>
-            </div>
-            <div class="part-verdict pv-manual">يدوي</div>
-          </div>
-          <div class="part-rows">
-            <div class="part-row"><span class="pr-key">الخطوة</span><span class="pr-val">صوّري في إضاءة عادية ومنخفضة</span></div>
-            <div class="part-row"><span class="pr-key">وميض الفلاش</span><span class="pr-val">يضيء فوراً بدون تأخير</span></div>
-            <div class="part-row"><span class="pr-key">العدسة</span><span class="pr-val">فحص الخدوش تحت الضوء</span></div>
-          </div>
-        </div>
-
-        <!-- Face ID -->
-        <div class="part-card part-card--manual" id="pc-faceid">
-          <div class="part-header">
-            <span class="part-icon">👤</span>
-            <div class="part-info">
-              <div class="part-name">Face ID / Touch ID</div>
-              <div class="part-sub">يحتاج فحص يدوي</div>
-            </div>
-            <div class="part-verdict pv-manual">يدوي</div>
-          </div>
-          <div class="part-rows">
-            <div class="part-row"><span class="pr-key">الاختبار</span><span class="pr-val">قفّلي ثم افتحي بالوجه / البصمة</span></div>
-            <div class="part-row"><span class="pr-key">تعطّل Face ID</span><span class="pr-val">غالباً = شاشة مستبدلة</span></div>
-          </div>
-        </div>
-
       </div>
     </section>
 
-    <!-- ── Manual checks ── -->
+    <!-- ── الاختبارات الوظيفية ── -->
     <section id="manual">
-      <h2 class="section-heading">🔍 الفحص اليدوي — ما لا يُقرأ أوتوماتيك</h2>
-      <p class="section-sub">هذه النقاط تحتاج فحصاً بصرياً وعملياً مباشرة على الجهاز</p>
+      <h2 class="section-heading">🧪 الاختبارات الوظيفية</h2>
+      <p class="section-sub">اختبري كل وظيفة بنفسك وسجّلي النتيجة</p>
 
       <div class="manual-grid">
 
         <div class="manual-card" id="m-screen">
           <div class="manual-head" onclick="toggleM('m-screen')">
             <div class="m-bullet" id="mb-screen"></div>
-            <div class="m-body">
-              <div class="m-title">الشاشة والقطع الأصلية</div>
-              <div class="m-desc">الإعدادات ← عام ← معلومات ← قطع وخدمة</div>
-            </div>
+            <div class="m-body"><div class="m-title">قطع Apple الأصلية</div><div class="m-desc">الإعدادات ← عام ← معلومات ← قطع وخدمة</div></div>
             <div class="m-acts">
               <button class="ma ok"   onclick="mMark(event,'m-screen','ok')">✓</button>
               <button class="ma fail" onclick="mMark(event,'m-screen','fail')">✗</button>
               <button class="ma skip" onclick="mMark(event,'m-screen','skip')">–</button>
             </div>
           </div>
-          <div class="m-tip">ابحثي عن "قطعة Apple الأصلية" بجانب الشاشة والبطارية والكاميرا. "قطعة مجهولة" = قطعة متغيرة بمركز غير معتمد.</div>
+          <div class="m-tip"><ol class="m-steps"><li>افتحي الإعدادات ← عام ← معلومات ← قطع وخدمة</li><li>ابحثي عن كل قطعة — "قطعة Apple الأصلية" = طبيعي</li><li>"قطعة مجهولة" أو "غير قادر على التحقق" = قطعة مستبدلة</li></ol></div>
         </div>
 
         <div class="manual-card" id="m-faceid">
           <div class="manual-head" onclick="toggleM('m-faceid')">
             <div class="m-bullet" id="mb-faceid"></div>
-            <div class="m-body">
-              <div class="m-title">Face ID / Touch ID</div>
-              <div class="m-desc">قفّلي الجهاز وجرّبي فتحه بالوجه أو البصمة</div>
-            </div>
+            <div class="m-body"><div class="m-title">Face ID / Touch ID</div><div class="m-desc">قفّلي الجهاز وجرّبي فتحه</div></div>
             <div class="m-acts">
               <button class="ma ok"   onclick="mMark(event,'m-faceid','ok')">✓</button>
               <button class="ma fail" onclick="mMark(event,'m-faceid','fail')">✗</button>
               <button class="ma skip" onclick="mMark(event,'m-faceid','skip')">–</button>
             </div>
           </div>
-          <div class="m-tip">Face ID معطل غالباً = الشاشة اتغيرت بدون معدات Apple المعتمدة.</div>
-        </div>
-
-        <div class="manual-card" id="m-water">
-          <div class="manual-head" onclick="toggleM('m-water')">
-            <div class="m-bullet" id="mb-water"></div>
-            <div class="m-body">
-              <div class="m-title"><span class="badge-r">مهم</span> مؤشر الماء</div>
-              <div class="m-desc">افتحي درج الشريحة — المؤشر الأبيض داخله</div>
-            </div>
-            <div class="m-acts">
-              <button class="ma ok"   onclick="mMark(event,'m-water','ok')">✓</button>
-              <button class="ma fail" onclick="mMark(event,'m-water','fail')">✗</button>
-              <button class="ma skip" onclick="mMark(event,'m-water','skip')">–</button>
-            </div>
-          </div>
-          <div class="m-tip">المؤشر أبيض = طبيعي · أحمر أو وردي = تعرض للماء.</div>
+          <div class="m-tip"><ol class="m-steps"><li>قفّلي الشاشة واتركي الآيفون</li><li>اقتربي بوجهك — المفروض يفتح فوراً (Face ID)</li><li>لو "تعذر تفعيل Face ID" = الشاشة اتغيرت بمركز غير معتمد</li></ol></div>
         </div>
 
         <div class="manual-card" id="m-screen-quality">
           <div class="manual-head" onclick="toggleM('m-screen-quality')">
             <div class="m-bullet" id="mb-screen-quality"></div>
-            <div class="m-body">
-              <div class="m-title">جودة الشاشة</div>
-              <div class="m-desc">Dead pixels، Burn-in، True Tone، سطوع</div>
-            </div>
+            <div class="m-body"><div class="m-title">جودة الشاشة</div><div class="m-desc">Dead pixels، Burn-in، True Tone، سطوع</div></div>
             <div class="m-acts">
               <button class="ma ok"   onclick="mMark(event,'m-screen-quality','ok')">✓</button>
               <button class="ma fail" onclick="mMark(event,'m-screen-quality','fail')">✗</button>
               <button class="ma skip" onclick="mMark(event,'m-screen-quality','skip')">–</button>
             </div>
           </div>
-          <div class="m-tip">ضعي السطوع 100% وشوفي على خلفيات ألوان مختلفة. True Tone: الإعدادات ← شاشة العرض والسطوع.</div>
+          <div class="m-tip"><ol class="m-steps"><li>ارفعي السطوع 100% — شوفي على خلفية بيضاء كاملة</li><li>شوفي نقاط ميتة أو احتراق (Burn-in) على خلفية داكنة</li><li>الإعدادات ← شاشة العرض — لو True Tone غير موجود = شاشة مستبدلة</li></ol></div>
+        </div>
+
+        <div class="manual-card" id="m-touch">
+          <div class="manual-head" onclick="toggleM('m-touch')">
+            <div class="m-bullet" id="mb-touch"></div>
+            <div class="m-body"><div class="m-title">الشاشة اللمسية</div><div class="m-desc">دقة اللمس وحساسية كل الزوايا</div></div>
+            <div class="m-acts">
+              <button class="ma ok"   onclick="mMark(event,'m-touch','ok')">✓</button>
+              <button class="ma fail" onclick="mMark(event,'m-touch','fail')">✗</button>
+              <button class="ma skip" onclick="mMark(event,'m-touch','skip')">–</button>
+            </div>
+          </div>
+          <div class="m-tip"><ol class="m-steps"><li>افتحي Notes وارسمي خطوطاً في كل زوايا الشاشة</li><li>تأكدي إن اللمس مستجيب في كل الأركان والحواف</li><li>جرّبي Multi-touch: افتحي الصور وكبّري بإصبعين</li></ol></div>
+        </div>
+
+        <div class="manual-card" id="m-speaker">
+          <div class="manual-head" onclick="toggleM('m-speaker')">
+            <div class="m-bullet" id="mb-speaker"></div>
+            <div class="m-body"><div class="m-title">الصوت والمكبر</div><div class="m-desc">مكبر القاع + سماعة الأذن + Ring/Silent</div></div>
+            <div class="m-acts">
+              <button class="ma ok"   onclick="mMark(event,'m-speaker','ok')">✓</button>
+              <button class="ma fail" onclick="mMark(event,'m-speaker','fail')">✗</button>
+              <button class="ma skip" onclick="mMark(event,'m-speaker','skip')">–</button>
+            </div>
+          </div>
+          <div class="m-tip"><ol class="m-steps"><li>شغّلي أي موسيقى وارفعي الصوت — يُسمع نظيف بدون طشطشة</li><li>اتصلي بنفسك — السماعة الأذنية فوق الشاشة تشتغل</li><li>اضغطي زر Ring/Silent على الجانب — يهتز ويتحوّل للصامت</li></ol></div>
+        </div>
+
+        <div class="manual-card" id="m-mic">
+          <div class="manual-head" onclick="toggleM('m-mic')">
+            <div class="m-bullet" id="mb-mic"></div>
+            <div class="m-body"><div class="m-title">المايكروفون</div><div class="m-desc">3 مايكروفونات — أمام، أسفل، خلف</div></div>
+            <div class="m-acts">
+              <button class="ma ok"   onclick="mMark(event,'m-mic','ok')">✓</button>
+              <button class="ma fail" onclick="mMark(event,'m-mic','fail')">✗</button>
+              <button class="ma skip" onclick="mMark(event,'m-mic','skip')">–</button>
+            </div>
+          </div>
+          <div class="m-tip"><ol class="m-steps"><li>افتحي Voice Memos (المذكرات الصوتية) وسجّلي صوتك</li><li>اشغلي التسجيل — يُسمع الصوت واضحاً بدون تشويش</li><li>جرّبي مكالمة فيديو — الطرف الآخر يسمعك كويس</li></ol></div>
         </div>
 
         <div class="manual-card" id="m-camera">
           <div class="manual-head" onclick="toggleM('m-camera')">
             <div class="m-bullet" id="mb-camera"></div>
-            <div class="m-body">
-              <div class="m-title">الكاميرا والفلاش</div>
-              <div class="m-desc">صوّري في إضاءة عادية ومنخفضة، اختبري الفلاش</div>
-            </div>
+            <div class="m-body"><div class="m-title">الكاميرا والفلاش</div><div class="m-desc">كل العدسات + الفلاش + الكاميرا الأمامية</div></div>
             <div class="m-acts">
               <button class="ma ok"   onclick="mMark(event,'m-camera','ok')">✓</button>
               <button class="ma fail" onclick="mMark(event,'m-camera','fail')">✗</button>
               <button class="ma skip" onclick="mMark(event,'m-camera','skip')">–</button>
             </div>
           </div>
-          <div class="m-tip">افتحي مركز التحكم وفعّلي المصباح — يضيء فوراً بدون وميض.</div>
+          <div class="m-tip"><ol class="m-steps"><li>افتحي الكاميرا وجرّبي كل تكبير (0.5× 1× 2× 5×)</li><li>افتحي مركز التحكم وفعّلي المصباح — يضيء فوراً</li><li>انتقلي للكاميرا الأمامية — صورة نظيفة بدون ضبابية</li><li>شوفي العدسات تحت الضوء — لا خدوش أو بقع</li></ol></div>
+        </div>
+
+        <div class="manual-card" id="m-haptics">
+          <div class="manual-head" onclick="toggleM('m-haptics')">
+            <div class="m-bullet" id="mb-haptics"></div>
+            <div class="m-body"><div class="m-title">الاهتزاز والتابتيك</div><div class="m-desc">Taptic Engine + محرك الاهتزاز</div></div>
+            <div class="m-acts">
+              <button class="ma ok"   onclick="mMark(event,'m-haptics','ok')">✓</button>
+              <button class="ma fail" onclick="mMark(event,'m-haptics','fail')">✗</button>
+              <button class="ma skip" onclick="mMark(event,'m-haptics','skip')">–</button>
+            </div>
+          </div>
+          <div class="m-tip"><ol class="m-steps"><li>الإعدادات ← الأصوات والتعليقات الصوتية ← اضغطي "تشغيل الاهتزاز للاختبار"</li><li>يُفترض أن تشعري بنبضات نظيفة ومنتظمة</li><li>لو اهتزاز خشن أو طنين = محرك الاهتزاز متلف</li></ol></div>
+        </div>
+
+        <div class="manual-card" id="m-charging">
+          <div class="manual-head" onclick="toggleM('m-charging')">
+            <div class="m-bullet" id="mb-charging"></div>
+            <div class="m-body"><div class="m-title">الشحن ومنفذ الكابل</div><div class="m-desc">Lightning / USB-C + شحن لاسلكي</div></div>
+            <div class="m-acts">
+              <button class="ma ok"   onclick="mMark(event,'m-charging','ok')">✓</button>
+              <button class="ma fail" onclick="mMark(event,'m-charging','fail')">✗</button>
+              <button class="ma skip" onclick="mMark(event,'m-charging','skip')">–</button>
+            </div>
+          </div>
+          <div class="m-tip"><ol class="m-steps"><li>وصّلي شاحن أصلي — يظهر رمز الشحن فوراً</li><li>جرّبي كابلين مختلفين — لو شاحن يشتغل والثاني لا = المشكلة في الكابل</li><li>الإعدادات ← البطارية — تأكدي إن "يشحن" ظاهر</li></ol></div>
+        </div>
+
+        <div class="manual-card" id="m-water">
+          <div class="manual-head" onclick="toggleM('m-water')">
+            <div class="m-bullet" id="mb-water"></div>
+            <div class="m-body"><div class="m-title"><span class="badge-r">مهم</span> مؤشر الماء</div><div class="m-desc">درج الشريحة — المؤشر الأبيض داخله</div></div>
+            <div class="m-acts">
+              <button class="ma ok"   onclick="mMark(event,'m-water','ok')">✓</button>
+              <button class="ma fail" onclick="mMark(event,'m-water','fail')">✗</button>
+              <button class="ma skip" onclick="mMark(event,'m-water','skip')">–</button>
+            </div>
+          </div>
+          <div class="m-tip"><ol class="m-steps"><li>افتحي درج الشريحة بالدبوس</li><li>المؤشر أبيض = طبيعي ✓</li><li>أحمر أو وردي = تعرّض للماء ✗ — الجهاز قد يموت بعد أيام</li></ol></div>
         </div>
 
         <div class="manual-card" id="m-body">
           <div class="manual-head" onclick="toggleM('m-body')">
             <div class="m-bullet" id="mb-body"></div>
-            <div class="m-body">
-              <div class="m-title">الهيكل والأزرار</div>
-              <div class="m-desc">انحناء، فجوات الشاشة، أزرار، منفذ الشحن</div>
-            </div>
+            <div class="m-body"><div class="m-title">الهيكل والأزرار</div><div class="m-desc">انحناء، فجوات، أزرار الصوت والجانبي</div></div>
             <div class="m-acts">
               <button class="ma ok"   onclick="mMark(event,'m-body','ok')">✓</button>
               <button class="ma fail" onclick="mMark(event,'m-body','fail')">✗</button>
               <button class="ma skip" onclick="mMark(event,'m-body','skip')">–</button>
             </div>
           </div>
-          <div class="m-tip">ضعي الجهاز على سطح مستوٍ — لا انحناء. اختبري كل الأزرار وكابل الشحن.</div>
+          <div class="m-tip"><ol class="m-steps"><li>ضعي الجهاز على سطح مستوٍ — لا انحناء في الهيكل</li><li>مرّري إصبعك على الحواف — لا فجوات بين الشاشة والهيكل</li><li>اضغطي كل الأزرار: صوت↑ صوت↓ Mute الجانبي — كل واحد يستجيب</li></ol></div>
         </div>
 
       </div>

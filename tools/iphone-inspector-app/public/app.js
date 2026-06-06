@@ -1,5 +1,7 @@
 'use strict';
 
+let _camCfg = {};
+
 // ── SSE ───────────────────────────────────────────────
 const es    = new EventSource('/events');
 const dot   = document.getElementById('connDot');
@@ -18,7 +20,9 @@ async function retryDetection() {
 }
 
 // ── Main render ───────────────────────────────────────
-function render({ udids = [], devices = [], deps = {}, diag = {} }) {
+function render({ udids = [], devices = [], deps = {}, diag = {}, camCfg = {} }) {
+  if (camCfg && Object.keys(camCfg).length) _camCfg = camCfg;
+
   const setupBanner = document.getElementById('setupBanner');
   const waiting     = document.getElementById('waitingState');
   const devInfo     = document.getElementById('deviceInfo');
@@ -29,31 +33,29 @@ function render({ udids = [], devices = [], deps = {}, diag = {} }) {
 
   if (!deps.ideviceinfo) {
     setupBanner.style.display = 'flex';
-    waiting.style.display     = 'block'; devInfo.style.display   = 'none';
-    diagPanel.style.display   = 'block'; autoGrid.style.display  = 'none';
-    partsGrid.style.display   = 'none';  partsSub.style.display  = 'block';
+    waiting.style.display = 'block'; devInfo.style.display = 'none';
+    diagPanel.style.display = 'block'; autoGrid.style.display = 'none';
+    partsGrid.style.display = 'none'; partsSub.style.display = 'block';
     label.textContent = 'libimobiledevice غير مثبت';
     document.getElementById('waitingText').innerHTML = 'مطلوب تثبيت<br>libimobiledevice';
-    document.getElementById('waitingSub').textContent = 'راجعي التعليمات بالأعلى';
+    document.getElementById('waitingSub').textContent = 'راجعي التعليمات';
     renderDiag(deps, diag); return;
   }
-
   setupBanner.style.display = 'none';
 
   if (!udids.length || !devices.length || !devices[0]) {
-    waiting.style.display   = 'block'; devInfo.style.display   = 'none';
-    diagPanel.style.display = 'block'; autoGrid.style.display  = 'none';
-    partsGrid.style.display = 'none';  partsSub.style.display  = 'block';
+    waiting.style.display = 'block'; devInfo.style.display = 'none';
+    diagPanel.style.display = 'block'; autoGrid.style.display = 'none';
+    partsGrid.style.display = 'none'; partsSub.style.display = 'block';
     label.textContent = 'في انتظار الجهاز...';
     document.getElementById('waitingText').innerHTML = 'وصّلي الآيفون<br>بكابل USB';
     document.getElementById('waitingSub').textContent = 'ثم اضغطي إعادة المحاولة';
     renderDiag(deps, diag); return;
   }
 
-  // Device connected
-  waiting.style.display   = 'none';  devInfo.style.display   = 'block';
-  diagPanel.style.display = 'none';  autoGrid.style.display  = 'grid';
-  partsGrid.style.display = 'grid';  partsSub.style.display  = 'none';
+  waiting.style.display = 'none'; devInfo.style.display = 'block';
+  diagPanel.style.display = 'none'; autoGrid.style.display = 'grid';
+  partsGrid.style.display = 'grid'; partsSub.style.display = 'none';
 
   const d = devices[0];
   document.getElementById('devName').textContent  = d.DeviceName  || '—';
@@ -72,49 +74,47 @@ function render({ udids = [], devices = [], deps = {}, diag = {} }) {
     pill.textContent = act || '—';               pill.className = 'status-pill status-pill--neutral';
   }
 
-  // ── Data cards ──────────────────────────────────────
   renderRows('rowsIdentity', [
-    { k: 'الاسم',    v: d.DeviceName },
-    { k: 'الموديل',  v: d.ModelName || d.ProductType },
-    { k: 'السيريال', v: d.SerialNumber,  cls: 'mono' },
-    { k: 'IMEI',     v: d.InternationalMobileEquipmentIdentity,  cls: 'mono' },
-    { k: 'IMEI 2',   v: d.InternationalMobileEquipmentIdentity2, cls: 'mono' },
-    { k: 'iOS',      v: d.ProductVersion },
-    { k: 'Build',    v: d.BuildVersion,  cls: 'mono' },
-    { k: 'اللون',    v: d.DeviceColor },
+    { k:'الاسم',    v:d.DeviceName },
+    { k:'الموديل',  v:d.ModelName || d.ProductType },
+    { k:'السيريال', v:d.SerialNumber,  cls:'mono' },
+    { k:'IMEI',     v:d.InternationalMobileEquipmentIdentity,  cls:'mono' },
+    { k:'IMEI 2',   v:d.InternationalMobileEquipmentIdentity2, cls:'mono' },
+    { k:'iOS',      v:d.ProductVersion },
+    { k:'Build',    v:d.BuildVersion,  cls:'mono' },
+    { k:'اللون',    v:d.DeviceColor },
   ]);
 
   const hNum = d.BatteryHealthPct ? parseInt(d.BatteryHealthPct) : null;
   const hCls = hNum === null ? '' : hNum >= 85 ? 'ok' : hNum >= 80 ? 'warn' : 'bad';
   renderRows('rowsBattery', [
-    { k: 'الشحن الحالي',  v: d.BatteryCurrentCapacity ? d.BatteryCurrentCapacity + '%' : null, cls: battCls(d.BatteryCurrentCapacity) },
-    { k: 'صحة البطارية', v: d.BatteryHealthPct, cls: hCls },
-    { k: 'السعة الحالية', v: d.battNominalCap  ? d.battNominalCap  + ' mAh' : null },
-    { k: 'السعة الأصلية', v: d.battDesignCap   ? d.battDesignCap   + ' mAh' : null },
-    { k: 'دورات الشحن',  v: d.CycleCount, cls: cycleCls(d.CycleCount) },
-    { k: 'الجهد الكهربي', v: d.battVoltage },
-    { k: 'الحرارة',       v: d.BatteryTemperature },
-    { k: 'يشحن الآن',    v: d.BatteryIsCharging === 'true' ? 'نعم' : d.BatteryIsCharging === 'false' ? 'لا' : null },
+    { k:'الشحن الحالي',  v:d.BatteryCurrentCapacity ? d.BatteryCurrentCapacity+'%' : null, cls:battCls(d.BatteryCurrentCapacity) },
+    { k:'صحة البطارية', v:d.BatteryHealthPct, cls:hCls },
+    { k:'السعة الحالية', v:d.battNominalCap ? d.battNominalCap+' mAh' : null },
+    { k:'السعة الأصلية', v:d.battDesignCap  ? d.battDesignCap +' mAh' : null },
+    { k:'دورات الشحن',  v:d.CycleCount, cls:cycleCls(d.CycleCount) },
+    { k:'الجهد',         v:d.battVoltage },
+    { k:'الحرارة',       v:d.BatteryTemperature },
+    { k:'يشحن الآن',    v:d.BatteryIsCharging==='true'?'نعم':d.BatteryIsCharging==='false'?'لا':null },
   ]);
 
   renderRows('rowsNetwork', [
-    { k: 'رقم الهاتف',  v: d.PhoneNumber },
-    { k: 'حالة SIM',    v: simLabel(d.SIMStatus) },
-    { k: 'MAC واي فاي', v: d.WifiAddress,      cls: 'mono' },
-    { k: 'MAC بلوتوث',  v: d.BluetoothAddress, cls: 'mono' },
+    { k:'رقم الهاتف',  v:d.PhoneNumber },
+    { k:'حالة SIM',    v:simLabel(d.SIMStatus) },
+    { k:'MAC واي فاي', v:d.WifiAddress,      cls:'mono' },
+    { k:'MAC بلوتوث',  v:d.BluetoothAddress, cls:'mono' },
   ]);
 
-  const total = d.TotalDiskCapacity    ? Math.round(parseInt(d.TotalDiskCapacity)    / 1e9) + ' GB' : null;
-  const avail = d.TotalSystemAvailable ? Math.round(parseInt(d.TotalSystemAvailable) / 1e9) + ' GB' : null;
+  const total = d.TotalDiskCapacity    ? Math.round(parseInt(d.TotalDiskCapacity)    /1e9)+' GB' : null;
+  const avail = d.TotalSystemAvailable ? Math.round(parseInt(d.TotalSystemAvailable) /1e9)+' GB' : null;
   renderRows('rowsSystem', [
-    { k: 'التخزين الكلي',  v: total },
-    { k: 'المتاح',         v: avail },
-    { k: 'المعالج',        v: d.CPUArchitecture },
-    { k: 'Hardware Model', v: d.HardwareModel, cls: 'mono' },
-    { k: 'حالة التفعيل',  v: actLabel(d.ActivationState), cls: act === 'Activated' ? 'ok' : act ? 'bad' : '' },
+    { k:'التخزين الكلي',  v:total },
+    { k:'المتاح',         v:avail },
+    { k:'المعالج',        v:d.CPUArchitecture },
+    { k:'Hardware Model', v:d.HardwareModel, cls:'mono' },
+    { k:'حالة التفعيل',  v:actLabel(d.ActivationState), cls:act==='Activated'?'ok':act?'bad':'' },
   ]);
 
-  // ── Parts analysis ──────────────────────────────────
   renderParts(d);
 }
 
@@ -124,95 +124,149 @@ function renderParts(d) {
   // 🔋 Battery
   const bHealth = d.BatteryHealthPct ? parseInt(d.BatteryHealthPct) : null;
   const bCycles = d.CycleCount ? parseInt(d.CycleCount) : null;
-  const bVerdict = d.battVerdict;
-
-  const battVerdictMap = {
-    ok:         { label: 'بطارية أصلية سليمة', cls: 'pv-ok' },
-    worn:       { label: 'بطارية متهالكة',      cls: 'pv-warn' },
-    bad:        { label: 'بطارية ضعيفة جداً',   cls: 'pv-bad' },
-    thirdparty: { label: 'بطارية غير أصلية',    cls: 'pv-bad' },
-    unknown:    { label: 'لا بيانات',           cls: 'pv-neutral' },
-  };
-  const bv = battVerdictMap[bVerdict] || battVerdictMap.unknown;
-  setPartVerdict('battery', bv.label, bv.cls);
+  const bv = { ok:'بطارية سليمة ✓', worn:'بطارية متهالكة', bad:'بطارية ضعيفة', thirdparty:'بطارية غير أصلية ✗', unknown:'لا بيانات' };
+  const bvcls = { ok:'pv-ok', worn:'pv-warn', bad:'pv-bad', thirdparty:'pv-bad', unknown:'pv-neutral' };
+  setVerdict('battery', bv[d.battVerdict]||bv.unknown, bvcls[d.battVerdict]||'pv-neutral');
   document.getElementById('ps-battery').textContent =
-    bHealth ? `صحة ${bHealth}% — ${bCycles != null ? bCycles + ' دورة' : ''}` : 'لا بيانات — ثبّتي idevicediagnostics';
+    bHealth ? `صحة ${bHealth}%  —  ${bCycles != null ? bCycles+' دورة' : ''}` : 'ثبّتي idevicediagnostics للبيانات';
   renderPartRows('pr-battery', [
-    { k: 'صحة البطارية',  v: bHealth ? bHealth + '%' : null,  cls: bHealth >= 85 ? 'ok' : bHealth >= 75 ? 'warn' : 'bad' },
-    { k: 'دورات الشحن',   v: bCycles != null ? bCycles + '' : null, cls: cycleCls(bCycles) },
-    { k: 'السعة الأصلية', v: d.battDesignCap  ? d.battDesignCap  + ' mAh' : null },
-    { k: 'السعة الحالية', v: d.battNominalCap ? d.battNominalCap + ' mAh' : null },
-    { k: 'سيريال البطارية', v: d.battSerial || null, cls: 'mono' },
-    { k: 'المصنّع',        v: d.battMfr    || null },
-    { k: 'الجهد',          v: d.battVoltage || null },
-    { k: 'الحرارة',        v: d.BatteryTemperature || null },
+    { k:'صحة البطارية',   v:bHealth ? bHealth+'%' : null, cls:bHealth>=85?'ok':bHealth>=75?'warn':'bad' },
+    { k:'دورات الشحن',    v:bCycles != null ? bCycles+'' : null, cls:cycleCls(bCycles) },
+    { k:'السعة الأصلية',  v:d.battDesignCap  ? d.battDesignCap +' mAh':null },
+    { k:'السعة الحالية',  v:d.battNominalCap ? d.battNominalCap+' mAh':null },
+    { k:'سيريال البطارية',v:d.battSerial||null, cls:'mono' },
+    { k:'المصنّع',        v:d.battMfr||null },
+    { k:'الجهد',          v:d.battVoltage||null },
+    { k:'الحرارة',        v:d.BatteryTemperature||null },
   ]);
 
-  // 📱 Screen / True Tone
+  // 📱 Screen
   const tt = d.trueTone;
-  const sv = d.screenVerdict;
   if (tt === 'yes') {
-    setPartVerdict('screen', 'شاشة أصلية — True Tone ✓', 'pv-ok');
+    setVerdict('screen', 'شاشة أصلية — True Tone ✓', 'pv-ok');
     document.getElementById('ps-screen').textContent = 'بيانات True Tone موجودة';
     renderPartRows('pr-screen', [
-      { k: 'True Tone',    v: 'بيانات المعايرة موجودة ✓', cls: 'ok' },
-      { k: 'الدلالة',     v: 'شاشة Apple أصلية محتملة' },
+      { k:'True Tone',  v:'بيانات المعايرة موجودة ✓', cls:'ok' },
+      { k:'الدلالة',   v:'شاشة Apple أصلية' },
     ]);
   } else if (tt === 'no') {
-    setPartVerdict('screen', 'True Tone غير موجود ⚠', 'pv-warn');
-    document.getElementById('ps-screen').textContent = 'تحقّقي يدوياً من قطع وخدمة';
+    setVerdict('screen', 'True Tone غير موجود ⚠', 'pv-warn');
+    document.getElementById('ps-screen').textContent = 'تحقّقي من قطع وخدمة';
     renderPartRows('pr-screen', [
-      { k: 'True Tone',    v: 'بيانات المعايرة ناقصة', cls: 'warn' },
-      { k: 'الدلالة',     v: 'قد تكون الشاشة مستبدلة' },
-      { k: 'تحقّقي من',   v: 'الإعدادات ← معلومات ← قطع وخدمة' },
+      { k:'True Tone',  v:'بيانات المعايرة ناقصة', cls:'warn' },
+      { k:'الدلالة',   v:'قد تكون الشاشة مستبدلة' },
+      { k:'تحقّقي من', v:'الإعدادات ← معلومات ← قطع وخدمة' },
     ]);
   } else {
-    setPartVerdict('screen', 'لا بيانات', 'pv-neutral');
+    setVerdict('screen', 'لا بيانات', 'pv-neutral');
     document.getElementById('ps-screen').textContent = 'فحص يدوي مطلوب';
-    renderPartRows('pr-screen', [
-      { k: 'التحقّق',     v: 'الإعدادات ← معلومات ← قطع وخدمة' },
-    ]);
+    renderPartRows('pr-screen', [{ k:'التحقّق', v:'الإعدادات ← معلومات ← قطع وخدمة' }]);
   }
 
-  // ☁️ iCloud / Activation
+  // 📷 Camera — use config map + gestalt cross-check
+  const pt  = d.ProductType || '';
+  const cfg = _camCfg[pt];  // [rearCams, hasTelephoto, hasLiDAR, hasTrueDepth]
+  const rearCams   = cfg ? cfg[0] : null;
+  const hasTele    = cfg ? cfg[1] : (d.gHasTelephoto !== null ? d.gHasTelephoto : null);
+  const hasLiDAR   = cfg ? cfg[2] : (d.gHasLiDAR !== null ? d.gHasLiDAR : null);
+  const hasFaceID  = cfg ? cfg[3] : (d.gHasTrueDepth !== null ? d.gHasTrueDepth : null);
+
+  setVerdict('camera', rearCams ? `${rearCams} كاميرات خلفية` : 'موديل غير معروف', rearCams ? 'pv-ok' : 'pv-neutral');
+  document.getElementById('ps-camera').textContent = rearCams ? `${rearCams} خلفية + أمامية` : 'بيانات من الموديل';
+  renderPartRows('pr-camera', [
+    { k:'الكاميرات الخلفية', v:rearCams !== null ? rearCams+' كاميرات' : null },
+    { k:'الكاميرا الأمامية', v:'TrueDepth' + (hasFaceID ? ' (Face ID)' : '') },
+    { k:'Telephoto',         v:hasTele === null ? null : hasTele ? 'موجود ✓' : 'غير موجود', cls:hasTele?'ok':hasTele===false?'warn':'' },
+    { k:'LiDAR',             v:hasLiDAR === null ? null : hasLiDAR ? 'موجود ✓' : 'غير موجود', cls:hasLiDAR?'ok':'' },
+  ]);
+
+  // 👤 Biometrics
+  if (hasFaceID === true) {
+    setVerdict('biometric', 'Face ID', 'pv-ok');
+    document.getElementById('ps-biometric').textContent = 'كاميرا TrueDepth';
+    renderPartRows('pr-biometric', [
+      { k:'النوع',         v:'Face ID (معرّف الوجه)' },
+      { k:'TrueDepthCamera', v:'موجودة ✓', cls:'ok' },
+      { k:'ملاحظة',       v:'اختبري من قسم الاختبارات أدناه' },
+    ]);
+  } else if (hasFaceID === false) {
+    setVerdict('biometric', 'Touch ID', 'pv-ok');
+    document.getElementById('ps-biometric').textContent = 'بصمة الإصبع';
+    renderPartRows('pr-biometric', [
+      { k:'النوع',   v:'Touch ID (بصمة الإصبع)' },
+      { k:'ملاحظة', v:'اختبري من قسم الاختبارات أدناه' },
+    ]);
+  } else {
+    setVerdict('biometric', 'لا بيانات', 'pv-neutral');
+    document.getElementById('ps-biometric').textContent = 'غير محدد';
+    renderPartRows('pr-biometric', [{ k:'التحقّق', v:'فحص يدوي من قسم الاختبارات' }]);
+  }
+
+  // 🧭 Sensors + Connectivity (wide chip card)
+  const chips = [
+    { name:'GPS',        val:d.gHasGPS,       icon:'🌍' },
+    { name:'Compass',    val:d.gHasCompass,    icon:'🧭' },
+    { name:'Gyroscope',  val:d.gHasGyro,       icon:'🔄' },
+    { name:'Barometer',  val:d.gHasBarometer,  icon:'📊' },
+    { name:'NFC',        val:d.gHasNFC,        icon:'📡' },
+    { name:'Taptic',     val:d.gHasTaptic,     icon:'📳' },
+    { name:'LiDAR',      val:d.gHasLiDAR,      icon:'💡' },
+    { name:'WiFi',       val:!!d.WifiAddress && d.WifiAddress !== '00:00:00:00:00:00', icon:'📶' },
+    { name:'Bluetooth',  val:!!d.BluetoothAddress, icon:'🔵' },
+    { name:'Cellular',   val:d.SIMStatus ? d.SIMStatus.includes('Ready') : null, icon:'📱' },
+  ];
+
+  const known    = chips.filter(c => c.val !== null);
+  const allOk    = known.length > 0 && known.every(c => c.val === true);
+  const anyFalse = known.some(c => c.val === false);
+  setVerdict('sensors', allOk ? 'كامل ✓' : anyFalse ? '⚠ مفقود' : known.length ? 'جزئي' : 'لا بيانات',
+             allOk ? 'pv-ok' : anyFalse ? 'pv-bad' : 'pv-neutral');
+  document.getElementById('ps-sensors').textContent = known.length + ' مكوّن مفحوص';
+
+  const chipsEl = document.getElementById('chips-sensors');
+  if (chipsEl) {
+    chipsEl.innerHTML = chips.map(c => {
+      const cls = c.val === true ? 'cap-ok' : c.val === false ? 'cap-bad' : 'cap-unknown';
+      const ind = c.val === true ? '✓' : c.val === false ? '✗' : '?';
+      return `<div class="cap-chip ${cls}"><span class="cap-icon">${c.icon}</span><span class="cap-name">${c.name}</span><span class="cap-ind">${ind}</span></div>`;
+    }).join('');
+  }
+
+  // ☁️ iCloud
   const act = d.ActivationState || '';
   if (act === 'Activated') {
-    setPartVerdict('icloud', 'نظيف — iCloud مفعّل ✓', 'pv-ok');
+    setVerdict('icloud', 'نظيف — مفعّل ✓', 'pv-ok');
     document.getElementById('ps-icloud').textContent = 'لا يوجد قفل iCloud';
   } else if (act === 'WaitingForActivation') {
-    setPartVerdict('icloud', 'في انتظار التفعيل ⚠', 'pv-warn');
+    setVerdict('icloud', 'في انتظار التفعيل ⚠', 'pv-warn');
     document.getElementById('ps-icloud').textContent = 'قد يكون مقيّداً';
   } else if (act) {
-    setPartVerdict('icloud', 'مقفول / Activation Lock ✗', 'pv-bad');
+    setVerdict('icloud', 'Activation Lock ✗', 'pv-bad');
     document.getElementById('ps-icloud').textContent = 'خطر — لا تشتريه!';
   } else {
-    setPartVerdict('icloud', 'لا بيانات', 'pv-neutral');
+    setVerdict('icloud', 'لا بيانات', 'pv-neutral');
     document.getElementById('ps-icloud').textContent = 'لم يُقرأ';
   }
   renderPartRows('pr-icloud', [
-    { k: 'حالة التفعيل', v: actLabel(act) || act || '—', cls: act === 'Activated' ? 'ok' : act ? 'bad' : '' },
-    { k: 'IMEI',         v: d.InternationalMobileEquipmentIdentity, cls: 'mono' },
-    { k: 'رقم الهاتف',  v: d.PhoneNumber },
+    { k:'حالة التفعيل', v:actLabel(act)||act||'—', cls:act==='Activated'?'ok':act?'bad':'' },
+    { k:'IMEI',         v:d.InternationalMobileEquipmentIdentity, cls:'mono' },
+    { k:'رقم الهاتف',  v:d.PhoneNumber },
+    { k:'حالة SIM',    v:simLabel(d.SIMStatus) },
   ]);
 
   // 🔩 Logic Board
-  const hasBoard = d.MLBSerialNumber || d.HardwareModel;
-  if (hasBoard) {
-    setPartVerdict('board', 'بيانات اللوجيك بورد ✓', 'pv-ok');
-    document.getElementById('ps-board').textContent = d.MLBSerialNumber || '—';
-  } else {
-    setPartVerdict('board', 'لا بيانات', 'pv-neutral');
-    document.getElementById('ps-board').textContent = 'لم يُقرأ';
-  }
+  setVerdict('board', d.MLBSerialNumber ? 'بيانات البورد ✓' : 'لا بيانات', d.MLBSerialNumber ? 'pv-ok' : 'pv-neutral');
+  document.getElementById('ps-board').textContent = d.MLBSerialNumber || 'لم يُقرأ';
   renderPartRows('pr-board', [
-    { k: 'سيريال البورد', v: d.MLBSerialNumber, cls: 'mono' },
-    { k: 'Hardware Model',v: d.HardwareModel,   cls: 'mono' },
-    { k: 'سيريال الجهاز', v: d.SerialNumber,    cls: 'mono' },
-    { k: 'المعالج',       v: d.CPUArchitecture },
+    { k:'سيريال البورد', v:d.MLBSerialNumber, cls:'mono' },
+    { k:'Hardware Model',v:d.HardwareModel,   cls:'mono' },
+    { k:'سيريال الجهاز', v:d.SerialNumber,    cls:'mono' },
+    { k:'المعالج',       v:d.CPUArchitecture },
+    { k:'UniqueID',      v:d.UniqueDeviceID ? d.UniqueDeviceID.slice(0,12)+'…' : null, cls:'mono' },
   ]);
 }
 
-function setPartVerdict(id, label, cls) {
+function setVerdict(id, label, cls) {
   const el = document.getElementById('pv-' + id);
   if (!el) return;
   el.textContent = label;
@@ -223,10 +277,7 @@ function renderPartRows(id, rows) {
   const el = document.getElementById(id);
   if (!el) return;
   el.innerHTML = rows.filter(r => r.v).map(r =>
-    `<div class="part-row">
-      <span class="pr-key">${r.k}</span>
-      <span class="pr-val ${r.cls || ''}">${r.v}</span>
-    </div>`
+    `<div class="part-row"><span class="pr-key">${r.k}</span><span class="pr-val ${r.cls||''}">${r.v}</span></div>`
   ).join('') || '';
 }
 
@@ -234,41 +285,32 @@ function renderPartRows(id, rows) {
 function renderDiag(deps, diag = {}) {
   const hasDevice = diag.deviceList && diag.deviceList.length > 0;
   const steps = [
-    { title: 'libimobiledevice', ok: !!deps.ideviceinfo,
-      sub: deps.ideviceinfo ? 'مثبت ✓' : 'brew install libimobiledevice' },
-    { title: 'usbmuxd', ok: diag.usbmuxd === 'running',
-      sub: diag.usbmuxd === 'running' ? 'يعمل ✓' : 'متوقف' },
-    { title: 'الآيفون متوصل', ok: hasDevice,
-      sub: hasDevice ? diag.deviceList.length + ' جهاز ✓' : 'لم يُكتشف جهاز' },
-    { title: 'الإقران / الثقة',
-      ok:   diag.pairStatus === 'paired',
-      warn: diag.pairStatus === 'locked' || diag.pairStatus === 'not_paired',
-      sub: { paired:'مقترن ✓', locked:'⚠ الآيفون مقفول', not_paired:'⚠ اضغطي ثق',
-             no_device:'في انتظار الجهاز', tool_missing:'idevicepair ناقص',
-             unknown: diag.pairRaw ? diag.pairRaw.split('\n')[0] : '—' }[diag.pairStatus] || '—' },
+    { title:'libimobiledevice', ok:!!deps.ideviceinfo, sub:deps.ideviceinfo?'مثبت ✓':'brew install libimobiledevice' },
+    { title:'usbmuxd',          ok:diag.usbmuxd==='running', sub:diag.usbmuxd==='running'?'يعمل ✓':'متوقف' },
+    { title:'الآيفون متوصل',    ok:hasDevice, sub:hasDevice?diag.deviceList.length+' جهاز ✓':'لم يُكتشف جهاز' },
+    { title:'الإقران / الثقة',
+      ok:diag.pairStatus==='paired', warn:diag.pairStatus==='locked'||diag.pairStatus==='not_paired',
+      sub:({paired:'مقترن ✓',locked:'⚠ الآيفون مقفول',not_paired:'⚠ اضغطي ثق',no_device:'في انتظار الجهاز',tool_missing:'idevicepair ناقص',unknown:diag.pairRaw?diag.pairRaw.split('\n')[0]:'—'})[diag.pairStatus]||'—' },
   ];
   const grid = document.getElementById('diagGrid');
   if (grid) grid.innerHTML = steps.map(s => {
-    const cls = s.ok ? 'ok' : s.warn ? 'warn' : 'fail';
-    return `<div class="diag-step ${cls}">
-      <div class="dstep-icon">${s.ok ? '✓' : s.warn ? '!' : '✗'}</div>
-      <div class="dstep-body"><div class="dstep-title">${s.title}</div><div class="dstep-sub">${s.sub}</div></div>
-    </div>`;
+    const cls = s.ok?'ok':s.warn?'warn':'fail';
+    return `<div class="diag-step ${cls}"><div class="dstep-icon">${s.ok?'✓':s.warn?'!':'✗'}</div><div class="dstep-body"><div class="dstep-title">${s.title}</div><div class="dstep-sub">${s.sub}</div></div></div>`;
   }).join('');
 
   const guide = document.getElementById('diagGuide');
   if (!guide) return;
   const inst = getInstructions(deps, diag);
-  if (inst) { guide.style.display = 'block'; guide.innerHTML = `<div class="diag-guide-title">⚡ ${inst.title}</div><ol>${inst.steps.map(s=>`<li>${s}</li>`).join('')}</ol>`; }
-  else guide.style.display = 'none';
+  if (inst) { guide.style.display='block'; guide.innerHTML=`<div class="diag-guide-title">⚡ ${inst.title}</div><ol>${inst.steps.map(s=>`<li>${s}</li>`).join('')}</ol>`; }
+  else guide.style.display='none';
 }
 
-function getInstructions(deps, diag = {}) {
-  if (!deps.ideviceinfo) return { title:'ثبّتي libimobiledevice أولاً', steps:['افتحي <strong>Terminal</strong>','اكتبي: <code>brew install libimobiledevice</code>','انتظري حتى ينتهي','شغّلي السيرفر من جديد: <code>npm start</code>'] };
-  if (diag.usbmuxd === 'stopped') return { title:'usbmuxd متوقف', steps:['أعيدي تشغيل الماك','شغّلي التطبيق من جديد'] };
-  if (!diag.deviceList || !diag.deviceList.length) return { title:'الآيفون غير مكتشف', steps:['تأكدي إن الكابل <strong>كابل بيانات</strong>','وصّلي <strong>مباشرة بالماك</strong> بدون hub','<strong>افتحي الآيفون</strong>','لو ظهرت رسالة <strong>"ثق"</strong> → اضغطيها','اضغطي <strong>↻ إعادة المحاولة</strong>'] };
-  if (diag.pairStatus === 'locked') return { title:'الآيفون مقفول', steps:['<strong>افتحي الآيفون</strong> بالباسورد','اضغطي <strong>↻ إعادة المحاولة</strong>'] };
-  if (diag.pairStatus === 'not_paired') return { title:'يحتاج الإقران', steps:['ابحثي على الآيفون عن <strong>"هل تثق بهذا الكمبيوتر؟"</strong>','اضغطي <strong>ثق</strong>','اضغطي <strong>↻ إعادة المحاولة</strong>'] };
+function getInstructions(deps, diag={}) {
+  if (!deps.ideviceinfo) return { title:'ثبّتي libimobiledevice أولاً', steps:['افتحي <strong>Terminal</strong>','اكتبي: <code>brew install libimobiledevice</code>','شغّلي السيرفر من جديد: <code>npm start</code>'] };
+  if (diag.usbmuxd==='stopped') return { title:'usbmuxd متوقف', steps:['أعيدي تشغيل الماك','شغّلي التطبيق من جديد'] };
+  if (!diag.deviceList||!diag.deviceList.length) return { title:'الآيفون غير مكتشف', steps:['تأكدي إن الكابل <strong>كابل بيانات</strong>','وصّلي <strong>مباشرة بالماك</strong> بدون hub','<strong>افتحي الآيفون</strong>','لو ظهرت رسالة <strong>"ثق"</strong> → اضغطيها','اضغطي <strong>↻ إعادة المحاولة</strong>'] };
+  if (diag.pairStatus==='locked') return { title:'الآيفون مقفول', steps:['<strong>افتحي الآيفون</strong> بالباسورد','اضغطي <strong>↻ إعادة المحاولة</strong>'] };
+  if (diag.pairStatus==='not_paired') return { title:'يحتاج الإقران', steps:['ابحثي على الآيفون عن <strong>"هل تثق بهذا الكمبيوتر؟"</strong>','اضغطي <strong>ثق</strong>','اضغطي <strong>↻ إعادة المحاولة</strong>'] };
   return null;
 }
 
@@ -276,9 +318,9 @@ function getInstructions(deps, diag = {}) {
 function renderRows(id, rows) {
   const el = document.getElementById(id);
   if (!el) return;
-  el.innerHTML = rows.filter(r => r.v).map(r =>
+  el.innerHTML = rows.filter(r=>r.v).map(r=>
     `<div class="data-row"><span class="data-key">${r.k}</span><span class="data-val ${r.cls||''}">${r.v}</span></div>`
-  ).join('') || '<div class="data-row"><span class="data-key" style="color:var(--faint)">لا بيانات</span></div>';
+  ).join('')||'<div class="data-row"><span class="data-key" style="color:var(--faint)">لا بيانات</span></div>';
 }
 function battCls(v)  { const n=parseInt(v); if(!n)return''; return n>=50?'ok':n>=20?'warn':'bad'; }
 function cycleCls(v) { const n=parseInt(v); if(!n)return''; return n<300?'ok':n<700?'warn':'bad'; }
@@ -292,8 +334,8 @@ function mMark(evt, id, status) {
   const card = document.getElementById(id);
   card.classList.remove('ok','fail','skip');
   const b = document.getElementById('mb-' + id.replace('m-',''));
-  if (mState[id] === status) { delete mState[id]; b.textContent = ''; }
-  else { mState[id] = status; card.classList.add(status); b.textContent = status==='ok'?'✓':status==='fail'?'✗':'–'; }
+  if (mState[id]===status) { delete mState[id]; b.textContent=''; }
+  else { mState[id]=status; card.classList.add(status); b.textContent=status==='ok'?'✓':status==='fail'?'✗':'–'; }
 }
 function toggleM(id) { document.getElementById(id).classList.toggle('expanded'); }
 
@@ -301,10 +343,10 @@ function toggleM(id) { document.getElementById(id).classList.toggle('expanded');
 const obs = new IntersectionObserver(entries => {
   entries.forEach(e => {
     if (e.isIntersecting) {
-      document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+      document.querySelectorAll('.nav-link').forEach(a=>a.classList.remove('active'));
       const a = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
       if (a) a.classList.add('active');
     }
   });
-}, { rootMargin: '-30% 0px -60% 0px' });
-document.querySelectorAll('#auto,#parts,#manual').forEach(el => obs.observe(el));
+}, { rootMargin:'-30% 0px -60% 0px' });
+document.querySelectorAll('#auto,#parts,#manual').forEach(el=>obs.observe(el));

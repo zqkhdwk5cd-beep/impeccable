@@ -48,6 +48,31 @@ console.log('── Dependency check ──');
 for (const [k, v] of Object.entries(BIN)) console.log(`  ${k}: ${v || '✗ not found'}`);
 console.log('');
 
+// ── Camera / biometric config by model ───────────────
+// [rearCams, hasTelephoto, hasLiDAR, hasTrueDepth (Face ID)]
+const CAMERA_CONFIG = {
+  'iPhone18,2':[3,true, true, true], 'iPhone18,3':[3,true, true, true],
+  'iPhone18,1':[2,false,false,true], 'iPhone18,4':[2,false,false,true],
+  'iPhone17,1':[3,true, true, true], 'iPhone17,2':[3,true, true, true],
+  'iPhone17,3':[2,false,false,true], 'iPhone17,4':[2,false,false,true],
+  'iPhone17,5':[2,false,false,false],
+  'iPhone16,3':[3,true, true, true], 'iPhone16,4':[3,true, true, true],
+  'iPhone16,1':[2,false,false,true], 'iPhone16,2':[2,false,false,true],
+  'iPhone15,2':[3,true, true, true], 'iPhone15,3':[3,true, true, true],
+  'iPhone14,7':[2,false,false,true], 'iPhone14,8':[2,false,false,true],
+  'iPhone14,2':[3,true, true, true], 'iPhone14,3':[3,true, true, true],
+  'iPhone14,4':[2,false,false,true], 'iPhone14,5':[2,false,false,true],
+  'iPhone14,6':[2,false,false,false],
+  'iPhone13,3':[3,true, true, true], 'iPhone13,4':[3,true, true, true],
+  'iPhone13,1':[2,false,false,true], 'iPhone13,2':[2,false,false,true],
+  'iPhone12,3':[3,true, false,true], 'iPhone12,5':[3,true, false,true],
+  'iPhone12,1':[2,false,false,true], 'iPhone12,8':[1,false,false,false],
+  'iPhone11,2':[2,true, false,true], 'iPhone11,4':[2,true, false,true],
+  'iPhone11,6':[2,true, false,true], 'iPhone11,8':[1,false,false,true],
+  'iPhone10,3':[2,true, false,true], 'iPhone10,6':[2,true, false,true],
+  'iPhone10,1':[1,false,false,false],'iPhone10,2':[2,true, false,false],
+};
+
 // ── iPhone model map ──────────────────────────────────
 const MODEL_NAMES = {
   'iPhone14,4':'iPhone 13 mini','iPhone14,5':'iPhone 13','iPhone14,2':'iPhone 13 Pro','iPhone14,3':'iPhone 13 Pro Max',
@@ -179,6 +204,36 @@ function readComponents(udid) {
   return r;
 }
 
+// ── MobileGestalt hardware capabilities ──────────────
+function readGestalt(udid) {
+  if (!BIN.ideviceinfo) return {};
+  const u   = udid ? `-u ${udid}` : '';
+  const xml = run(`"${BIN.ideviceinfo}" ${u} -q com.apple.MobileGestalt 2>/dev/null`);
+  if (!xml || xml.startsWith('ERROR') || xml.length < 100) return {};
+
+  const bool = k => {
+    const m = xml.match(new RegExp(`<key>${k}<\\/key>\\s*<(true|false)\\/>`));
+    return m ? m[1] === 'true' : null;  // null = key absent ≠ false
+  };
+  const num = k => {
+    const m = xml.match(new RegExp(`<key>${k}<\\/key>\\s*<(?:integer|real)>([^<]+)<`));
+    return m ? m[1] : null;
+  };
+
+  return {
+    gHasNFC:       bool('HasNFC'),
+    gHasBarometer: bool('HasBarometer'),
+    gHasGPS:       bool('HasGPS'),
+    gHasGyro:      bool('HasGyroscope'),
+    gHasCompass:   bool('HasMagnetometer'),
+    gHasTrueDepth: bool('HasTrueDepthCamera'),
+    gHasTelephoto: bool('HasTelephotoCamera'),
+    gHasLiDAR:     bool('HasLiDARScanner'),
+    gHasTaptic:    bool('SupportsTapticEngine'),
+    gCameraCount:  num('CameraCount'),
+  };
+}
+
 // ── Diagnostics (connection status) ──────────────────
 function runDiagnostics() {
   const d = {};
@@ -220,7 +275,7 @@ function poll() {
   const same  = udids.length === lastUDIDs.length && udids.every((u, i) => u === lastUDIDs[i]);
   if (!same) {
     lastUDIDs = udids;
-    const devices = udids.map(u => ({ ...readDevice(u), ...readComponents(u) }));
+    const devices = udids.map(u => ({ ...readDevice(u), ...readComponents(u), ...readGestalt(u) }));
     const diag    = runDiagnostics();
     bus.emit('update', { udids, devices, diag });
   }
@@ -238,9 +293,9 @@ const server = http.createServer((req, res) => {
       'Connection':'keep-alive','Access-Control-Allow-Origin':'*',
     });
     res.write('\n');
-    const devices = lastUDIDs.map(u => ({ ...readDevice(u), ...readComponents(u) }));
+    const devices = lastUDIDs.map(u => ({ ...readDevice(u), ...readComponents(u), ...readGestalt(u) }));
     const diag    = runDiagnostics();
-    res.write(`data: ${JSON.stringify({ udids: lastUDIDs, devices, deps: DEPS, diag })}\n\n`);
+    res.write(`data: ${JSON.stringify({ udids: lastUDIDs, devices, deps: DEPS, diag, camCfg: CAMERA_CONFIG })}\n\n`);
     const listener = data => res.write(`data: ${JSON.stringify(data)}\n\n`);
     bus.on('update', listener);
     req.on('close', () => bus.off('update', listener));
@@ -250,19 +305,19 @@ const server = http.createServer((req, res) => {
   if (req.url === '/api/retry') {
     poll();
     const udids   = getDevices();
-    const devices = udids.map(u => ({ ...readDevice(u), ...readComponents(u) }));
+    const devices = udids.map(u => ({ ...readDevice(u), ...readComponents(u), ...readGestalt(u) }));
     const diag    = runDiagnostics();
     res.writeHead(200, { 'Content-Type':'application/json' });
-    res.end(JSON.stringify({ udids, devices, deps: DEPS, diag }));
+    res.end(JSON.stringify({ udids, devices, deps: DEPS, diag, camCfg: CAMERA_CONFIG }));
     return;
   }
 
   if (req.url === '/api/device') {
     const udids   = getDevices();
-    const devices = udids.map(u => ({ ...readDevice(u), ...readComponents(u) }));
+    const devices = udids.map(u => ({ ...readDevice(u), ...readComponents(u), ...readGestalt(u) }));
     const diag    = runDiagnostics();
     res.writeHead(200, { 'Content-Type':'application/json' });
-    res.end(JSON.stringify({ udids, devices, deps: DEPS, diag }));
+    res.end(JSON.stringify({ udids, devices, deps: DEPS, diag, camCfg: CAMERA_CONFIG }));
     return;
   }
 
