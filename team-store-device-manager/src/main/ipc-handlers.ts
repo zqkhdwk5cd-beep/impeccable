@@ -12,6 +12,7 @@ import * as search from './repositories/search'
 import * as backup from './backup'
 import * as deviceOptions from './repositories/device-options'
 import * as salespeople from './repositories/salespeople'
+import * as payments from './repositories/payments'
 import { getDatabasePath } from './database'
 
 function handle(channel: string, fn: (...args: any[]) => any) {
@@ -174,6 +175,13 @@ export function registerIpcHandlers(): void {
   handle('camera:openSettings', () => {
     shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Camera')
   })
+
+  // Payments
+  handle('payments:add', (data: any) => payments.addPayment(data))
+  handle('payments:getForTransaction', (type: string, transactionId: number) =>
+    payments.getPaymentsForTransaction(type as any, transactionId)
+  )
+  handle('payments:getPending', () => payments.getPendingTransactions())
 
   // File dialogs
   ipcMain.handle('dialog:openFile', async (_event, options: any) => {

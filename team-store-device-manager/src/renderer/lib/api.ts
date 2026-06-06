@@ -155,6 +155,14 @@ export const api = {
       invoke<void>('deviceOptions:reorder', id, direction),
   },
 
+  // Payments
+  payments: {
+    add: (data: any) => invoke<any>('payments:add', data),
+    getForTransaction: (type: 'purchase' | 'sale', transactionId: number) =>
+      invoke<any[]>('payments:getForTransaction', type, transactionId),
+    getPending: () => invoke<{ purchases: any[]; sales: any[] }>('payments:getPending'),
+  },
+
   // Camera
   camera: {
     requestAccess: () => invoke<boolean>('camera:requestAccess'),
