@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
-import { Plus, Search, Filter, Eye, ChevronRight, ChevronLeft } from 'lucide-react'
+import { Plus, Search, Filter, Eye, ChevronRight, ChevronLeft, List } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const PAGE_SIZE = 50
@@ -29,6 +29,7 @@ export default function DevicesPage() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [currency, setCurrency] = useState('EGP')
+  const [generating, setGenerating] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Debounce search input → resets to page 1
@@ -62,6 +63,134 @@ export default function DevicesPage() {
       .finally(() => setLoading(false))
   }, [status, search, page])
 
+  const generateListImage = async () => {
+    try {
+      setGenerating(true)
+      const [{ items: devices }, cur] = await Promise.all([
+        api.devices.getAll({ status: 'available', limit: 9999, offset: 0 }),
+        api.settings.get('currency'),
+      ])
+      const curr = cur || 'EGP'
+
+      if (devices.length === 0) { toast.error('لا توجد أجهزة متاحة'); return }
+
+      // ---- canvas config ----
+      const W = 720
+      const ROW_H = 34
+      const TITLE_H = 56
+      const FOOT_H = 36
+      const H = TITLE_H + devices.length * ROW_H + FOOT_H
+
+      const canvas = document.createElement('canvas')
+      canvas.width = W
+      canvas.height = H
+      const ctx = canvas.getContext('2d')!
+
+      // Background
+      ctx.fillStyle = '#111111'
+      ctx.fillRect(0, 0, W, H)
+
+      // Title bar
+      ctx.fillStyle = '#1e1e1e'
+      ctx.fillRect(0, 0, W, TITLE_H)
+      ctx.font = 'bold 18px Cairo, Arial, sans-serif'
+      ctx.fillStyle = '#ffffff'
+      ctx.textAlign = 'center'
+      ctx.fillText('قائمة الأجهزة المتاحة', W / 2, 33)
+
+      // Column x positions (RTL: model right → price left)
+      // | السعر | اللون | البطارية | التخزين | الموديل |
+      const COL = {
+        model:   { x: W - 12, align: 'right'  as CanvasTextAlign },
+        storage: { x: 375,    align: 'center' as CanvasTextAlign },
+        battery: { x: 288,    align: 'center' as CanvasTextAlign },
+        color:   { x: 195,    align: 'center' as CanvasTextAlign },
+        price:   { x: 95,     align: 'center' as CanvasTextAlign },
+      }
+
+      // Separator lines
+      const sepX = [120, 162, 250, 340]
+      ctx.strokeStyle = '#2a2a2a'
+      ctx.lineWidth = 1
+
+      devices.forEach((d: any, i: number) => {
+        const rowY = TITLE_H + i * ROW_H
+
+        // Row background
+        ctx.fillStyle = i % 2 === 0 ? '#161616' : '#1c1c1c'
+        ctx.fillRect(0, rowY, W, ROW_H)
+
+        // Separator lines
+        sepX.forEach(sx => {
+          ctx.beginPath(); ctx.moveTo(sx, rowY); ctx.lineTo(sx, rowY + ROW_H); ctx.stroke()
+        })
+
+        const price = d.expected_sale_price || d.final_sale_price
+        const priceText = price ? price.toLocaleString('ar-EG') : '—'
+        const modelText = [d.brand, d.model, d.technical_notes].filter(Boolean).join(' ')
+
+        const textY = rowY + ROW_H / 2 + 5
+
+        ctx.font = '13px Cairo, Arial, sans-serif'
+        ctx.fillStyle = '#ffffff'
+
+        // Model (right-aligned)
+        ctx.textAlign = COL.model.align
+        ctx.fillText(modelText, COL.model.x, textY)
+
+        // Storage
+        ctx.textAlign = COL.storage.align
+        ctx.fillText(d.storage || '—', COL.storage.x, textY)
+
+        // Battery
+        ctx.textAlign = COL.battery.align
+        ctx.fillStyle = d.battery_health && d.battery_health >= 90 ? '#4ade80' :
+                         d.battery_health && d.battery_health >= 80 ? '#facc15' : '#f87171'
+        ctx.fillText(d.battery_health ? `${d.battery_health}%` : '—', COL.battery.x, textY)
+
+        // Color
+        ctx.textAlign = COL.color.align
+        ctx.fillStyle = '#ffffff'
+        ctx.fillText(d.color || '—', COL.color.x, textY)
+
+        // Price
+        ctx.textAlign = COL.price.align
+        ctx.fillStyle = '#fbbf24'
+        ctx.font = 'bold 13px Cairo, Arial, sans-serif'
+        ctx.fillText(priceText, COL.price.x, textY)
+      })
+
+      // Footer
+      const footY = TITLE_H + devices.length * ROW_H
+      ctx.fillStyle = '#1e1e1e'
+      ctx.fillRect(0, footY, W, FOOT_H)
+      ctx.font = '12px Cairo, Arial, sans-serif'
+      ctx.fillStyle = '#555555'
+      ctx.textAlign = 'center'
+      ctx.fillText(
+        `${devices.length} جهاز متاح  •  ${new Date().toLocaleDateString('ar-EG')}  •  Team Store`,
+        W / 2, footY + 23,
+      )
+
+      // Download
+      canvas.toBlob(blob => {
+        if (!blob) return
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `list-${new Date().toISOString().split('T')[0]}.png`
+        a.click()
+        URL.revokeObjectURL(url)
+        toast.success(`تم تحميل الليسته (${devices.length} جهاز)`)
+      }, 'image/png')
+
+    } catch (e: any) {
+      toast.error(e.message || 'حدث خطأ أثناء إنشاء الليسته')
+    } finally {
+      setGenerating(false)
+    }
+  }
+
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
   const rangeStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1
   const rangeEnd = Math.min(page * PAGE_SIZE, total)
@@ -79,9 +208,19 @@ export default function DevicesPage() {
             {loading ? 'جاري التحميل...' : `${total.toLocaleString('ar-EG')} جهاز إجمالاً`}
           </p>
         </div>
-        <button onClick={() => navigate('/purchases/new')} className="btn-primary">
-          <Plus className="w-4 h-4" /> إضافة جهاز جديد
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={generateListImage}
+            disabled={generating}
+            className="btn-secondary flex items-center gap-2 disabled:opacity-60"
+          >
+            <List className="w-4 h-4" />
+            {generating ? 'جاري الإنشاء...' : 'ليسته'}
+          </button>
+          <button onClick={() => navigate('/purchases/new')} className="btn-primary">
+            <Plus className="w-4 h-4" /> إضافة جهاز جديد
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
