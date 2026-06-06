@@ -70,7 +70,9 @@ function render({ udids = [], devices = [], deps = {}, diag = {}, camCfg = {} })
 
   const d = devices[0];
   document.getElementById('devName').textContent  = d.DeviceName  || '—';
-  document.getElementById('devModel').textContent = d.ModelName   || d.ProductType || '—';
+  const modelLine = [d.ModelName || d.ProductType, d.releaseYear ? `(${d.releaseYear})` : ''].filter(Boolean).join(' ');
+  const colorLine = d.colorName ? ` — ${d.colorName}` : '';
+  document.getElementById('devModel').textContent = modelLine + colorLine || '—';
   label.textContent = 'جهاز متصل ✓';
 
   const pill = document.getElementById('activationPill');
@@ -85,15 +87,21 @@ function render({ udids = [], devices = [], deps = {}, diag = {}, camCfg = {} })
     pill.textContent = act || '—';               pill.className = 'status-pill status-pill--neutral';
   }
 
+  const fullModel = [d.ModelName || d.ProductType, d.releaseYear ? `(${d.releaseYear})` : ''].filter(Boolean).join(' ');
+  const colorVal  = d.colorHex
+    ? `<span class="color-dot" style="background:${d.colorHex}"></span>${d.colorName || d.colorHex}`
+    : null;
   renderRows('rowsIdentity', [
-    { k:'الاسم',    v:d.DeviceName },
-    { k:'الموديل',  v:d.ModelName || d.ProductType },
-    { k:'السيريال', v:d.SerialNumber,  cls:'mono' },
-    { k:'IMEI',     v:d.InternationalMobileEquipmentIdentity,  cls:'mono' },
-    { k:'IMEI 2',   v:d.InternationalMobileEquipmentIdentity2, cls:'mono' },
-    { k:'iOS',      v:d.ProductVersion },
-    { k:'Build',    v:d.BuildVersion,  cls:'mono' },
-    { k:'اللون',    v:d.DeviceColor },
+    { k:'الاسم',       v:d.DeviceName },
+    { k:'الموديل',     v:fullModel },
+    { k:'سنة الإصدار', v:d.releaseYear ? String(d.releaseYear) : null },
+    { k:'اللون',       v:colorVal, html:true },
+    { k:'السيريال',    v:d.SerialNumber,  cls:'mono' },
+    { k:'IMEI',        v:d.InternationalMobileEquipmentIdentity,  cls:'mono' },
+    { k:'IMEI 2',      v:d.InternationalMobileEquipmentIdentity2, cls:'mono' },
+    { k:'iOS',         v:d.ProductVersion },
+    { k:'Build',       v:d.BuildVersion,  cls:'mono' },
+    { k:'المنطقة',     v:d.RegionInfo },
   ]);
 
   const hNum = d.BatteryHealthPct ? parseInt(d.BatteryHealthPct) : null;
@@ -329,9 +337,17 @@ function getInstructions(deps, diag={}) {
 function renderRows(id, rows) {
   const el = document.getElementById(id);
   if (!el) return;
-  el.innerHTML = rows.filter(r=>r.v).map(r=>
-    `<div class="data-row"><span class="data-key">${r.k}</span><span class="data-val ${r.cls||''}">${r.v}</span></div>`
-  ).join('')||'<div class="data-row"><span class="data-key" style="color:var(--faint)">لا بيانات</span></div>';
+  const items = rows.filter(r => r.v);
+  el.innerHTML = items.length
+    ? items.map(r => {
+        const val = r.html ? r.v : escHtml(r.v);
+        return `<div class="data-row"><span class="data-key">${escHtml(r.k)}</span><span class="data-val ${r.cls||''}">${val}</span></div>`;
+      }).join('')
+    : '<div class="data-row"><span class="data-key" style="color:var(--faint)">لا بيانات</span></div>';
+}
+
+function escHtml(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 function battCls(v)  { const n=parseInt(v); if(!n)return''; return n>=50?'ok':n>=20?'warn':'bad'; }
 function cycleCls(v) { const n=parseInt(v); if(!n)return''; return n<300?'ok':n<700?'warn':'bad'; }

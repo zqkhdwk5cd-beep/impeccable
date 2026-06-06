@@ -149,6 +149,9 @@ html,body { height:100%; background:var(--bg); color:var(--text);
 .data-val.warn { color:var(--yellow); }
 .data-val.bad  { color:var(--red); }
 .data-val.mono { font-family:"SF Mono","Consolas",monospace; font-size:11px; }
+.color-dot { display:inline-block; width:10px; height:10px; border-radius:50%;
+  border:1px solid rgba(255,255,255,.18); margin-left:6px; vertical-align:middle;
+  flex-shrink:0; }
 
 /* ── Parts grid ── */
 .parts-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
