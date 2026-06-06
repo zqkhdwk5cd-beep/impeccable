@@ -24,6 +24,8 @@ export default function DeviceDetail() {
   const [labelWarranty, setLabelWarranty] = useState('ضمان 10 شهور')
   const [labelW, setLabelW] = useState(50)
   const [labelH, setLabelH] = useState(30)
+  const [labelPrinter, setLabelPrinter] = useState('')
+  const [labelSilent, setLabelSilent] = useState(false)
 
   const load = () => {
     setLoading(true)
@@ -33,13 +35,17 @@ export default function DeviceDetail() {
       api.settings.get('label_warranty'),
       api.settings.get('label_width_mm'),
       api.settings.get('label_height_mm'),
+      api.settings.get('label_printer_name'),
+      api.settings.get('label_silent_print'),
     ])
-      .then(([d, cur, lw, lwmm, lhmm]) => {
+      .then(([d, cur, lw, lwmm, lhmm, lprinter, lsilent]) => {
         setData(d)
         setCurrency(cur || 'EGP')
         if (lw) setLabelWarranty(lw)
         if (lwmm) setLabelW(Number(lwmm) || 50)
         if (lhmm) setLabelH(Number(lhmm) || 30)
+        if (lprinter) setLabelPrinter(lprinter)
+        setLabelSilent(lsilent === 'true')
       })
       .catch((e) => toast.error(e.message))
       .finally(() => setLoading(false))
@@ -267,7 +273,7 @@ export default function DeviceDetail() {
               <div className="flex gap-2 pt-1">
                 <button onClick={() => setShowLabelModal(false)} className="btn-secondary flex-1 justify-center">إلغاء</button>
                 <button
-                  onClick={() => { openLabelPrint(d, { warranty: labelWarranty, widthMm: labelW, heightMm: labelH }); setShowLabelModal(false) }}
+                  onClick={() => { openLabelPrint(d, { warranty: labelWarranty, widthMm: labelW, heightMm: labelH, printerName: labelPrinter, silent: labelSilent }); setShowLabelModal(false) }}
                   className="btn-primary flex-1 justify-center gap-1.5"
                 >
                   <Printer className="w-4 h-4" /> طباعة

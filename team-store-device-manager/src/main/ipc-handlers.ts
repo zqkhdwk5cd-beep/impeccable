@@ -1,4 +1,6 @@
-import { ipcMain, dialog, systemPreferences, shell } from 'electron'
+import { ipcMain, dialog, systemPreferences, shell, BrowserWindow, app } from 'electron'
+import path from 'path'
+import fs from 'fs'
 import * as contacts from './repositories/contacts'
 import * as devices from './repositories/devices'
 import * as purchases from './repositories/purchases'
@@ -182,6 +184,58 @@ export function registerIpcHandlers(): void {
     payments.getPaymentsForTransaction(type as any, transactionId)
   )
   handle('payments:getPending', () => payments.getPendingTransactions())
+
+  // Printers — list available printers
+  ipcMain.handle('printers:list', async (event) => {
+    try {
+      const win = BrowserWindow.fromWebContents(event.sender)
+      if (!win) return []
+      return await win.webContents.getPrintersAsync()
+    } catch {
+      return []
+    }
+  })
+
+  // Label print via Electron native API (correct page size in microns)
+  ipcMain.handle('print:label', async (_event, html: string, options: {
+    widthMm: number
+    heightMm: number
+    printerName?: string
+    silent?: boolean
+  }) => {
+    const tmpPath = path.join(app.getPath('temp'), `ts-label-${Date.now()}.html`)
+    fs.writeFileSync(tmpPath, html, 'utf-8')
+
+    const printWin = new BrowserWindow({
+      show: false,
+      width: 600,
+      height: 400,
+      webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: false },
+    })
+
+    await printWin.loadFile(tmpPath)
+
+    return new Promise<{ success: boolean; reason?: string }>((resolve) => {
+      const printOptions: any = {
+        silent: options.silent ?? false,
+        printBackground: true,
+        // Electron expects microns (1mm = 1000μm)
+        pageSize: {
+          width:  Math.round((options.widthMm  || 50) * 1000),
+          height: Math.round((options.heightMm || 30) * 1000),
+        },
+        margins: { marginType: 'none' },
+        scaleFactor: 100,
+      }
+      if (options.printerName) printOptions.deviceName = options.printerName
+
+      printWin.webContents.print(printOptions, (success: boolean, failureReason?: string) => {
+        printWin.close()
+        try { fs.unlinkSync(tmpPath) } catch {}
+        resolve({ success, reason: failureReason })
+      })
+    })
+  })
 
   // File dialogs
   ipcMain.handle('dialog:openFile', async (_event, options: any) => {

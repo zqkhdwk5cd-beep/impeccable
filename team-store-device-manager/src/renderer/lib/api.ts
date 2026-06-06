@@ -163,6 +163,13 @@ export const api = {
     getPending: () => invoke<{ purchases: any[]; sales: any[] }>('payments:getPending'),
   },
 
+  // Printers
+  printers: {
+    list: (): Promise<any[]> => window.electron.invoke('printers:list'),
+    printLabel: (html: string, options: any): Promise<{ success: boolean; reason?: string }> =>
+      window.electron.invoke('print:label', html, options),
+  },
+
   // Camera
   camera: {
     requestAccess: () => invoke<boolean>('camera:requestAccess'),

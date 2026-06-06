@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
-import { Save, Store, Shield, Users, RefreshCw, Smartphone, Plus, Trash2, ChevronUp, ChevronDown, UserCheck, Lock, Printer } from 'lucide-react'
+import { Save, Store, Shield, Users, RefreshCw, Smartphone, Plus, Trash2, ChevronUp, ChevronDown, UserCheck, Lock, Printer, TestTube } from 'lucide-react'
+import { buildLabelHtml } from '../lib/printLabel'
 
-const SETTING_KEYS = ['store_name', 'store_address', 'store_phone', 'invoice_start_number', 'default_policy_text', 'currency', 'backup_location', 'daily_backup_enabled', 'backups_to_keep', 'label_width_mm', 'label_height_mm', 'label_warranty']
+const SETTING_KEYS = ['store_name', 'store_address', 'store_phone', 'invoice_start_number', 'default_policy_text', 'currency', 'backup_location', 'daily_backup_enabled', 'backups_to_keep', 'label_width_mm', 'label_height_mm', 'label_warranty', 'label_printer_name', 'label_silent_print']
 
 type OptionType = 'model' | 'storage' | 'color'
 interface DeviceOption { id: number; type: OptionType; value: string; sort_order: number }
@@ -114,6 +115,8 @@ export default function SettingsPage() {
   const [users, setUsers] = useState<any[]>([])
   const [showNewUser, setShowNewUser] = useState(false)
   const [newUser, setNewUser] = useState({ name: '', username: '', password: '', role: 'employee' })
+  const [printers, setPrinters] = useState<any[]>([])
+  const [testPrinting, setTestPrinting] = useState(false)
   const [newPwd, setNewPwd] = useState({ current: '', next: '', confirm: '' })
   const [changingPwd, setChangingPwd] = useState(false)
   const [optionsTab, setOptionsTab] = useState<OptionType>('model')
@@ -125,18 +128,41 @@ export default function SettingsPage() {
 
   const load = async () => {
     try {
-      const [s, u, sp] = await Promise.all([
+      const [s, u, sp, pr] = await Promise.all([
         api.settings.getAll(),
         api.users.getAll(),
         api.salespeople.getAll(),
+        api.printers.list().catch(() => []),
       ])
       setSettings(s)
       setUsers(u)
       setSalespeople(sp)
+      setPrinters(pr)
     } catch (e: any) { toast.error(e.message) }
     setLoading(false)
   }
   useEffect(() => { load() }, [])
+
+  const testPrint = async () => {
+    setTestPrinting(true)
+    try {
+      const fakeDevice = { model: 'iPhone 14 Pro Max', storage: '256GB', battery_health: 100, box_status: 'with_box' }
+      const html = buildLabelHtml(fakeDevice, {
+        warranty: s('label_warranty') || 'ضمان 10 شهور',
+        widthMm:  Number(s('label_width_mm'))  || 50,
+        heightMm: Number(s('label_height_mm')) || 30,
+      })
+      const result = await api.printers.printLabel(html, {
+        widthMm:     Number(s('label_width_mm'))  || 50,
+        heightMm:    Number(s('label_height_mm')) || 30,
+        printerName: s('label_printer_name') || '',
+        silent:      s('label_silent_print') === 'true',
+      })
+      if (result.success) toast.success('تم إرسال الليبل التجريبي للطابعة')
+      else toast.error('فشل الطباعة: ' + (result.reason || 'خطأ غير معروف'))
+    } catch (e: any) { toast.error(e.message) }
+    setTestPrinting(false)
+  }
 
   const s = (k: string) => settings[k] || ''
   const update = (k: string, v: string) => setSettings((p) => ({ ...p, [k]: v }))
@@ -321,29 +347,92 @@ export default function SettingsPage() {
       </div>
 
       {/* Backup settings */}
-      {/* Label settings */}
+      {/* Label / Xprinter settings */}
       <div className="card">
         <div className="card-header">
           <h2 className="font-semibold flex items-center gap-2">
             <Printer className="w-4 h-4 text-brand-600" /> إعدادات الليبل (Xprinter)
           </h2>
+          <button
+            onClick={testPrint}
+            disabled={testPrinting}
+            className="btn-secondary text-xs flex items-center gap-1.5 disabled:opacity-60"
+          >
+            <TestTube className="w-3.5 h-3.5" />
+            {testPrinting ? 'جاري الإرسال...' : 'طباعة تجريبية'}
+          </button>
         </div>
         <div className="card-body space-y-4">
+          {/* Printer selector */}
+          <div>
+            <label className="label">الطابعة</label>
+            <select
+              value={s('label_printer_name')}
+              onChange={(e) => update('label_printer_name', e.target.value)}
+              className="input"
+              dir="ltr"
+            >
+              <option value="">— اختر الطابعة —</option>
+              {printers.map((p: any) => (
+                <option key={p.name} value={p.name}>{p.displayName || p.name}</option>
+              ))}
+            </select>
+            <p className="text-xs text-slate-400 mt-1">
+              {printers.length === 0 ? 'لم يتم العثور على طابعات — تأكد أن الطابعة متصلة' : `${printers.length} طابعة متاحة`}
+            </p>
+          </div>
+
+          {/* Dimensions */}
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="label">عرض الليبل (mm)</label>
-              <input type="number" min="20" max="200" value={s('label_width_mm') || '50'} onChange={(e) => update('label_width_mm', e.target.value)} className="input" dir="ltr" />
+              <input
+                type="number" min="20" max="200"
+                value={s('label_width_mm') || '50'}
+                onChange={(e) => update('label_width_mm', e.target.value)}
+                className="input" dir="ltr"
+              />
             </div>
             <div>
               <label className="label">ارتفاع الليبل (mm)</label>
-              <input type="number" min="15" max="200" value={s('label_height_mm') || '30'} onChange={(e) => update('label_height_mm', e.target.value)} className="input" dir="ltr" />
+              <input
+                type="number" min="10" max="200"
+                value={s('label_height_mm') || '30'}
+                onChange={(e) => update('label_height_mm', e.target.value)}
+                className="input" dir="ltr"
+              />
             </div>
             <div>
               <label className="label">نص الضمان</label>
-              <input value={s('label_warranty') || 'ضمان 10 شهور'} onChange={(e) => update('label_warranty', e.target.value)} className="input" />
+              <input
+                value={s('label_warranty') || 'ضمان 10 شهور'}
+                onChange={(e) => update('label_warranty', e.target.value)}
+                className="input"
+              />
             </div>
           </div>
-          <p className="text-xs text-slate-400">الحجم الافتراضي 50×30mm مناسب لطابعة Xprinter. غيّره لو الليبلات اللي عندك بحجم مختلف.</p>
+
+          {/* Silent print */}
+          <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+            <div>
+              <div className="font-medium text-sm text-slate-800">طباعة مباشرة (بدون ديالوج)</div>
+              <div className="text-xs text-slate-500 mt-0.5">
+                {s('label_silent_print') === 'true'
+                  ? 'الليبل بيتطبع مباشرة على الطابعة المختارة بدون ما تيجي نافذة'
+                  : 'هتظهر نافذة اختيار الطابعة قبل كل طباعة'}
+              </div>
+            </div>
+            <button
+              onClick={() => update('label_silent_print', s('label_silent_print') === 'true' ? 'false' : 'true')}
+              className={`relative w-11 h-6 rounded-full transition-colors ${s('label_silent_print') === 'true' ? 'bg-brand-600' : 'bg-slate-300'}`}
+            >
+              <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${s('label_silent_print') === 'true' ? 'translate-x-5' : 'translate-x-0.5'}`} />
+            </button>
+          </div>
+
+          <p className="text-xs text-slate-400">
+            بعد اختيار الطابعة واضبط الحجم، اضغط "حفظ الإعدادات" ثم جرب "طباعة تجريبية".
+          </p>
         </div>
       </div>
 

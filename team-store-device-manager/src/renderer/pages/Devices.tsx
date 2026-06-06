@@ -31,7 +31,7 @@ export default function DevicesPage() {
   const [page, setPage] = useState(1)
   const [currency, setCurrency] = useState('EGP')
   const [generating, setGenerating] = useState(false)
-  const [labelCfg, setLabelCfg] = useState({ warranty: 'ضمان 10 شهور', widthMm: 50, heightMm: 30 })
+  const [labelCfg, setLabelCfg] = useState({ warranty: 'ضمان 10 شهور', widthMm: 50, heightMm: 30, printerName: '', silent: false })
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Debounce search input → resets to page 1
@@ -58,8 +58,10 @@ export default function DevicesPage() {
       api.settings.get('label_warranty'),
       api.settings.get('label_width_mm'),
       api.settings.get('label_height_mm'),
+      api.settings.get('label_printer_name'),
+      api.settings.get('label_silent_print'),
     ])
-      .then(([d, cur, lw, lwmm, lhmm]) => {
+      .then(([d, cur, lw, lwmm, lhmm, lprinter, lsilent]) => {
         setItems(d.items)
         setTotal(d.total)
         setCurrency(cur || 'EGP')
@@ -67,6 +69,8 @@ export default function DevicesPage() {
           warranty: lw || 'ضمان 10 شهور',
           widthMm: Number(lwmm) || 50,
           heightMm: Number(lhmm) || 30,
+          printerName: lprinter || '',
+          silent: lsilent === 'true',
         })
       })
       .catch((e) => toast.error(e.message))
