@@ -25,6 +25,7 @@ export function runMigrations(db: Database.Database): void {
     { version: 6, sql: migration_006 },
     { version: 7, sql: migration_007 },
     { version: 8, sql: migration_008 },
+    { version: 9, sql: migration_009 },
   ]
 
   for (const m of migrations) {
@@ -367,4 +368,9 @@ const migration_008 = `
 INSERT OR IGNORE INTO settings (key, value) VALUES
   ('label_printer_name', ''),
   ('label_silent_print', 'false');
+`
+
+const migration_009 = `
+INSERT OR IGNORE INTO settings (key, value) VALUES
+  ('store_logo', '');
 `

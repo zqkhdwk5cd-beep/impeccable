@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
-import { Save, Store, Shield, Users, RefreshCw, Smartphone, Plus, Trash2, ChevronUp, ChevronDown, UserCheck, Lock, Printer, TestTube } from 'lucide-react'
+import { Save, Store, Shield, Users, RefreshCw, Smartphone, Plus, Trash2, ChevronUp, ChevronDown, UserCheck, Lock, Printer, TestTube, ImageIcon, X } from 'lucide-react'
 import { buildLabelHtml } from '../lib/printLabel'
 
-const SETTING_KEYS = ['store_name', 'store_address', 'store_phone', 'invoice_start_number', 'default_policy_text', 'currency', 'backup_location', 'daily_backup_enabled', 'backups_to_keep', 'label_width_mm', 'label_height_mm', 'label_warranty', 'label_printer_name', 'label_silent_print']
+const SETTING_KEYS = ['store_name', 'store_address', 'store_phone', 'invoice_start_number', 'default_policy_text', 'currency', 'backup_location', 'daily_backup_enabled', 'backups_to_keep', 'label_width_mm', 'label_height_mm', 'label_warranty', 'label_printer_name', 'label_silent_print', 'store_logo']
 
 type OptionType = 'model' | 'storage' | 'color'
 interface DeviceOption { id: number; type: OptionType; value: string; sort_order: number }
@@ -296,6 +296,46 @@ export default function SettingsPage() {
             <div><label className="label">رقم الهاتف</label><input value={s('store_phone')} onChange={(e) => update('store_phone', e.target.value)} className="input" dir="ltr" /></div>
           </div>
           <div><label className="label">العنوان</label><input value={s('store_address')} onChange={(e) => update('store_address', e.target.value)} className="input" /></div>
+
+          {/* Logo upload */}
+          <div>
+            <label className="label flex items-center gap-1.5"><ImageIcon className="w-3.5 h-3.5" /> شعار المتجر (يظهر في الفاتورة)</label>
+            <div className="flex items-center gap-4">
+              {s('store_logo') ? (
+                <div className="relative group">
+                  <img src={s('store_logo')} alt="logo" className="h-16 max-w-[140px] object-contain rounded-lg border border-slate-200 p-1 bg-white" />
+                  <button
+                    onClick={() => update('store_logo', '')}
+                    className="absolute -top-2 -left-2 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="حذف الشعار"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ) : (
+                <div className="h-16 w-32 rounded-lg border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-400 text-xs">
+                  لا يوجد شعار
+                </div>
+              )}
+              <label className="btn-secondary cursor-pointer">
+                <ImageIcon className="w-4 h-4" />
+                {s('store_logo') ? 'تغيير الشعار' : 'رفع شعار'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (!file) return
+                    const reader = new FileReader()
+                    reader.onload = (ev) => update('store_logo', ev.target?.result as string)
+                    reader.readAsDataURL(file)
+                    e.target.value = ''
+                  }}
+                />
+              </label>
+            </div>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div><label className="label">رقم بداية الفاتورة</label><input type="number" min="1" value={s('invoice_start_number')} onChange={(e) => update('invoice_start_number', e.target.value)} className="input" dir="ltr" /></div>
             <div><label className="label">العملة</label>

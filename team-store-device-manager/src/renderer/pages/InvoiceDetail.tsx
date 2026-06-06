@@ -108,65 +108,74 @@ export default function InvoiceDetail() {
       {/* ── Invoice ── */}
       <div
         className="print-invoice bg-white"
-        style={{ direction: 'rtl', fontFamily: 'Cairo, Arial, sans-serif' }}
+        style={{ direction: 'rtl', fontFamily: "'Amiri', 'Cairo', serif" }}
       >
         {/* Top accent strip */}
-        <div style={{ height: 6, background: 'linear-gradient(90deg, #4f46e5, #7c3aed)' }} />
+        <div style={{ height: 5, background: 'linear-gradient(90deg, #1e293b, #475569)' }} />
 
         {/* Header */}
-        <div style={{ padding: '28px 36px 20px', borderBottom: '1px solid #e2e8f0' }}>
+        <div style={{ padding: '28px 40px 22px', borderBottom: '2px solid #1e293b' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            {/* Store info */}
-            <div>
-              <div style={{ fontSize: 26, fontWeight: 800, color: '#1e293b', lineHeight: 1.2 }}>
-                {s.store_name || 'Team Store'}
+            {/* Store info / Logo */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              {s.store_logo && (
+                <img
+                  src={s.store_logo}
+                  alt="logo"
+                  style={{ maxHeight: 70, maxWidth: 120, objectFit: 'contain' }}
+                />
+              )}
+              <div>
+                <div style={{ fontFamily: "'Playfair Display', 'Amiri', serif", fontSize: 28, fontWeight: 700, color: '#0f172a', lineHeight: 1.1, letterSpacing: '-0.5px' }}>
+                  {s.store_name || 'Team Store'}
+                </div>
+                {s.store_address && (
+                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 5, fontFamily: "'Amiri', serif" }}>{s.store_address}</div>
+                )}
+                {s.store_phone && (
+                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 3, fontFamily: 'monospace' }} dir="ltr">{s.store_phone}</div>
+                )}
               </div>
-              {s.store_address && (
-                <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>{s.store_address}</div>
-              )}
-              {s.store_phone && (
-                <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }} dir="ltr">{s.store_phone}</div>
-              )}
             </div>
             {/* Invoice meta */}
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 4 }}>فاتورة بيع</div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: '#4f46e5' }}>#{inv.invoice_number}</div>
-              <div style={{ fontSize: 12, color: '#64748b', marginTop: 6 }}>{formatDate(inv.issue_date)}</div>
+            <div style={{ textAlign: 'left', borderRight: '3px solid #1e293b', paddingRight: 20 }}>
+              <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 6, letterSpacing: '0.15em', textTransform: 'uppercase', fontFamily: "'Playfair Display', serif" }}>Invoice</div>
+              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: '#0f172a', letterSpacing: '-0.5px' }}>#{inv.invoice_number}</div>
+              <div style={{ fontSize: 12, color: '#64748b', marginTop: 8, fontFamily: "'Amiri', serif" }}>{formatDate(inv.issue_date)}</div>
             </div>
           </div>
         </div>
 
         {/* Buyer */}
-        <div style={{ padding: '18px 36px', borderBottom: '1px solid #f1f5f9', background: '#fafafa' }}>
-          <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 6, fontWeight: 600, letterSpacing: '0.05em' }}>
-            بيان العميل
+        <div style={{ padding: '18px 40px', borderBottom: '1px solid #e2e8f0' }}>
+          <div style={{ fontSize: 10, color: '#94a3b8', marginBottom: 8, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: "'Playfair Display', serif" }}>
+            بيانات العميل
           </div>
-          <div style={{ display: 'flex', gap: 40 }}>
+          <div style={{ display: 'flex', gap: 48 }}>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: '#1e293b' }}>{inv.buyer_name}</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', fontFamily: "'Amiri', serif" }}>{inv.buyer_name}</div>
               {inv.buyer_phone && (
-                <div style={{ fontSize: 13, color: '#64748b', marginTop: 2 }} dir="ltr">{inv.buyer_phone}</div>
+                <div style={{ fontSize: 13, color: '#64748b', marginTop: 3, fontFamily: 'monospace' }} dir="ltr">{inv.buyer_phone}</div>
               )}
             </div>
             {inv.buyer_address && (
-              <div style={{ fontSize: 13, color: '#64748b' }}>{inv.buyer_address}</div>
+              <div style={{ fontSize: 13, color: '#64748b', fontFamily: "'Amiri', serif" }}>{inv.buyer_address}</div>
             )}
           </div>
         </div>
 
         {/* Items table */}
-        <div style={{ padding: '0 36px' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 20 }}>
+        <div style={{ padding: '0 40px' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 24 }}>
             <thead>
-              <tr style={{ borderBottom: '2px solid #1e293b' }}>
-                <th style={{ padding: '10px 0', textAlign: 'right', fontSize: 12, color: '#475569', fontWeight: 600 }}>
+              <tr style={{ borderBottom: '2px solid #0f172a', borderTop: '1px solid #e2e8f0' }}>
+                <th style={{ padding: '10px 0', textAlign: 'right', fontSize: 11, color: '#475569', fontWeight: 600, letterSpacing: '0.08em', fontFamily: "'Playfair Display', serif" }}>
                   وصف الجهاز
                 </th>
-                <th style={{ padding: '10px 0', textAlign: 'center', fontSize: 12, color: '#475569', fontWeight: 600 }}>
+                <th style={{ padding: '10px 0', textAlign: 'center', fontSize: 11, color: '#475569', fontWeight: 600, letterSpacing: '0.08em', fontFamily: "'Playfair Display', serif" }}>
                   السريال / IMEI
                 </th>
-                <th style={{ padding: '10px 0', textAlign: 'left', fontSize: 12, color: '#475569', fontWeight: 600 }}>
+                <th style={{ padding: '10px 0', textAlign: 'left', fontSize: 11, color: '#475569', fontWeight: 600, letterSpacing: '0.08em', fontFamily: "'Playfair Display', serif" }}>
                   المبلغ
                 </th>
               </tr>
@@ -175,18 +184,15 @@ export default function InvoiceDetail() {
               {(inv.items || []).map((item: any, i: number) => (
                 <tr
                   key={item.id}
-                  style={{
-                    borderBottom: '1px solid #f1f5f9',
-                    background: i % 2 === 0 ? 'white' : '#fafafa',
-                  }}
+                  style={{ borderBottom: '1px solid #f1f5f9' }}
                 >
-                  <td style={{ padding: '12px 0', fontSize: 14, fontWeight: 600, color: '#1e293b' }}>
+                  <td style={{ padding: '14px 0', fontSize: 15, fontWeight: 600, color: '#0f172a', fontFamily: "'Amiri', serif" }}>
                     {item.description}
                   </td>
-                  <td style={{ padding: '12px 0', textAlign: 'center', fontSize: 11, color: '#64748b', fontFamily: 'monospace' }}>
+                  <td style={{ padding: '14px 0', textAlign: 'center', fontSize: 11, color: '#64748b', fontFamily: 'monospace', letterSpacing: '0.05em' }}>
                     {item.serial_or_imei || '—'}
                   </td>
-                  <td style={{ padding: '12px 0', textAlign: 'left', fontSize: 14, fontWeight: 700, color: '#1e293b' }} dir="ltr">
+                  <td style={{ padding: '14px 0', textAlign: 'left', fontSize: 15, fontWeight: 700, color: '#0f172a', fontFamily: "'Playfair Display', serif" }} dir="ltr">
                     {fmt(item.amount)}
                   </td>
                 </tr>
@@ -196,51 +202,51 @@ export default function InvoiceDetail() {
         </div>
 
         {/* Totals */}
-        <div style={{ padding: '16px 36px 20px', display: 'flex', justifyContent: 'flex-end' }}>
-          <div style={{ width: 240 }}>
+        <div style={{ padding: '16px 40px 24px', display: 'flex', justifyContent: 'flex-end' }}>
+          <div style={{ width: 260 }}>
             {inv.discount > 0 && (
               <>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#64748b', marginBottom: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#64748b', marginBottom: 8, fontFamily: "'Amiri', serif" }}>
                   <span>الإجمالي</span>
-                  <span dir="ltr">{fmt(inv.total_amount)}</span>
+                  <span dir="ltr" style={{ fontFamily: "'Playfair Display', serif" }}>{fmt(inv.total_amount)}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#16a34a', marginBottom: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#16a34a', marginBottom: 8, fontFamily: "'Amiri', serif" }}>
                   <span>خصم</span>
-                  <span dir="ltr">— {fmt(inv.discount)}</span>
+                  <span dir="ltr" style={{ fontFamily: "'Playfair Display', serif" }}>— {fmt(inv.discount)}</span>
                 </div>
               </>
             )}
             <div style={{
               display: 'flex', justifyContent: 'space-between',
-              borderTop: '2px solid #1e293b', paddingTop: 10, marginTop: 4,
+              borderTop: '2px solid #0f172a', paddingTop: 12, marginTop: 4,
             }}>
-              <span style={{ fontSize: 15, fontWeight: 700, color: '#1e293b' }}>صافي المبلغ</span>
-              <span style={{ fontSize: 18, fontWeight: 800, color: '#4f46e5' }} dir="ltr">{fmt(netAmount)}</span>
+              <span style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', fontFamily: "'Amiri', serif" }}>صافي المبلغ</span>
+              <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: '#0f172a' }} dir="ltr">{fmt(netAmount)}</span>
             </div>
           </div>
         </div>
 
         {/* Policy */}
         {(inv.policy_text || s.default_policy_text) && (
-          <div style={{ margin: '0 36px 20px', border: '1px solid #e2e8f0', borderRadius: 8, padding: '14px 16px' }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 8 }}>
+          <div style={{ margin: '0 40px 20px', border: '1px solid #cbd5e1', borderRadius: 6, padding: '14px 18px', background: '#f8fafc' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 8, fontFamily: "'Amiri', serif", letterSpacing: '0.05em' }}>
               سياسة الاستبدال والضمان
             </div>
-            <div style={{ fontSize: 11, color: '#64748b', lineHeight: 1.8, whiteSpace: 'pre-line' }}>
+            <div style={{ fontSize: 11, color: '#64748b', lineHeight: 2, whiteSpace: 'pre-line', fontFamily: "'Amiri', serif" }}>
               {inv.policy_text || s.default_policy_text}
             </div>
           </div>
         )}
 
         {/* Signatures */}
-        <div style={{ margin: '0 36px', paddingTop: 20, borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ margin: '0 40px', paddingTop: 20, borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
           <div style={{ textAlign: 'center', width: 180 }}>
-            <div style={{ borderBottom: '1px solid #94a3b8', marginBottom: 8, height: 40 }} />
-            <div style={{ fontSize: 11, color: '#94a3b8' }}>توقيع العميل</div>
+            <div style={{ borderBottom: '1px solid #94a3b8', marginBottom: 8, height: 44 }} />
+            <div style={{ fontSize: 11, color: '#94a3b8', fontFamily: "'Amiri', serif" }}>توقيع العميل</div>
           </div>
           <div style={{ textAlign: 'center', width: 180 }}>
-            <div style={{ borderBottom: '1px solid #94a3b8', marginBottom: 8, height: 40 }} />
-            <div style={{ fontSize: 11, color: '#94a3b8' }}>توقيع المسؤول</div>
+            <div style={{ borderBottom: '1px solid #94a3b8', marginBottom: 8, height: 44 }} />
+            <div style={{ fontSize: 11, color: '#94a3b8', fontFamily: "'Amiri', serif" }}>توقيع المسؤول</div>
           </div>
         </div>
 

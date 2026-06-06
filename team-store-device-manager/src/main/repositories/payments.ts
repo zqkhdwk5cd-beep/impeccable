@@ -30,13 +30,10 @@ export function addPayment(data: {
 
     // 2. Update paid_amount and remaining_amount on the transaction
     const table = data.transaction_type === 'purchase' ? 'purchase_transactions' : 'sale_transactions'
-    const tx = db.prepare(`SELECT paid_amount, remaining_amount, purchase_price, sale_price, discount FROM ${table} WHERE id = ?`).get(data.transaction_id) as any
+    const tx = db.prepare(`SELECT paid_amount, remaining_amount FROM ${table} WHERE id = ?`).get(data.transaction_id) as any
 
     const newPaid = (tx.paid_amount || 0) + data.amount
-    const totalAmount = data.transaction_type === 'purchase'
-      ? (tx.purchase_price ?? 0)
-      : ((tx.sale_price ?? 0) - (tx.discount ?? 0))
-    const newRemaining = Math.max(0, totalAmount - newPaid)
+    const newRemaining = Math.max(0, (tx.remaining_amount || 0) - data.amount)
 
     db.prepare(`UPDATE ${table} SET paid_amount = ?, remaining_amount = ?, updated_at = datetime('now') WHERE id = ?`)
       .run(newPaid, newRemaining, data.transaction_id)
