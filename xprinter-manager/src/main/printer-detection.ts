@@ -55,20 +55,23 @@ interface RawDevice {
 }
 
 function parseLpinfo(output: string): RawDevice[] {
+  // lpinfo -v format: "<type> <uri>"  e.g. "direct usb://Xprinter/XP-235B?location=..."
+  // The first field is the backend type ("direct", "network", etc.)
+  // The second field is the actual device URI
   const devices: RawDevice[] = [];
   for (const line of output.split('\n')) {
-    const m = line.match(/^(\S+)\s+(.+)$/);
+    const m = line.match(/^\S+\s+(\S+:\/\/.+)$/);
     if (!m) continue;
-    const [, uri, label] = m;
+    const uri = m[1].trim();
     if (uri.startsWith('usb://')) {
-      devices.push({ uri, label: label.trim(), connectionType: 'USB' });
+      devices.push({ uri, label: uri, connectionType: 'USB' });
     } else if (
       uri.startsWith('socket://') ||
       uri.startsWith('lpd://') ||
       uri.startsWith('ipp://') ||
       uri.startsWith('http://')
     ) {
-      devices.push({ uri, label: label.trim(), connectionType: 'Network' });
+      devices.push({ uri, label: uri, connectionType: 'Network' });
     }
   }
   return devices;
