@@ -26,6 +26,9 @@ export default function DeviceDetail() {
   const [labelH, setLabelH] = useState(30)
   const [labelPrinter, setLabelPrinter] = useState('')
   const [labelSilent, setLabelSilent] = useState(false)
+  const [labelLogo, setLabelLogo] = useState('')
+
+  const WARRANTY_OPTIONS = ['بدون ضمان', 'ضمان 30 يوم', 'ضمان 3 شهور', 'ضمان 10 شهور', 'ضمان سنة']
 
   const load = () => {
     setLoading(true)
@@ -37,8 +40,9 @@ export default function DeviceDetail() {
       api.settings.get('label_height_mm'),
       api.settings.get('label_printer_name'),
       api.settings.get('label_silent_print'),
+      api.settings.get('store_logo'),
     ])
-      .then(([d, cur, lw, lwmm, lhmm, lprinter, lsilent]) => {
+      .then(([d, cur, lw, lwmm, lhmm, lprinter, lsilent, logo]) => {
         setData(d)
         setCurrency(cur || 'EGP')
         if (lw) setLabelWarranty(lw)
@@ -46,6 +50,7 @@ export default function DeviceDetail() {
         if (lhmm) setLabelH(Number(lhmm) || 30)
         if (lprinter) setLabelPrinter(lprinter)
         setLabelSilent(lsilent === 'true')
+        setLabelLogo(logo || '')
       })
       .catch((e) => toast.error(e.message))
       .finally(() => setLoading(false))
@@ -231,7 +236,7 @@ export default function DeviceDetail() {
       {/* Label modal */}
       {showLabelModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs mx-4 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
               <h2 className="font-bold text-slate-900 flex items-center gap-2">
                 <Printer className="w-4 h-4 text-brand-600" /> طباعة ليبل
@@ -240,40 +245,78 @@ export default function DeviceDetail() {
             </div>
 
             {/* Preview */}
-            <div className="flex justify-center py-6 bg-slate-50">
-              <div className="bg-white border-2 border-slate-300 rounded-xl px-6 py-4 flex flex-col items-center gap-2 shadow-sm" style={{ minWidth: 180 }}>
-                <div className="flex items-center gap-2">
-                  <svg width="13" height="18" viewBox="0 0 20 29" fill="none">
-                    <rect x="1.5" y="1.5" width="17" height="26" rx="3.5" stroke="#000" strokeWidth="2.2"/>
-                    <circle cx="10" cy="5.5" r="1.4" fill="#000"/>
-                    <rect x="5.5" y="23" width="9" height="1.8" rx="0.9" fill="#000"/>
-                  </svg>
-                  <div className="flex flex-col leading-tight">
-                    <span className="font-black text-sm tracking-wider">TEAM</span>
-                    <span className="text-[8px] tracking-widest text-slate-500">STORE</span>
-                  </div>
-                </div>
+            <div className="flex justify-center py-5 bg-slate-50">
+              <div className="bg-white border-2 border-slate-300 rounded-xl px-5 py-3 flex flex-col items-center gap-1.5 shadow-sm" style={{ minWidth: 190 }}>
+                {labelLogo
+                  ? <img src={labelLogo} alt="logo" className="max-h-10 max-w-[130px] object-contain" />
+                  : (
+                    <div className="flex items-center gap-2">
+                      <svg width="13" height="18" viewBox="0 0 20 29" fill="none">
+                        <rect x="1.5" y="1.5" width="17" height="26" rx="3.5" stroke="#000" strokeWidth="2.2"/>
+                        <circle cx="10" cy="5.5" r="1.4" fill="#000"/>
+                        <rect x="5.5" y="23" width="9" height="1.8" rx="0.9" fill="#000"/>
+                      </svg>
+                      <div className="flex flex-col leading-tight">
+                        <span className="font-black text-sm tracking-wider">TEAM</span>
+                        <span className="text-[8px] tracking-widest text-slate-500">STORE</span>
+                      </div>
+                    </div>
+                  )
+                }
                 <div className="font-bold text-sm text-slate-900" dir="ltr">
                   {[d.model?.replace(/^iPhone\s*/i,''), d.storage?.replace(/GB$/i,''), d.battery_health ? `${d.battery_health}%` : ''].filter(Boolean).join(' - ')}
                 </div>
-                <div className="text-xs text-slate-600">{labelWarranty}</div>
+                {labelWarranty && <div className="text-xs text-slate-500">{labelWarranty}</div>}
               </div>
             </div>
 
             <div className="p-4 space-y-3">
+              {/* Warranty quick-select */}
               <div>
-                <label className="label">نص الضمان</label>
+                <label className="label">الضمان</label>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {WARRANTY_OPTIONS.map(opt => (
+                    <button
+                      key={opt}
+                      onClick={() => setLabelWarranty(opt)}
+                      className={`px-2.5 py-1 rounded-lg text-xs border transition-all ${
+                        labelWarranty === opt
+                          ? 'bg-brand-600 text-white border-brand-600'
+                          : 'bg-white text-slate-600 border-slate-200 hover:border-brand-300'
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
                 <input
                   value={labelWarranty}
                   onChange={e => setLabelWarranty(e.target.value)}
-                  className="input text-center"
-                  placeholder="ضمان 10 شهور"
+                  className="input text-sm"
+                  placeholder="أو اكتب نص مخصص..."
                 />
               </div>
+
+              {/* Logo change */}
+              <div className="flex items-center justify-between py-2 border-t border-slate-100">
+                <span className="text-xs text-slate-500">الشعار</span>
+                <label className="text-xs text-brand-600 cursor-pointer hover:text-brand-800 font-medium">
+                  {labelLogo ? 'تغيير الشعار' : 'رفع شعار'}
+                  <input type="file" accept="image/*" className="hidden" onChange={e => {
+                    const file = e.target.files?.[0]
+                    if (!file) return
+                    const reader = new FileReader()
+                    reader.onload = ev => setLabelLogo(ev.target?.result as string)
+                    reader.readAsDataURL(file)
+                    e.target.value = ''
+                  }} />
+                </label>
+              </div>
+
               <div className="flex gap-2 pt-1">
                 <button onClick={() => setShowLabelModal(false)} className="btn-secondary flex-1 justify-center">إلغاء</button>
                 <button
-                  onClick={() => { openLabelPrint(d, { warranty: labelWarranty, widthMm: labelW, heightMm: labelH, printerName: labelPrinter, silent: labelSilent }); setShowLabelModal(false) }}
+                  onClick={() => { openLabelPrint(d, { warranty: labelWarranty, widthMm: labelW, heightMm: labelH, printerName: labelPrinter, silent: labelSilent, logoBase64: labelLogo }); setShowLabelModal(false) }}
                   className="btn-primary flex-1 justify-center gap-1.5"
                 >
                   <Printer className="w-4 h-4" /> طباعة

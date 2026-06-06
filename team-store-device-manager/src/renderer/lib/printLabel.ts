@@ -12,6 +12,7 @@ export interface LabelConfig {
   heightMm: number
   printerName?: string
   silent?: boolean
+  logoBase64?: string
 }
 
 export function buildLabelHtml(device: any, cfg: LabelConfig): string {
@@ -25,6 +26,20 @@ export function buildLabelHtml(device: any, cfg: LabelConfig): string {
 
   const boxText  = device.box_status ? (BOX_LABELS[device.box_status] || '') : ''
   const subLine  = [boxText, cfg.warranty].filter(Boolean).join('  •  ')
+
+  const logoHtml = cfg.logoBase64
+    ? `<img src="${cfg.logoBase64}" class="logo-img" />`
+    : `<div class="logo-row">
+        <svg class="icon" viewBox="0 0 20 29" fill="none">
+          <rect x="1.5" y="1.5" width="17" height="26" rx="3.5" stroke="#000" stroke-width="2.5"/>
+          <circle cx="10" cy="5.5" r="1.6" fill="#000"/>
+          <rect x="5" y="23" width="10" height="2" rx="1" fill="#000"/>
+        </svg>
+        <div class="brand-text">
+          <span class="team">TEAM</span>
+          <span class="store">STORE</span>
+        </div>
+      </div>`
 
   const teamPt  = +(h * 0.30).toFixed(1)
   const storePt = +(h * 0.13).toFixed(1)
@@ -60,8 +75,9 @@ export function buildLabelHtml(device: any, cfg: LabelConfig): string {
     text-align: center;
     overflow: hidden;
   }
-  .logo-row { display: flex; align-items: center; justify-content: center; gap: 3vw; }
-  .brand-text { display: flex; flex-direction: column; line-height: 1.05; text-align: left; }
+  .logo-img    { max-height: 33vh; max-width: 65vw; object-fit: contain; }
+  .logo-row    { display: flex; align-items: center; justify-content: center; gap: 3vw; }
+  .brand-text  { display: flex; flex-direction: column; line-height: 1.05; text-align: left; }
   .team        { font-size: 9vw;   font-weight: 900; color: #000; letter-spacing: 0.05em; }
   .store       { font-size: 3.8vw; font-weight: 800; color: #000; letter-spacing: 0.25em; }
   .device-line { font-size: 8vw;   font-weight: 900; color: #000; direction: ltr; line-height: 1.1; }
@@ -71,17 +87,7 @@ export function buildLabelHtml(device: any, cfg: LabelConfig): string {
 </head>
 <body>
 <div class="label">
-  <div class="logo-row">
-    <svg class="icon" viewBox="0 0 20 29" fill="none">
-      <rect x="1.5" y="1.5" width="17" height="26" rx="3.5" stroke="#000" stroke-width="2.5"/>
-      <circle cx="10" cy="5.5" r="1.6" fill="#000"/>
-      <rect x="5" y="23" width="10" height="2" rx="1" fill="#000"/>
-    </svg>
-    <div class="brand-text">
-      <span class="team">TEAM</span>
-      <span class="store">STORE</span>
-    </div>
-  </div>
+  ${logoHtml}
   <div class="device-line">${deviceLine}</div>
   ${subLine ? `<div class="sub-line">${subLine}</div>` : ''}
 </div>
