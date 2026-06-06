@@ -1,6 +1,13 @@
 #!/usr/bin/env node
 'use strict';
 
+// Add Homebrew paths so ideviceinfo is found regardless of shell env
+process.env.PATH = [
+  '/opt/homebrew/bin',   // Apple Silicon
+  '/usr/local/bin',      // Intel Mac
+  process.env.PATH || '',
+].join(':');
+
 const http = require('http');
 const fs   = require('fs');
 const path = require('path');
