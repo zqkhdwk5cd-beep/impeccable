@@ -76,6 +76,11 @@ export function registerIpcHandlers(): void {
   })
   handle('devices:getDetail', (id: number) => devices.getDeviceDetail(id))
   handle('devices:getStats', () => devices.getInventoryStats())
+  handle('devices:return', (id: number, returnPrice: number, userId?: number) => {
+    const result = devices.returnDevice(id, returnPrice)
+    audit.logAudit({ user_id: userId, action: 'return_device', entity_type: 'device', entity_id: id, new_value: JSON.stringify({ return_price: returnPrice }) })
+    return result
+  })
 
   // Purchases
   handle('purchases:getAll', (limit?: number) => purchases.getAllPurchases(limit))

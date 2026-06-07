@@ -59,6 +59,8 @@ export const api = {
     delete: (id: number, userId?: number) => invoke<boolean>('devices:delete', id, userId),
     getDetail: (id: number) => invoke<any>('devices:getDetail', id),
     getStats: () => invoke<any>('devices:getStats'),
+    returnDevice: (id: number, returnPrice: number, userId?: number) =>
+      invoke<any>('devices:return', id, returnPrice, userId),
   },
 
   // Purchases

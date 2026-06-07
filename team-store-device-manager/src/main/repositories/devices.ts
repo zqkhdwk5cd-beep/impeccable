@@ -200,6 +200,14 @@ export function getDeviceDetail(id: number): any {
   return { device, expenses, audits }
 }
 
+export function returnDevice(id: number, returnPrice: number): Device | null {
+  const db = getDatabase()
+  db.prepare(
+    `UPDATE devices SET status = 'returned', return_price = ?, updated_at = datetime('now') WHERE id = ?`
+  ).run(returnPrice, id)
+  return getDeviceById(id)
+}
+
 export function getInventoryStats() {
   const db = getDatabase()
   return db

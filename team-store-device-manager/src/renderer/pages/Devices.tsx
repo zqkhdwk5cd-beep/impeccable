@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
-import { Plus, Search, Filter, Eye, EyeOff, ChevronRight, ChevronLeft, List, Printer } from 'lucide-react'
+import { Plus, Search, Filter, Eye, EyeOff, ChevronRight, ChevronLeft, List, Printer, RotateCcw } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { openLabelPrint } from '../lib/printLabel'
 import { useAuth } from '../context/AuthContext'
@@ -40,6 +40,10 @@ export default function DevicesPage() {
   const [pwInput, setPwInput] = useState('')
   const [pwError, setPwError] = useState('')
   const [pwChecking, setPwChecking] = useState(false)
+  const [returnTarget, setReturnTarget] = useState<any>(null)
+  const [returnPrice, setReturnPrice] = useState('')
+  const [returning, setReturning] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   // Debounce search input → resets to page 1
   useEffect(() => {
@@ -84,7 +88,7 @@ export default function DevicesPage() {
       })
       .catch((e) => toast.error(e.message))
       .finally(() => setLoading(false))
-  }, [status, search, page])
+  }, [status, search, page, refreshKey])
 
   const generateListImage = async () => {
     try {
@@ -251,6 +255,28 @@ export default function DevicesPage() {
     }
   }
 
+  const openReturnModal = (device: any) => {
+    setReturnTarget(device)
+    setReturnPrice(String(device.final_sale_price || device.expected_sale_price || ''))
+  }
+
+  const handleReturn = async () => {
+    const price = parseFloat(returnPrice)
+    if (!returnPrice || isNaN(price) || price < 0) { toast.error('أدخل سعر الارجاع'); return }
+    setReturning(true)
+    try {
+      await api.devices.returnDevice(returnTarget.id, price, user?.id)
+      toast.success('تم ارجاع الجهاز')
+      setReturnTarget(null)
+      setReturnPrice('')
+      setRefreshKey(k => k + 1)
+    } catch (e: any) {
+      toast.error(e.message || 'حدث خطأ')
+    } finally {
+      setReturning(false)
+    }
+  }
+
   return (
     <div>
       <div className="page-header">
@@ -402,6 +428,15 @@ export default function DevicesPage() {
                               بيع
                             </button>
                           )}
+                          {d.status === 'sold' && (
+                            <button
+                              onClick={() => openReturnModal(d)}
+                              className="btn-ghost btn-sm p-1 text-amber-600 hover:bg-amber-50"
+                              title="ارجاع الجهاز"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -442,6 +477,55 @@ export default function DevicesPage() {
           </>
         )}
       </div>
+
+      {/* Return device modal */}
+      {returnTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h2 className="font-bold text-slate-900 flex items-center gap-2">
+                <RotateCcw className="w-4 h-4 text-amber-500" /> ارجاع جهاز
+              </h2>
+              <button onClick={() => setReturnTarget(null)} className="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="bg-slate-50 rounded-lg p-3 text-sm text-slate-700">
+                <div className="font-semibold">{returnTarget.brand} {returnTarget.model} {returnTarget.storage}</div>
+                {returnTarget.serial_number && <div className="text-xs text-slate-400 font-mono mt-0.5">{returnTarget.serial_number}</div>}
+                {returnTarget.final_sale_price && (
+                  <div className="text-xs text-slate-500 mt-1">سعر البيع الأصلي: <span className="font-medium" dir="ltr">{fmt(returnTarget.final_sale_price)}</span></div>
+                )}
+              </div>
+              <div>
+                <label className="label">سعر الارجاع</label>
+                <input
+                  type="number"
+                  autoFocus
+                  value={returnPrice}
+                  onChange={e => setReturnPrice(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleReturn()}
+                  className="input w-full"
+                  placeholder="0"
+                  dir="ltr"
+                  min="0"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => setReturnTarget(null)} className="btn-secondary flex-1 justify-center">إلغاء</button>
+                <button
+                  onClick={handleReturn}
+                  disabled={returning}
+                  className="btn-primary flex-1 justify-center gap-1.5 disabled:opacity-60"
+                  style={{ background: '#f59e0b', borderColor: '#f59e0b' }}
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  {returning ? 'جاري...' : 'تأكيد الارجاع'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Password modal to unblur cost */}
       {showPwModal && (
