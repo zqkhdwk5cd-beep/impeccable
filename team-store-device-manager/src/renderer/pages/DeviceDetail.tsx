@@ -33,25 +33,20 @@ export default function DeviceDetail() {
 
   const WARRANTY_OPTIONS = ['بدون ضمان', 'ضمان 30 يوم', 'ضمان 3 شهور', 'ضمان 10 شهور', 'ضمان سنة']
 
-  useEffect(() => {
-    const onMove = (e: MouseEvent) => {
-      if (!dragState.current || !labelEditorRef.current) return
-      const rect = labelEditorRef.current.getBoundingClientRect()
-      const { type, startX, startY, snap } = dragState.current
-      if (type === 'move') {
-        const dx = ((e.clientX - startX) / rect.width)  * 100
-        const dy = ((e.clientY - startY) / rect.height) * 100
-        setLogoLayout({ ...snap, x: Math.max(5, Math.min(95, snap.x + dx)), y: Math.max(5, Math.min(95, snap.y + dy)) })
-      } else {
-        const dx = ((e.clientX - startX) / rect.width) * 200
-        setLogoLayout({ ...snap, w: Math.max(10, Math.min(100, snap.w + dx)) })
-      }
+  const handleOverlayMouseMove = (e: React.MouseEvent) => {
+    if (!dragState.current || !labelEditorRef.current) return
+    const rect = labelEditorRef.current.getBoundingClientRect()
+    const { type, startX, startY, snap } = dragState.current
+    if (type === 'move') {
+      const dx = ((e.clientX - startX) / rect.width)  * 100
+      const dy = ((e.clientY - startY) / rect.height) * 100
+      setLogoLayout({ ...snap, x: Math.max(2, Math.min(98, snap.x + dx)), y: Math.max(2, Math.min(98, snap.y + dy)) })
+    } else {
+      const dx = ((e.clientX - startX) / rect.width) * 200
+      setLogoLayout({ ...snap, w: Math.max(10, Math.min(100, snap.w + dx)) })
     }
-    const onUp = () => { dragState.current = null }
-    document.addEventListener('mousemove', onMove)
-    document.addEventListener('mouseup', onUp)
-    return () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp) }
-  }, [])
+  }
+  const handleOverlayMouseUp = () => { dragState.current = null }
 
   const load = () => {
     setLoading(true)
@@ -258,7 +253,11 @@ export default function DeviceDetail() {
 
       {/* Label modal */}
       {showLabelModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          onMouseMove={handleOverlayMouseMove}
+          onMouseUp={handleOverlayMouseUp}
+        >
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
               <h2 className="font-bold text-slate-900 flex items-center gap-2">
