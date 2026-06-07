@@ -1,88 +1,133 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { X, RefreshCw, CheckCircle, AlertTriangle, Scan, Loader2 } from 'lucide-react'
-import { validateImei, lookupImei, DeviceLookupResult } from '../lib/deviceLookup'
+import { X, CheckCircle, AlertTriangle, Scan } from 'lucide-react'
+import { validateImei } from '../lib/deviceLookup'
 
-type ScanState = 'waiting' | 'looking' | 'done' | 'error'
+type Step = 'imei1' | 'imei2' | 'serial'
+
+const STEPS: { key: Step; label: string; hint: string; max: number }[] = [
+  { key: 'imei1',  label: 'IMEI 1',       hint: '15 رقم',        max: 15 },
+  { key: 'imei2',  label: 'IMEI 2',       hint: '15 رقم',        max: 15 },
+  { key: 'serial', label: 'Serial Number', hint: 'حروف وأرقام',  max: 20 },
+]
+
+function validateSerial(raw: string): { valid: boolean; error?: string } {
+  const s = raw.trim().toUpperCase()
+  if (s.length < 8)      return { valid: false, error: `Serial ناقص — ${s.length} حرف فقط` }
+  if (!/^[A-Z0-9]+$/.test(s)) return { valid: false, error: 'Serial يحتوي على رموز غير مقبولة' }
+  return { valid: true }
+}
+
+function validate(step: Step, val: string) {
+  if (step === 'imei1' || step === 'imei2') return validateImei(val)
+  return validateSerial(val)
+}
 
 interface Props {
-  onFill: (result: DeviceLookupResult, imei: string) => void
+  onFill: (data: { imei1: string; imei2: string; serial_number: string }) => void
   onClose: () => void
 }
 
 export default function ImeiScanner({ onFill, onClose }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const abortRef = useRef<AbortController | null>(null)
 
-  const [value, setValue]           = useState('')
-  const [state, setState]           = useState<ScanState>('waiting')
-  const [errMsg, setErrMsg]         = useState('')
-  const [result, setResult]         = useState<DeviceLookupResult | null>(null)
+  const [step, setStep]   = useState<Step>('imei1')
+  const [value, setValue] = useState('')
+  const [error, setError] = useState('')
+  const [flash, setFlash] = useState<'idle' | 'ok' | 'err'>('idle')
+  const [data, setData]   = useState({ imei1: '', imei2: '', serial: '' })
 
-  // Auto-focus on open
+  const stepIdx    = STEPS.findIndex(s => s.key === step)
+  const stepConfig = STEPS[stepIdx]
+
+  // Focus input whenever step changes
   useEffect(() => {
+    setValue('')
+    setError('')
+    setFlash('idle')
     const t = setTimeout(() => inputRef.current?.focus(), 60)
-    return () => {
-      clearTimeout(t)
-      abortRef.current?.abort()
-    }
+    return () => clearTimeout(t)
+  }, [step])
+
+  // Focus on open
+  useEffect(() => {
+    setTimeout(() => inputRef.current?.focus(), 60)
   }, [])
 
-  const reset = () => {
-    abortRef.current?.abort()
-    setValue('')
-    setState('waiting')
-    setErrMsg('')
-    setResult(null)
-    setTimeout(() => inputRef.current?.focus(), 60)
+  const advance = (val: string) => {
+    const cleaned = val.trim().toUpperCase()
+
+    if (step === 'imei1') {
+      setData(d => ({ ...d, imei1: cleaned }))
+      triggerOk(() => setStep('imei2'))
+    } else if (step === 'imei2') {
+      setData(d => ({ ...d, imei2: cleaned }))
+      triggerOk(() => setStep('serial'))
+    } else {
+      const finalData = { ...data, serial: cleaned }
+      setData(finalData)
+      triggerOk(() => onFill({
+        imei1: finalData.imei1,
+        imei2: finalData.imei2,
+        serial_number: finalData.serial,
+      }))
+    }
   }
 
-  const processImei = async (raw: string) => {
-    const imei = raw.trim()
-    const check = validateImei(imei)
+  const triggerOk = (cb: () => void) => {
+    setFlash('ok')
+    setTimeout(() => { setFlash('idle'); cb() }, 320)
+  }
 
-    if (!check.valid) {
-      setState('error')
-      setErrMsg(check.error!)
-      return
-    }
+  const triggerErr = (msg: string) => {
+    setError(msg)
+    setFlash('err')
+    // shake then reset
+    setTimeout(() => {
+      setFlash('idle')
+      setValue('')
+      inputRef.current?.focus()
+    }, 1800)
+  }
 
-    setState('looking')
-    abortRef.current = new AbortController()
-
-    try {
-      const r = await lookupImei(imei, abortRef.current.signal)
-      setResult(r)
-      setState('done')
-    } catch (e: any) {
-      if (e.name === 'AbortError') return
-      setState('error')
-      setErrMsg('فشل الاتصال بخدمة البحث — تحقق من الشبكة')
-    }
+  const tryAdvance = (val: string) => {
+    const result = validate(step, val)
+    if (result.valid) advance(val)
+    else triggerErr(result.error!)
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // USB HID scanner types fast — keep only digits, cap at 15
-    const digits = e.target.value.replace(/\D/g, '').slice(0, 15)
-    setValue(digits)
-    // Auto-trigger when exactly 15 digits received (scanner without Enter suffix)
-    if (digits.length === 15) processImei(digits)
+    if (flash !== 'idle') return
+    setError('')
+
+    let raw = e.target.value
+
+    // IMEI steps: digits only
+    if (step !== 'serial') {
+      raw = raw.replace(/\D/g, '').slice(0, 15)
+      setValue(raw)
+      if (raw.length === 15) tryAdvance(raw) // auto-fire when full
+    } else {
+      // Serial: alphanumeric only
+      raw = raw.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 20)
+      setValue(raw)
+      if (raw.length === 12) tryAdvance(raw) // common Apple serial length
+    }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Most scanners append Enter — trigger on Enter if we have input
     if (e.key === 'Enter') {
       e.preventDefault()
-      if (value.length > 0 && state === 'waiting') processImei(value)
+      if (value.length > 0 && flash === 'idle') tryAdvance(value)
     }
-    // Block non-digit key input except control keys
-    if (e.key.length === 1 && !/\d/.test(e.key)) e.preventDefault()
+    // Block non-digit for IMEI steps
+    if (step !== 'serial' && e.key.length === 1 && !/\d/.test(e.key)) e.preventDefault()
   }
 
-  const handleConfirm = () => {
-    if (result && state === 'done') onFill(result, value)
-  }
-
-  // ── Render ──────────────────────────────────────────────────────────────
+  // ── Border / bg color based on flash state ────────────────────────────
+  const inputClass =
+    flash === 'ok'  ? 'border-green-400 bg-green-50' :
+    flash === 'err' ? 'border-red-400   bg-red-50 animate-pulse' :
+                      'border-brand-400  bg-brand-50'
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -92,135 +137,102 @@ export default function ImeiScanner({ onFill, onClose }: Props) {
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
           <h2 className="font-bold text-slate-900 flex items-center gap-2 text-base">
             <Scan className="w-5 h-5 text-brand-600" />
-            Scan IMEI
+            Scan Device
           </h2>
-          <button
-            onClick={() => { abortRef.current?.abort(); onClose() }}
-            className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
-          >
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
             <X className="w-4 h-4 text-slate-500" />
           </button>
         </div>
 
-        <div className="p-5 space-y-4">
+        <div className="p-5 space-y-5">
 
-          {/* Scanner icon banner */}
-          {state === 'waiting' && (
-            <div className="flex flex-col items-center gap-3 py-2">
-              <div className="w-16 h-16 rounded-2xl bg-brand-50 flex items-center justify-center">
-                <Scan className="w-8 h-8 text-brand-500 animate-pulse" />
-              </div>
-              <p className="text-sm text-slate-500 text-center leading-relaxed">
-                وجّه سكانر الـ USB على باركود الـ IMEI<br />
-                الموجود على علبة الآيفون
-              </p>
+          {/* Step progress */}
+          <div className="flex items-center gap-2">
+            {STEPS.map((s, i) => {
+              const done = i < stepIdx
+              const active = i === stepIdx
+              return (
+                <React.Fragment key={s.key}>
+                  <div className={`flex items-center gap-1.5 text-xs font-semibold transition-colors ${
+                    done   ? 'text-green-600' :
+                    active ? 'text-brand-700' :
+                             'text-slate-300'
+                  }`}>
+                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                      done   ? 'bg-green-100 text-green-700' :
+                      active ? 'bg-brand-100 text-brand-700' :
+                               'bg-slate-100 text-slate-400'
+                    }`}>
+                      {done ? '✓' : i + 1}
+                    </span>
+                    {s.label}
+                  </div>
+                  {i < STEPS.length - 1 && (
+                    <div className={`flex-1 h-px transition-colors ${i < stepIdx ? 'bg-green-300' : 'bg-slate-200'}`} />
+                  )}
+                </React.Fragment>
+              )
+            })}
+          </div>
+
+          {/* Summary of filled data */}
+          {(data.imei1 || data.imei2) && (
+            <div className="bg-slate-50 rounded-xl px-4 py-2.5 space-y-1 text-xs font-mono">
+              {data.imei1 && (
+                <div className="flex justify-between text-slate-500">
+                  <span className="text-green-600 font-semibold">IMEI 1</span>
+                  <span>{data.imei1}</span>
+                </div>
+              )}
+              {data.imei2 && (
+                <div className="flex justify-between text-slate-500">
+                  <span className="text-green-600 font-semibold">IMEI 2</span>
+                  <span>{data.imei2}</span>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Input — always visible; focused while waiting */}
+          {/* Active field */}
           <div>
-            <div className={`relative rounded-xl border-2 transition-colors ${
-              state === 'error'   ? 'border-red-400   bg-red-50' :
-              state === 'done'    ? 'border-green-400 bg-green-50' :
-              state === 'looking' ? 'border-slate-200  bg-slate-50' :
-                                    'border-brand-400  bg-brand-50'
-            }`}>
+            <label className="text-xs font-semibold text-slate-500 block mb-2">
+              {stepConfig.label}
+              <span className="font-normal text-slate-400 mr-1">— {stepConfig.hint}</span>
+            </label>
+            <div className={`relative rounded-xl border-2 transition-all duration-200 ${inputClass}`}>
               <input
                 ref={inputRef}
                 value={value}
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
-                className="w-full bg-transparent px-4 py-3 font-mono text-xl text-center tracking-widest outline-none"
-                placeholder="— — — — — — — — — — — — — — —"
+                className="w-full bg-transparent px-4 py-3.5 font-mono text-lg text-center tracking-widest outline-none"
+                placeholder={step !== 'serial' ? '— — — — —' : 'XXXXXXXXXX'}
                 dir="ltr"
-                maxLength={15}
-                readOnly={state === 'looking' || state === 'done'}
                 autoComplete="off"
+                readOnly={flash !== 'idle'}
               />
-              {/* Character counter */}
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-mono select-none">
-                {value.length}/15
+                {value.length}/{stepConfig.max}
               </span>
-            </div>
-          </div>
-
-          {/* Status area */}
-          {state === 'looking' && (
-            <div className="flex items-center justify-center gap-2 text-sm text-brand-600 py-1">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              جاري البحث عن بيانات الجهاز...
-            </div>
-          )}
-
-          {state === 'error' && (
-            <div className="flex items-start gap-2 text-sm text-red-700 bg-red-50 rounded-xl p-3">
-              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-              <span>{errMsg}</span>
-            </div>
-          )}
-
-          {state === 'done' && result && (
-            <div className={`rounded-xl p-4 space-y-1.5 ${result.found ? 'bg-green-50' : 'bg-amber-50'}`}>
-              {result.found ? (
-                <>
-                  <p className="text-xs font-semibold text-green-700 flex items-center gap-1.5">
-                    <CheckCircle className="w-3.5 h-3.5" /> تم العثور على بيانات الجهاز
-                  </p>
-                  {result.model && (
-                    <p className="text-sm font-medium text-slate-800">
-                      {result.brand} {result.model}
-                    </p>
-                  )}
-                  {(result.storage || result.color) && (
-                    <p className="text-xs text-slate-500">
-                      {[result.storage, result.color].filter(Boolean).join(' • ')}
-                    </p>
-                  )}
-                  {result.region && (
-                    <p className="text-xs text-slate-400">Region: {result.region}</p>
-                  )}
-                </>
-              ) : (
-                <>
-                  <p className="text-xs font-semibold text-amber-700 flex items-center gap-1.5">
-                    <CheckCircle className="w-3.5 h-3.5" /> تم قراءة IMEI بنجاح
-                  </p>
-                  <p className="text-xs text-amber-700">
-                    بعض البيانات تحتاج إدخال يدوي
-                  </p>
-                </>
+              {flash === 'ok' && (
+                <CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
               )}
-              <p className="text-xs font-mono text-slate-500 pt-1 border-t border-black/5">{value}</p>
+            </div>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div className="flex items-center gap-2 text-sm text-red-700 bg-red-50 rounded-xl px-4 py-2.5">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <span>{error}</span>
             </div>
           )}
 
-          {/* Actions */}
-          <div className="flex gap-2 pt-1">
-            {state === 'error' && (
-              <>
-                <button onClick={reset} className="btn-secondary flex-1 justify-center gap-1.5 text-sm py-2.5">
-                  <RefreshCw className="w-3.5 h-3.5" /> مسح مرة أخرى
-                </button>
-                <button
-                  onClick={() => { abortRef.current?.abort(); onFill({ found: false, source: 'stub', brand: 'Apple' }, value) }}
-                  className="btn-secondary flex-1 justify-center gap-1.5 text-sm py-2.5 text-slate-600"
-                  title="قبول IMEI فقط بدون بيانات"
-                >
-                  قبول IMEI فقط
-                </button>
-              </>
-            )}
-            {state === 'done' && (
-              <>
-                <button onClick={reset} className="btn-secondary justify-center gap-1.5 text-sm py-2.5 px-4">
-                  <RefreshCw className="w-3.5 h-3.5" />
-                </button>
-                <button onClick={handleConfirm} className="btn-primary flex-1 justify-center gap-1.5 text-sm py-2.5">
-                  <CheckCircle className="w-3.5 h-3.5" /> تأكيد وتعبئة البيانات
-                </button>
-              </>
-            )}
-          </div>
+          {!error && (
+            <p className="text-xs text-slate-400 text-center">
+              سكان أو اكتب {stepConfig.label} ثم اضغط Enter
+            </p>
+          )}
         </div>
       </div>
     </div>
