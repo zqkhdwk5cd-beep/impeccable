@@ -203,12 +203,27 @@ class ReportsView(QWidget):
         self._draw_top_products(sales)
         self._render_table(sales)
 
+    @staticmethod
+    def _clean_ax(ax):
+        ax.set_xticks([])
+        ax.set_yticks([])
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+
     def _draw_daily(self, sales):
         if not MATPLOTLIB_OK or not hasattr(self.daily_card, "_ax"):
             return
         ax = self.daily_card._ax
         ax.cla()
         ax.set_facecolor("none")
+
+        if not sales:
+            self._clean_ax(ax)
+            ax.text(0.5, 0.5, "لا توجد مبيعات في هذه الفترة",
+                    ha="center", va="center",
+                    color=C["ink_3"], fontsize=10, transform=ax.transAxes)
+            self.daily_card._canvas.draw()
+            return
 
         daily: dict[str, dict] = {}
         for s in sales:
@@ -254,6 +269,7 @@ class ReportsView(QWidget):
 
         top = sorted(prod_map.items(), key=lambda x: x[1], reverse=True)[:6]
         if not top:
+            self._clean_ax(ax)
             ax.text(0.5, 0.5, "لا توجد مبيعات", ha="center", va="center",
                     color=C["ink_3"], fontsize=10, transform=ax.transAxes)
             self.top_card._canvas.draw()

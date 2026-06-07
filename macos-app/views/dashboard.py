@@ -191,6 +191,14 @@ class DashboardView(QWidget):
         self._draw_category(sales, products)
         self._draw_low_stock(products)
 
+    @staticmethod
+    def _clean_ax(ax):
+        """Hide all spines, ticks, and grid — for empty-state charts."""
+        ax.set_xticks([])
+        ax.set_yticks([])
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+
     def _draw_weekly(self, sales):
         if not MATPLOTLIB_OK:
             return
@@ -198,9 +206,9 @@ class DashboardView(QWidget):
         ax.cla()
         ax.set_facecolor("none")
 
-        days  = [(datetime.now().date() - timedelta(days=i)) for i in range(6, -1, -1)]
-        revs  = []
-        lbls  = []
+        days = [(datetime.now().date() - timedelta(days=i)) for i in range(6, -1, -1)]
+        revs = []
+        lbls = []
         for d in days:
             day_rev = sum(
                 s["total"]
@@ -210,13 +218,25 @@ class DashboardView(QWidget):
             revs.append(day_rev)
             lbls.append(f"{d.day}/{d.month}")
 
-        bars = ax.bar(lbls, revs, color=C["accent"], alpha=0.85, width=0.55)
+        if all(r == 0 for r in revs):
+            self._clean_ax(ax)
+            ax.text(0.5, 0.5, "لا توجد مبيعات بعد",
+                    ha="center", va="center",
+                    color=C["ink_3"], fontsize=11, transform=ax.transAxes)
+            self.weekly_chart.figure.tight_layout(pad=0.5)
+            self.weekly_chart.canvas.draw()
+            return
+
+        ax.bar(range(len(lbls)), revs, color=C["accent"], alpha=0.85, width=0.55)
         ax.set_xticks(range(len(lbls)))
         ax.set_xticklabels(lbls, fontsize=9, color=C["ink_3"])
         ax.yaxis.set_tick_params(labelsize=9, colors=C["ink_3"])
         ax.tick_params(axis="x", bottom=False)
+        ax.set_ylim(0, max(revs) * 1.25)
         ax.spines["left"].set_color(C["border"])
         ax.spines["bottom"].set_color(C["border"])
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
         ax.grid(axis="y", color=C["border"], linewidth=0.7)
 
         self.weekly_chart.figure.tight_layout(pad=0.5)
@@ -237,7 +257,9 @@ class DashboardView(QWidget):
                 cat_rev[cat] = cat_rev.get(cat, 0) + it["price"] * it["qty"]
 
         if not cat_rev:
-            ax.text(0.5, 0.5, "لا توجد مبيعات", ha="center", va="center",
+            self._clean_ax(ax)
+            ax.text(0.5, 0.5, "لا توجد مبيعات بعد",
+                    ha="center", va="center",
                     color=C["ink_3"], fontsize=10, transform=ax.transAxes)
             self.cat_chart.canvas.draw()
             return

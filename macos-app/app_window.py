@@ -286,8 +286,9 @@ class MainWindow(QMainWindow):
 
         # ── Layout assembly ───────────────────────────────────────────────────
         # RTL: sidebar appears on the right, main content on the left
-        root_layout.addWidget(main_area, 1)
+        # In RTL the first widget added goes to the RIGHT — sidebar belongs on the right
         root_layout.addWidget(sidebar)
+        root_layout.addWidget(main_area, 1)
 
     # ── Navigation ────────────────────────────────────────────────────────────
 
