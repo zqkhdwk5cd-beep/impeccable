@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
-import { Plus, Search, Filter, Eye, EyeOff, ChevronRight, ChevronLeft, List, Printer, RotateCcw } from 'lucide-react'
+import { Plus, Search, Filter, Eye, EyeOff, ChevronRight, ChevronLeft, List, Printer, RotateCcw, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { openLabelPrint } from '../lib/printLabel'
 import { useAuth } from '../context/AuthContext'
@@ -35,7 +35,7 @@ export default function DevicesPage() {
   const [generating, setGenerating] = useState(false)
   const [labelCfg, setLabelCfg] = useState({ warranty: 'ضمان 10 شهور', widthMm: 50, heightMm: 30, printerName: '', silent: false, logoBase64: '' })
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const [costBlurred, setCostBlurred] = useState(false)
+  const [costBlurred, setCostBlurred] = useState(true)
   const [showPwModal, setShowPwModal] = useState(false)
   const [pwInput, setPwInput] = useState('')
   const [pwError, setPwError] = useState('')
@@ -417,6 +417,21 @@ export default function DevicesPage() {
                             title="طباعة ليبل"
                           >
                             <Printer className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation()
+                              if (!window.confirm(`حذف "${d.brand} ${d.model} ${d.storage}"؟\nيمكن استعادته من الإعدادات ← الأجهزة المحذوفة`)) return
+                              try {
+                                await api.devices.delete(d.id, user?.id)
+                                setRefreshKey(k => k + 1)
+                                toast.success('تم حذف الجهاز')
+                              } catch (err: any) { toast.error(err.message) }
+                            }}
+                            className="btn-ghost btn-sm p-1 text-red-400 hover:text-red-600 hover:bg-red-50"
+                            title="حذف الجهاز"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                           {d.status === 'available' && (
                             <button

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
-import { Save, Store, Shield, Users, RefreshCw, Smartphone, Plus, Trash2, ChevronUp, ChevronDown, UserCheck, Lock, Printer, TestTube, ImageIcon, X } from 'lucide-react'
+import { Save, Store, Shield, Users, RefreshCw, Smartphone, Plus, Trash2, ChevronUp, ChevronDown, UserCheck, Lock, Printer, TestTube, ImageIcon, X, RotateCcw, Archive } from 'lucide-react'
 import { buildLabelHtml } from '../lib/printLabel'
 
 const SETTING_KEYS = ['store_name', 'store_address', 'store_phone', 'invoice_start_number', 'default_policy_text', 'currency', 'backup_location', 'daily_backup_enabled', 'backups_to_keep', 'label_width_mm', 'label_height_mm', 'label_warranty', 'label_printer_name', 'label_silent_print', 'store_logo']
@@ -103,6 +103,58 @@ function OptionsTab({ type, label }: { type: OptionType; label: string }) {
         )}
       </div>
       <div className="text-xs text-slate-400">{items.length} خيار</div>
+    </div>
+  )
+}
+
+function DeletedDevicesSection() {
+  const [devs, setDevs] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const load = async () => {
+    setLoading(true)
+    try { setDevs(await api.devices.getDeleted()) }
+    catch (e: any) { toast.error(e.message) }
+    setLoading(false)
+  }
+  useEffect(() => { load() }, [])
+
+  const restore = async (id: number, label: string) => {
+    try {
+      await api.devices.restore(id)
+      toast.success(`تم استعادة "${label}"`)
+      load()
+    } catch (e: any) { toast.error(e.message) }
+  }
+
+  if (loading) return <div className="px-6 py-8 text-center text-slate-400 animate-pulse">جاري التحميل...</div>
+  if (devs.length === 0) return <div className="px-6 py-8 text-center text-slate-400 text-sm">لا توجد أجهزة محذوفة</div>
+
+  return (
+    <div>
+      <div className="divide-y divide-slate-100">
+        {devs.map((d: any) => (
+          <div key={d.id} className="px-6 py-3 flex items-center justify-between">
+            <div>
+              <div className="font-medium text-slate-800">{d.brand} {d.model} {d.storage} {d.color}</div>
+              <div className="flex items-center gap-3 mt-0.5">
+                {d.serial_number && <span className="text-xs font-mono text-slate-400">{d.serial_number}</span>}
+                <span className="text-xs text-slate-400">
+                  حُذف {new Date(d.deleted_at).toLocaleDateString('ar-EG')}
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={() => restore(d.id, `${d.brand} ${d.model} ${d.storage}`)}
+              className="btn-secondary btn-sm flex items-center gap-1.5 text-brand-600 border-brand-200 hover:bg-brand-50"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              استعادة
+            </button>
+          </div>
+        ))}
+      </div>
+      <div className="px-6 py-3 border-t border-slate-100 text-xs text-slate-400">{devs.length} جهاز محذوف</div>
     </div>
   )
 }
@@ -600,6 +652,18 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Deleted devices */}
+      {isAdmin && (
+        <div className="card">
+          <div className="card-header">
+            <h2 className="font-semibold flex items-center gap-2">
+              <Archive className="w-4 h-4 text-red-500" /> الأجهزة المحذوفة
+            </h2>
+          </div>
+          <DeletedDevicesSection />
+        </div>
+      )}
 
       {/* Users (admin only) */}
       {isAdmin && (

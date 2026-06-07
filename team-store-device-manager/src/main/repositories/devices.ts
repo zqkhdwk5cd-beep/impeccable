@@ -200,6 +200,26 @@ export function getDeviceDetail(id: number): any {
   return { device, expenses, audits }
 }
 
+export function getDeletedDevices(): any[] {
+  const db = getDatabase()
+  return db.prepare(`
+    SELECT d.*, c.name as seller_name, pt.purchase_date
+    FROM devices d
+    LEFT JOIN purchase_transactions pt ON d.purchase_transaction_id = pt.id
+    LEFT JOIN contacts c ON pt.seller_contact_id = c.id
+    WHERE d.deleted_at IS NOT NULL
+    ORDER BY d.deleted_at DESC
+  `).all()
+}
+
+export function restoreDevice(id: number): boolean {
+  const db = getDatabase()
+  const result = db.prepare(
+    `UPDATE devices SET deleted_at = NULL, status = 'available', updated_at = datetime('now') WHERE id = ?`
+  ).run(id)
+  return result.changes > 0
+}
+
 export function returnDevice(id: number, returnPrice: number): Device | null {
   const db = getDatabase()
   db.prepare(
