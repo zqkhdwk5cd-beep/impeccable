@@ -29,7 +29,7 @@ class ProductsView(QWidget):
 
     def _build(self):
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(24, 20, 24, 24)
+        layout.setContentsMargins(28, 28, 28, 28)
         layout.setSpacing(16)
         self.setStyleSheet(f"background:{C['content_bg']};")
 

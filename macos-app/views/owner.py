@@ -33,7 +33,7 @@ class OwnerView(QWidget):
         container = QWidget()
         container.setStyleSheet(f"background:{C['content_bg']};")
         layout = QVBoxLayout(container)
-        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setContentsMargins(28, 28, 28, 28)
         layout.setSpacing(16)
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         scroll.setWidget(container)

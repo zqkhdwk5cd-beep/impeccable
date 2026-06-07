@@ -30,12 +30,11 @@ class ProductTile(QPushButton):
         self._build(product)
 
     def _tile_style(self, p: dict) -> str:
-        unavailable = p["qty"] == 0
-        bg  = C["content_bg"] if unavailable else C["card_bg"]
         return (
-            f"QPushButton {{ background:{bg}; border:1.5px solid {C['border']}; "
+            f"QPushButton {{ background:{C['surface_2']}; border:1px solid {C['border']}; "
             f"border-radius:10px; text-align:center; }}"
             f"QPushButton:hover {{ border-color:{C['accent']}; background:{C['accent_light']}; }}"
+            f"QPushButton:disabled {{ background:{C['surface_2']}; border-color:{C['border']}; opacity:0.45; }}"
         )
 
     def _build(self, p: dict):

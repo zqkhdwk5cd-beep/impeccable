@@ -39,19 +39,30 @@ class Toast(QFrame):
         super().__init__(parent)
         self.setFixedHeight(44)
         self.setMinimumWidth(260)
-        bg = {
-            "success": C["accent"],
-            "error":   C["red"],
-            "info":    C["blue"],
-            "warning": C["amber"],
-        }.get(kind, C["accent"])
         self.setStyleSheet(
-            f"background:{bg}; border-radius:10px; color:white;"
+            f"background:{C['sidebar_bg']}; border-radius:10px;"
         )
         layout = QHBoxLayout(self)
         layout.setContentsMargins(16, 0, 16, 0)
+        layout.setSpacing(8)
+
+        icon_color = {
+            "success": C["accent"],
+            "error":   C["red"],
+            "warning": C["amber"],
+            "info":    C["blue"],
+        }.get(kind, C["accent"])
+        icon_char = {"success": "✓", "error": "✕", "warning": "⚠", "info": "i"}.get(kind, "✓")
+
+        icon_lbl = QLabel(icon_char)
+        icon_lbl.setStyleSheet(
+            f"color:{icon_color}; font-size:14px; font-weight:800; background:transparent;"
+        )
         lbl = QLabel(message)
-        lbl.setStyleSheet("color:white; font-size:13px; font-weight:600; background:transparent;")
+        lbl.setStyleSheet(
+            f"color:#F0F4F8; font-size:13px; font-weight:600; background:transparent;"
+        )
+        layout.addWidget(icon_lbl)
         layout.addWidget(lbl)
 
         self._effect = QGraphicsOpacityEffect(self)
@@ -155,7 +166,7 @@ class MainWindow(QMainWindow):
         # ── Sidebar ───────────────────────────────────────────────────────────
         sidebar = QWidget()
         sidebar.setObjectName("sidebar")
-        sidebar.setFixedWidth(220)
+        sidebar.setFixedWidth(230)
         sidebar_layout = QVBoxLayout(sidebar)
         sidebar_layout.setContentsMargins(0, 0, 0, 0)
         sidebar_layout.setSpacing(0)

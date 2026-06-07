@@ -46,7 +46,7 @@ class ReportsView(QWidget):
         container = QWidget()
         container.setStyleSheet(f"background:{C['content_bg']};")
         layout = QVBoxLayout(container)
-        layout.setContentsMargins(24, 20, 24, 24)
+        layout.setContentsMargins(28, 28, 28, 28)
         layout.setSpacing(18)
         scroll.setWidget(container)
 

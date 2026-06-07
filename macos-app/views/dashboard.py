@@ -66,7 +66,7 @@ class ChartCard(QFrame):
     def __init__(self, title: str, height: int = 200):
         super().__init__()
         self.setStyleSheet(
-            f"background:{C['card_bg']}; border:1px solid {C['border']}; border-radius:12px;"
+            f"background:{C['card_bg']}; border:1px solid {C['border']}; border-radius:10px;"
         )
         layout = QVBoxLayout(self)
         layout.setContentsMargins(16, 14, 16, 14)
@@ -113,7 +113,7 @@ class DashboardView(QWidget):
         container = QWidget()
         container.setStyleSheet(f"background:{C['content_bg']};")
         layout = QVBoxLayout(container)
-        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setContentsMargins(28, 28, 28, 28)
         layout.setSpacing(20)
         scroll.setWidget(container)
 
@@ -147,7 +147,7 @@ class DashboardView(QWidget):
         # Low stock list
         low_card = QFrame()
         low_card.setStyleSheet(
-            f"background:{C['card_bg']}; border:1px solid {C['border']}; border-radius:12px;"
+            f"background:{C['card_bg']}; border:1px solid {C['border']}; border-radius:10px;"
         )
         low_card.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         low_layout = QVBoxLayout(low_card)
