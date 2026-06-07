@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
-import { Plus, Search, Filter, Eye, ChevronRight, ChevronLeft, List, Printer } from 'lucide-react'
+import { Plus, Search, Filter, Eye, EyeOff, ChevronRight, ChevronLeft, List, Printer } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { openLabelPrint } from '../lib/printLabel'
+import { useAuth } from '../context/AuthContext'
 
 const PAGE_SIZE = 50
 
@@ -22,6 +23,7 @@ const STATUS_FILTERS = [
 
 export default function DevicesPage() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [items, setItems] = useState<any[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -33,6 +35,11 @@ export default function DevicesPage() {
   const [generating, setGenerating] = useState(false)
   const [labelCfg, setLabelCfg] = useState({ warranty: 'ضمان 10 شهور', widthMm: 50, heightMm: 30, printerName: '', silent: false, logoBase64: '' })
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [costBlurred, setCostBlurred] = useState(false)
+  const [showPwModal, setShowPwModal] = useState(false)
+  const [pwInput, setPwInput] = useState('')
+  const [pwError, setPwError] = useState('')
+  const [pwChecking, setPwChecking] = useState(false)
 
   // Debounce search input → resets to page 1
   useEffect(() => {
@@ -215,6 +222,35 @@ export default function DevicesPage() {
 
   const handleStatus = (s: string) => { setStatus(s); setPage(1) }
 
+  const handleEyeClick = () => {
+    if (!costBlurred) {
+      setCostBlurred(true)
+    } else {
+      setPwInput('')
+      setPwError('')
+      setShowPwModal(true)
+    }
+  }
+
+  const handlePwConfirm = async () => {
+    if (!pwInput) { setPwError('أدخل كلمة المرور'); return }
+    setPwChecking(true)
+    setPwError('')
+    try {
+      const res = await api.auth.login(user?.username || '', pwInput)
+      if (res.success) {
+        setCostBlurred(false)
+        setShowPwModal(false)
+      } else {
+        setPwError('كلمة المرور غير صحيحة')
+      }
+    } catch {
+      setPwError('حدث خطأ، حاول مرة أخرى')
+    } finally {
+      setPwChecking(false)
+    }
+  }
+
   return (
     <div>
       <div className="page-header">
@@ -225,6 +261,13 @@ export default function DevicesPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={handleEyeClick}
+            title={costBlurred ? 'إظهار التكلفة (يتطلب كلمة المرور)' : 'إخفاء التكلفة'}
+            className={`btn-secondary flex items-center gap-1.5 ${costBlurred ? 'text-amber-600 border-amber-300' : ''}`}
+          >
+            {costBlurred ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          </button>
           <button
             onClick={generateListImage}
             disabled={generating}
@@ -317,7 +360,11 @@ export default function DevicesPage() {
                       <td className="font-mono text-xs">{d.imei1 || '-'}</td>
                       <td>{d.battery_health ? `${d.battery_health}%` : '-'}</td>
                       <td dir="ltr">{fmt(d.purchase_price)}</td>
-                      <td dir="ltr" className="font-medium">{fmt(d.total_cost)}</td>
+                      <td dir="ltr" className="font-medium">
+                        <span style={costBlurred ? { filter: 'blur(7px)', userSelect: 'none', pointerEvents: 'none' } : {}}>
+                          {fmt(d.total_cost)}
+                        </span>
+                      </td>
                       <td dir="ltr">
                         {d.final_sale_price
                           ? fmt(d.final_sale_price)
@@ -395,6 +442,44 @@ export default function DevicesPage() {
           </>
         )}
       </div>
+
+      {/* Password modal to unblur cost */}
+      {showPwModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs mx-4 overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h2 className="font-bold text-slate-900 flex items-center gap-2">
+                <Eye className="w-4 h-4 text-brand-600" /> إظهار التكلفة
+              </h2>
+              <button onClick={() => setShowPwModal(false)} className="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
+            </div>
+            <div className="p-5 space-y-4">
+              <p className="text-sm text-slate-500">أدخل كلمة مرورك لإظهار أعمدة التكلفة</p>
+              <input
+                type="password"
+                autoFocus
+                value={pwInput}
+                onChange={e => { setPwInput(e.target.value); setPwError('') }}
+                onKeyDown={e => e.key === 'Enter' && handlePwConfirm()}
+                className="input w-full"
+                placeholder="كلمة المرور"
+                dir="ltr"
+              />
+              {pwError && <p className="text-xs text-red-500">{pwError}</p>}
+              <div className="flex gap-2">
+                <button onClick={() => setShowPwModal(false)} className="btn-secondary flex-1 justify-center">إلغاء</button>
+                <button
+                  onClick={handlePwConfirm}
+                  disabled={pwChecking}
+                  className="btn-primary flex-1 justify-center disabled:opacity-60"
+                >
+                  {pwChecking ? '...' : 'تأكيد'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
