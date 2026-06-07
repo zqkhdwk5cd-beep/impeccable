@@ -266,7 +266,7 @@ export default function DevicesPage() {
     setReturning(true)
     try {
       await api.devices.returnDevice(returnTarget.id, price, user?.id)
-      toast.success('تم ارجاع الجهاز')
+      toast.success('تم ارجاع الجهاز وأصبح متاحاً للبيع')
       setReturnTarget(null)
       setReturnPrice('')
       setRefreshKey(k => k + 1)

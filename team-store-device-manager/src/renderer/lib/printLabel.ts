@@ -1,7 +1,7 @@
 import { api } from './api'
 
 const BOX_LABELS: Record<string, string> = {
-  with_box: 'مع الكرتون',
+  with_box: 'Box',
   without_box: 'بدون كرتون',
   damaged_box: 'كرتون تالف',
 }
@@ -57,6 +57,7 @@ export function buildLabelHtml(device: any, cfg: LabelConfig): string {
     width: ${lw}%;
     transform: translate(-50%, -50%);
     object-fit: contain;
+    z-index: 0;
   }
   .device-line {
     position: absolute;
@@ -68,6 +69,7 @@ export function buildLabelHtml(device: any, cfg: LabelConfig): string {
     color: #000;
     direction: ltr;
     white-space: nowrap;
+    z-index: 1;
   }
   .sub-line {
     position: absolute;
@@ -79,6 +81,7 @@ export function buildLabelHtml(device: any, cfg: LabelConfig): string {
     color: #000;
     direction: rtl;
     white-space: nowrap;
+    z-index: 1;
   }
 </style>
 </head>

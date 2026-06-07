@@ -203,7 +203,7 @@ export function getDeviceDetail(id: number): any {
 export function returnDevice(id: number, returnPrice: number): Device | null {
   const db = getDatabase()
   db.prepare(
-    `UPDATE devices SET status = 'returned', return_price = ?, updated_at = datetime('now') WHERE id = ?`
+    `UPDATE devices SET status = 'available', return_price = ?, updated_at = datetime('now') WHERE id = ?`
   ).run(returnPrice, id)
   return getDeviceById(id)
 }

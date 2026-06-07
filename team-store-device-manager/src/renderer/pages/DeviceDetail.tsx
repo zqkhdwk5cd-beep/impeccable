@@ -304,14 +304,21 @@ export default function DeviceDetail() {
               >
                 {/* White background clipped to label bounds */}
                 <div className="absolute inset-0 bg-white rounded-lg overflow-hidden">
-                  {/* Device text (non-interactive) */}
-                  <div style={{ position: 'absolute', left: 0, right: 0, bottom: '17%', textAlign: 'center', pointerEvents: 'none' }}>
+                  {/* Logo image — behind text */}
+                  {labelLogo && (
+                    <div style={{ position: 'absolute', left: `${logoLayout.x}%`, top: `${logoLayout.y}%`, width: `${logoLayout.w}%`, transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                      <img src={labelLogo} alt="logo" draggable={false} style={{ width: '100%', height: 'auto', objectFit: 'contain', display: 'block' }} />
+                    </div>
+                  )}
+
+                  {/* Device text — above logo */}
+                  <div style={{ position: 'absolute', left: 0, right: 0, bottom: '17%', textAlign: 'center', pointerEvents: 'none', zIndex: 1 }}>
                     <div style={{ fontWeight: 900, color: '#111', fontSize: '3.5cqw', lineHeight: 1.1, direction: 'ltr' }}>
                       {[d.model?.replace(/^iPhone\s*/i, ''), d.storage?.replace(/GB$/i, ''), d.battery_health ? `${d.battery_health}%` : ''].filter(Boolean).join(' - ')}
                     </div>
                   </div>
                   {labelWarranty && (
-                    <div style={{ position: 'absolute', left: 0, right: 0, bottom: '4%', textAlign: 'center', pointerEvents: 'none' }}>
+                    <div style={{ position: 'absolute', left: 0, right: 0, bottom: '4%', textAlign: 'center', pointerEvents: 'none', zIndex: 1 }}>
                       <div style={{ fontWeight: 700, color: '#666', fontSize: '2.4cqw' }}>{labelWarranty}</div>
                     </div>
                   )}
@@ -338,7 +345,7 @@ export default function DeviceDetail() {
                   )}
                 </div>
 
-                {/* Logo layer — sits above clipped bg, handles can overflow */}
+                {/* Interaction layer — outside clip so handles can overflow */}
                 {labelLogo && (
                   <div
                     style={{
@@ -349,18 +356,15 @@ export default function DeviceDetail() {
                       transform: 'translate(-50%,-50%)',
                       cursor: 'grab',
                       userSelect: 'none',
+                      zIndex: 2,
                     }}
                     onMouseDown={e => {
                       e.preventDefault()
                       dragState.current = { type: 'move', startX: e.clientX, startY: e.clientY, snap: { ...logoLayout } }
                     }}
                   >
-                    <img
-                      src={labelLogo}
-                      alt="logo"
-                      draggable={false}
-                      style={{ width: '100%', height: 'auto', objectFit: 'contain', display: 'block', pointerEvents: 'none' }}
-                    />
+                    {/* Invisible img establishes the correct height for handles */}
+                    <img src={labelLogo} alt="" draggable={false} style={{ width: '100%', height: 'auto', objectFit: 'contain', display: 'block', opacity: 0 }} />
 
                     {/* Selection border */}
                     <div style={{ position: 'absolute', inset: -1, border: '1.5px solid #3b82f6', borderRadius: 3, pointerEvents: 'none' }} />
