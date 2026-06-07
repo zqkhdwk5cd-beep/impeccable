@@ -24,7 +24,7 @@ export default function InvoicesPage() {
     return inv.invoice_number?.includes(q) || inv.buyer_name?.toLowerCase().includes(q) || inv.buyer_phone?.includes(q) || inv.model?.toLowerCase().includes(q)
   })
 
-  const fmt = (n: number) => (n || 0).toLocaleString('ar-EG') + ' ' + currency
+  const fmt = (n: number) => (n || 0).toLocaleString('en-US') + ' ' + currency
 
   return (
     <div>

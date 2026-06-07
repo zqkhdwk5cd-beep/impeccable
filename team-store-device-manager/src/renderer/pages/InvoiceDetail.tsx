@@ -78,7 +78,7 @@ export default function InvoiceDetail() {
   const inv = invoice
   const s = settings
   const currency = s.currency || 'EGP'
-  const fmt = (n: number) => (n || 0).toLocaleString('ar-EG') + ' ' + currency
+  const fmt = (n: number) => (n || 0).toLocaleString('en-US') + ' ' + currency
   const netAmount = (inv.total_amount || 0) - (inv.discount || 0)
 
   return (

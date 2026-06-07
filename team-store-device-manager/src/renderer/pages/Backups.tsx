@@ -12,7 +12,7 @@ function formatBytes(bytes: number) {
 
 function formatDate(d: Date | string) {
   const date = new Date(d)
-  return date.toLocaleString('ar-EG')
+  return date.toLocaleString('en-US')
 }
 
 export default function BackupsPage() {

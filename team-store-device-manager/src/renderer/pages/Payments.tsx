@@ -63,7 +63,7 @@ export default function PaymentsPage() {
 
   useEffect(() => { load() }, [load])
 
-  const fmt = (n: number) => (n || 0).toLocaleString('ar-EG') + ' ' + currency
+  const fmt = (n: number) => (n || 0).toLocaleString('en-US') + ' ' + currency
 
   const totalSalesRemaining = sales.reduce((s, i) => s + (i.remaining_amount || 0), 0)
   const totalPurchasesRemaining = purchases.reduce((s, i) => s + (i.remaining_amount || 0), 0)

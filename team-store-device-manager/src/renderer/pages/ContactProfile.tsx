@@ -24,7 +24,7 @@ export default function ContactProfile() {
   if (!data) return <div className="text-center py-20 text-slate-400">جهة الاتصال غير موجودة</div>
 
   const { contact: c, purchases, sales, totalPurchased, totalSold, remainingFromContact, remainingToContact } = data
-  const fmt = (n: number) => (n || 0).toLocaleString('ar-EG') + ' ' + currency
+  const fmt = (n: number) => (n || 0).toLocaleString('en-US') + ' ' + currency
   const typeLabels: Record<string, string> = { seller: 'بائع', buyer: 'مشتري', both: 'بائع ومشتري' }
 
   return (

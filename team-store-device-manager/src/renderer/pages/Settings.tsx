@@ -210,7 +210,7 @@ export default function SettingsPage() {
         printerName: s('label_printer_name') || '',
         silent:      s('label_silent_print') === 'true',
       })
-      if (result.success) toast.success('تم إرسال الليبل التجريبي للطابعة')
+      if (result.success) toast.success('تم إرسال الـ Label التجريبي للطابعة')
       else toast.error('فشل الطباعة: ' + (result.reason || 'خطأ غير معروف'))
     } catch (e: any) { toast.error(e.message) }
     setTestPrinting(false)
@@ -443,7 +443,7 @@ export default function SettingsPage() {
       <div className="card">
         <div className="card-header">
           <h2 className="font-semibold flex items-center gap-2">
-            <Printer className="w-4 h-4 text-brand-600" /> إعدادات الليبل (Xprinter)
+            <Printer className="w-4 h-4 text-brand-600" /> Label Settings (Xprinter)
           </h2>
           <button
             onClick={testPrint}
@@ -477,7 +477,7 @@ export default function SettingsPage() {
           {/* Dimensions */}
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="label">عرض الليبل (mm)</label>
+              <label className="label">Label Width (mm)</label>
               <input
                 type="number" min="20" max="200"
                 value={s('label_width_mm') || '50'}
@@ -486,7 +486,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="label">ارتفاع الليبل (mm)</label>
+              <label className="label">Label Height (mm)</label>
               <input
                 type="number" min="10" max="200"
                 value={s('label_height_mm') || '30'}
@@ -510,7 +510,7 @@ export default function SettingsPage() {
               <div className="font-medium text-sm text-slate-800">طباعة مباشرة (بدون ديالوج)</div>
               <div className="text-xs text-slate-500 mt-0.5">
                 {s('label_silent_print') === 'true'
-                  ? 'الليبل بيتطبع مباشرة على الطابعة المختارة بدون ما تيجي نافذة'
+                  ? 'Label بيتطبع مباشرة على الطابعة المختارة بدون ما تيجي نافذة'
                   : 'هتظهر نافذة اختيار الطابعة قبل كل طباعة'}
               </div>
             </div>
@@ -552,7 +552,7 @@ export default function SettingsPage() {
           </div>
           {s('last_backup_date') && (
             <div className="text-sm text-slate-500">
-              آخر نسخة: {new Date(s('last_backup_date')).toLocaleString('ar-EG')}
+              آخر نسخة: {new Date(s('last_backup_date')).toLocaleString('en-US')}
             </div>
           )}
         </div>

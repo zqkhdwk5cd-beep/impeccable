@@ -43,7 +43,7 @@ export default function PaymentModal({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const fmt = (n: number) => (n || 0).toLocaleString('ar-EG') + ' ' + currency
+  const fmt = (n: number) => (n || 0).toLocaleString('en-US') + ' ' + currency
 
   const amountNum = parseFloat(amount) || 0
 

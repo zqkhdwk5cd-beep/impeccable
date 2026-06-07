@@ -19,7 +19,7 @@ export default function PrivatePage() {
   const [currency, setCurrency] = useState('EGP')
   const [loading, setLoading] = useState(true)
 
-  const fmt = (n: number) => (n || 0).toLocaleString('ar-EG') + ' ' + currency
+  const fmt = (n: number) => (n || 0).toLocaleString('en-US') + ' ' + currency
 
   const load = async () => {
     setLoading(true)

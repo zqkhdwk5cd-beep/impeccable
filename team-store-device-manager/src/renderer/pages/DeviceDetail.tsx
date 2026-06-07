@@ -87,7 +87,7 @@ export default function DeviceDetail() {
 
   useEffect(() => { load() }, [id])
 
-  const fmt = (n: number) => (n || 0).toLocaleString('ar-EG') + ' ' + currency
+  const fmt = (n: number) => (n || 0).toLocaleString('en-US') + ' ' + currency
 
   const addExpense = async () => {
     if (!expenseForm.amount) return toast.error('المبلغ مطلوب')
@@ -125,7 +125,7 @@ export default function DeviceDetail() {
         </div>
         <div className="flex gap-2">
           <button onClick={() => setShowLabelModal(true)} className="btn-secondary">
-            <Printer className="w-4 h-4" /> ليبل
+            <Printer className="w-4 h-4" /> Label
           </button>
           {d.status === 'available' && (
             <button onClick={() => navigate(`/sell?q=${d.serial_number || d.imei1 || d.model}`)} className="btn-success">
@@ -254,7 +254,7 @@ export default function DeviceDetail() {
                 <span className="text-slate-700">{a.action}</span>
                 <div className="flex items-center gap-3 text-slate-400 text-xs">
                   <span>{a.user_name || 'النظام'}</span>
-                  <span>{new Date(a.created_at).toLocaleString('ar-EG')}</span>
+                  <span>{new Date(a.created_at).toLocaleString('en-US')}</span>
                 </div>
               </div>
             ))}
@@ -274,7 +274,7 @@ export default function DeviceDetail() {
             {/* Header */}
             <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
               <h2 className="font-bold text-slate-900 flex items-center gap-2">
-                <Printer className="w-4 h-4 text-brand-600" /> طباعة ليبل
+                <Printer className="w-4 h-4 text-brand-600" /> Print Label
               </h2>
               <button onClick={() => setShowLabelModal(false)} className="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
             </div>
@@ -282,7 +282,7 @@ export default function DeviceDetail() {
             {/* Label canvas */}
             <div className="px-5 pt-4 pb-3 bg-slate-50">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">معاينة الليبل</span>
+                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">Label Preview</span>
                 {labelLogo && (
                   <span className="text-[11px] text-slate-400 font-mono bg-white border border-slate-200 px-2 py-0.5 rounded-md select-none">
                     {Math.round(logoLayout.w)}%
@@ -403,7 +403,7 @@ export default function DeviceDetail() {
               {labelLogo ? (
                 <p className="text-center text-[11px] text-slate-400 mt-2">اسحب الشعار للتحريك • اسحب الزوايا للتكبير والتصغير</p>
               ) : (
-                <p className="text-center text-[11px] text-slate-400 mt-2">ارفع شعاراً لتخصيص الليبل</p>
+                <p className="text-center text-[11px] text-slate-400 mt-2">ارفع شعاراً لتخصيص الـ Label</p>
               )}
             </div>
 

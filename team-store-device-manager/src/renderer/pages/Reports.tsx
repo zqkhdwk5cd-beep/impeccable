@@ -37,7 +37,7 @@ export default function ReportsPage() {
     setLoading(false)
   }
 
-  const fmt = (n: number) => (n || 0).toLocaleString('ar-EG') + ' ' + currency
+  const fmt = (n: number) => (n || 0).toLocaleString('en-US') + ' ' + currency
 
   const exportCSV = () => {
     if (data.length === 0) return

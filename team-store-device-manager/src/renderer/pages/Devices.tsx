@@ -153,7 +153,7 @@ export default function DevicesPage() {
         })
 
         const price = d.expected_sale_price || d.final_sale_price
-        const priceText = price ? price.toLocaleString('ar-EG') : '—'
+        const priceText = price ? price.toLocaleString('en-US') : '—'
         const modelText = [d.brand, d.model, d.technical_notes].filter(Boolean).join(' ')
 
         const textY = rowY + ROW_H / 2 + 5
@@ -195,7 +195,7 @@ export default function DevicesPage() {
       ctx.fillStyle = '#555555'
       ctx.textAlign = 'center'
       ctx.fillText(
-        `${devices.length} جهاز متاح  •  ${new Date().toLocaleDateString('ar-EG')}  •  Team Store`,
+        `${devices.length} جهاز متاح  •  ${new Date().toLocaleDateString('en-US')}  •  Team Store`,
         W / 2, footY + 23,
       )
 
@@ -222,7 +222,7 @@ export default function DevicesPage() {
   const rangeStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1
   const rangeEnd = Math.min(page * PAGE_SIZE, total)
 
-  const fmt = (n: number) => (n || 0).toLocaleString('ar-EG') + ' ' + currency
+  const fmt = (n: number) => (n || 0).toLocaleString('en-US') + ' ' + currency
 
   const handleStatus = (s: string) => { setStatus(s); setPage(1) }
 
@@ -283,7 +283,7 @@ export default function DevicesPage() {
         <div>
           <h1 className="page-title">المخزون</h1>
           <p className="text-slate-500 text-sm mt-1">
-            {loading ? 'جاري التحميل...' : `${total.toLocaleString('ar-EG')} جهاز إجمالاً`}
+            {loading ? 'جاري التحميل...' : `${total.toLocaleString('en-US')} جهاز إجمالاً`}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -414,7 +414,7 @@ export default function DevicesPage() {
                           <button
                             onClick={() => openLabelPrint(d, labelCfg)}
                             className="btn-ghost btn-sm p-1"
-                            title="طباعة ليبل"
+                            title="Print Label"
                           >
                             <Printer className="w-3.5 h-3.5" />
                           </button>
@@ -464,7 +464,7 @@ export default function DevicesPage() {
             {totalPages > 1 && (
               <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
                 <p className="text-sm text-slate-500">
-                  {rangeStart}–{rangeEnd} من {total.toLocaleString('ar-EG')} جهاز
+                  {rangeStart}–{rangeEnd} من {total.toLocaleString('en-US')} جهاز
                 </p>
                 <div className="flex items-center gap-2">
                   <button

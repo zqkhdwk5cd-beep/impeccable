@@ -44,7 +44,7 @@ export default function Dashboard() {
   }, [])
 
   const fmt = (n: number) => formatCurrency(n, currency)
-  const fmtR = (n: number) => (n || 0).toLocaleString('ar-EG') + ' ' + currency
+  const fmtR = (n: number) => (n || 0).toLocaleString('en-US') + ' ' + currency
 
   const generateReport = async () => {
     setReportLoading(true)

@@ -26,7 +26,7 @@ export default function SearchPage() {
     }
   }, [query])
 
-  const fmt = (n: number) => (n || 0).toLocaleString('ar-EG') + ' ' + currency
+  const fmt = (n: number) => (n || 0).toLocaleString('en-US') + ' ' + currency
   const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('ar-EG') : '-'
 
   const deviceResults = results.filter((r) => r.type === 'device')
