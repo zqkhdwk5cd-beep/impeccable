@@ -35,8 +35,7 @@ class KPICard(QFrame):
         super().__init__()
         self._accent = accent
         self.setStyleSheet(
-            f"background:{C['card_bg']}; border:1px solid {C['border']}; border-radius:12px;"
-            f"border-top: 3px solid {accent};"
+            f"background:{C['card_bg']}; border:2px solid {accent}; border-radius:12px;"
         )
         layout = QVBoxLayout(self)
         layout.setContentsMargins(18, 16, 18, 16)
