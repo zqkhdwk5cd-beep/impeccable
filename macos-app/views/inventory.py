@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Inventory view — stock levels table with restock action.
 """

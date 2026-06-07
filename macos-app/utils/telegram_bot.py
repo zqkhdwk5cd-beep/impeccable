@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Non-blocking Telegram notification — runs in a daemon thread.
 """

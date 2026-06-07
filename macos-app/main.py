@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Entry point — initialise DB, build QApplication, launch main window.
 Run:

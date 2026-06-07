@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Dashboard view — KPI cards + weekly bar chart + category pie + low-stock list.
 """

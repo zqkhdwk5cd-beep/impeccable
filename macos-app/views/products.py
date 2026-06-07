@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Products management view — searchable table with CRUD actions.
 """

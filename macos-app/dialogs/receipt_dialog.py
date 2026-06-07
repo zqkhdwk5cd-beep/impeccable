@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Receipt dialog — displays the sale receipt and handles printing.
 """

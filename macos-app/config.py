@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Global colours, fonts and constants.
 Colours are approximations of the original OKLCH values used in the HTML.

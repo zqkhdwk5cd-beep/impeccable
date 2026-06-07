@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 SQLite database layer — all reads/writes go through here.
 Database lives in ~/Library/Application Support/SalesPOS/ on macOS.

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Main application window.
 Sidebar navigation (RTL — appears on the right) + stacked content area.

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Reports view — period filter, KPI cards, two charts, daily summary table.
 """

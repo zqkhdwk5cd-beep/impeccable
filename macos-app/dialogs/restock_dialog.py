@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Restock dialog — adds quantity to a product.
 """

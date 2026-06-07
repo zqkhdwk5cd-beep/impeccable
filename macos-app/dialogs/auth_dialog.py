@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Owner authentication dialog — password prompt before entering owner panel.
 """

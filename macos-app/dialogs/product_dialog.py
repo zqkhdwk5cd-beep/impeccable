@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Add / Edit product dialog.
 Handles name, category, unit, cost, price, qty, min_qty, and image upload.

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Owner settings panel — password-protected admin area.
 Store name, receipt footer, max discount, password change, backup, danger zone.

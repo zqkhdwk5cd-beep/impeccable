@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Sales history view — full transaction log, click to view receipt.
 """
