@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import toast from 'react-hot-toast'
@@ -27,8 +27,31 @@ export default function DeviceDetail() {
   const [labelPrinter, setLabelPrinter] = useState('')
   const [labelSilent, setLabelSilent] = useState(false)
   const [labelLogo, setLabelLogo] = useState('')
+  const [logoLayout, setLogoLayout] = useState({ x: 50, y: 38, w: 60 })
+  const labelEditorRef = useRef<HTMLDivElement>(null)
+  const dragState = useRef<null | { type: 'move' | 'resize'; startX: number; startY: number; snap: typeof logoLayout }>(null)
 
   const WARRANTY_OPTIONS = ['بدون ضمان', 'ضمان 30 يوم', 'ضمان 3 شهور', 'ضمان 10 شهور', 'ضمان سنة']
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (!dragState.current || !labelEditorRef.current) return
+      const rect = labelEditorRef.current.getBoundingClientRect()
+      const { type, startX, startY, snap } = dragState.current
+      if (type === 'move') {
+        const dx = ((e.clientX - startX) / rect.width)  * 100
+        const dy = ((e.clientY - startY) / rect.height) * 100
+        setLogoLayout({ ...snap, x: Math.max(5, Math.min(95, snap.x + dx)), y: Math.max(5, Math.min(95, snap.y + dy)) })
+      } else {
+        const dx = ((e.clientX - startX) / rect.width) * 200
+        setLogoLayout({ ...snap, w: Math.max(10, Math.min(100, snap.w + dx)) })
+      }
+    }
+    const onUp = () => { dragState.current = null }
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onUp)
+    return () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp) }
+  }, [])
 
   const load = () => {
     setLoading(true)
@@ -236,7 +259,7 @@ export default function DeviceDetail() {
       {/* Label modal */}
       {showLabelModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
               <h2 className="font-bold text-slate-900 flex items-center gap-2">
                 <Printer className="w-4 h-4 text-brand-600" /> طباعة ليبل
@@ -244,57 +267,89 @@ export default function DeviceDetail() {
               <button onClick={() => setShowLabelModal(false)} className="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
             </div>
 
-            {/* Preview */}
-            <div className="flex justify-center py-5 bg-slate-50">
-              <div className="bg-white border-2 border-slate-300 rounded-xl px-5 py-3 flex flex-col items-center gap-1.5 shadow-sm" style={{ minWidth: 190 }}>
-                {labelLogo
-                  ? <img src={labelLogo} alt="logo" className="max-h-16 max-w-[150px] object-contain" />
-                  : (
-                    <div className="flex items-center gap-2">
-                      <svg width="13" height="18" viewBox="0 0 20 29" fill="none">
+            {/* Interactive label editor */}
+            <div className="p-4 bg-slate-50">
+              <div
+                ref={labelEditorRef}
+                className="relative bg-white border-2 border-slate-300 rounded-lg shadow-sm mx-auto overflow-hidden select-none"
+                style={{ width: '100%', aspectRatio: `${labelW}/${labelH}` }}
+              >
+                {labelLogo ? (
+                  <>
+                    {/* Draggable logo */}
+                    <div
+                      className="absolute cursor-move"
+                      style={{ left: `${logoLayout.x}%`, top: `${logoLayout.y}%`, width: `${logoLayout.w}%`, transform: 'translate(-50%,-50%)' }}
+                      onMouseDown={e => {
+                        e.preventDefault()
+                        dragState.current = { type: 'move', startX: e.clientX, startY: e.clientY, snap: { ...logoLayout } }
+                      }}
+                    >
+                      <img src={labelLogo} alt="logo" className="w-full h-auto object-contain pointer-events-none" draggable={false} />
+                      {/* Resize handle — bottom-right corner */}
+                      <div
+                        className="absolute bottom-0 right-0 w-4 h-4 rounded-sm bg-brand-500 cursor-se-resize flex items-center justify-center"
+                        style={{ transform: 'translate(50%,50%)' }}
+                        onMouseDown={e => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          dragState.current = { type: 'resize', startX: e.clientX, startY: e.clientY, snap: { ...logoLayout } }
+                        }}
+                      >
+                        <svg width="8" height="8" viewBox="0 0 8 8" fill="white"><path d="M1 7L7 1M4 7L7 4M7 7L7 7" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                      </div>
+                    </div>
+                    {/* Device text — absolute bottom */}
+                    <div className="absolute inset-x-0 text-center" style={{ bottom: '18%' }}>
+                      <div className="font-black text-slate-900 leading-tight" style={{ fontSize: '3.2cqw' }} dir="ltr">
+                        {[d.model?.replace(/^iPhone\s*/i,''), d.storage?.replace(/GB$/i,''), d.battery_health ? `${d.battery_health}%` : ''].filter(Boolean).join(' - ')}
+                      </div>
+                    </div>
+                    {labelWarranty && (
+                      <div className="absolute inset-x-0 text-center" style={{ bottom: '5%' }}>
+                        <div className="text-slate-500" style={{ fontSize: '2.2cqw' }}>{labelWarranty}</div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  /* Fallback: no logo */
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
+                    <div className="flex items-center gap-1.5">
+                      <svg width="14" height="19" viewBox="0 0 20 29" fill="none">
                         <rect x="1.5" y="1.5" width="17" height="26" rx="3.5" stroke="#000" strokeWidth="2.2"/>
                         <circle cx="10" cy="5.5" r="1.4" fill="#000"/>
                         <rect x="5.5" y="23" width="9" height="1.8" rx="0.9" fill="#000"/>
                       </svg>
                       <div className="flex flex-col leading-tight">
                         <span className="font-black text-sm tracking-wider">TEAM</span>
-                        <span className="text-[8px] tracking-widest text-slate-500">STORE</span>
+                        <span className="text-[8px] tracking-widest text-slate-400">STORE</span>
                       </div>
                     </div>
-                  )
-                }
-                <div className="font-bold text-sm text-slate-900" dir="ltr">
-                  {[d.model?.replace(/^iPhone\s*/i,''), d.storage?.replace(/GB$/i,''), d.battery_health ? `${d.battery_health}%` : ''].filter(Boolean).join(' - ')}
-                </div>
-                {labelWarranty && <div className="text-xs text-slate-500">{labelWarranty}</div>}
+                    <div className="font-bold text-xs text-slate-900" dir="ltr">
+                      {[d.model?.replace(/^iPhone\s*/i,''), d.storage?.replace(/GB$/i,''), d.battery_health ? `${d.battery_health}%` : ''].filter(Boolean).join(' - ')}
+                    </div>
+                    {labelWarranty && <div className="text-[10px] text-slate-400">{labelWarranty}</div>}
+                  </div>
+                )}
               </div>
+              {labelLogo && (
+                <p className="text-center text-xs text-slate-400 mt-2">اسحب اللوجو للتحريك • اسحب المربع الأزرق لتغيير الحجم</p>
+              )}
             </div>
 
-            <div className="p-4 space-y-3">
+            <div className="px-4 pb-4 space-y-3">
               {/* Warranty quick-select */}
               <div>
                 <label className="label">الضمان</label>
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {WARRANTY_OPTIONS.map(opt => (
-                    <button
-                      key={opt}
-                      onClick={() => setLabelWarranty(opt)}
-                      className={`px-2.5 py-1 rounded-lg text-xs border transition-all ${
-                        labelWarranty === opt
-                          ? 'bg-brand-600 text-white border-brand-600'
-                          : 'bg-white text-slate-600 border-slate-200 hover:border-brand-300'
-                      }`}
-                    >
+                    <button key={opt} onClick={() => setLabelWarranty(opt)}
+                      className={`px-2.5 py-1 rounded-lg text-xs border transition-all ${labelWarranty === opt ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-slate-600 border-slate-200 hover:border-brand-300'}`}>
                       {opt}
                     </button>
                   ))}
                 </div>
-                <input
-                  value={labelWarranty}
-                  onChange={e => setLabelWarranty(e.target.value)}
-                  className="input text-sm"
-                  placeholder="أو اكتب نص مخصص..."
-                />
+                <input value={labelWarranty} onChange={e => setLabelWarranty(e.target.value)} className="input text-sm" placeholder="أو اكتب نص مخصص..." />
               </div>
 
               {/* Logo change */}
@@ -303,20 +358,18 @@ export default function DeviceDetail() {
                 <label className="text-xs text-brand-600 cursor-pointer hover:text-brand-800 font-medium">
                   {labelLogo ? 'تغيير الشعار' : 'رفع شعار'}
                   <input type="file" accept="image/*" className="hidden" onChange={e => {
-                    const file = e.target.files?.[0]
-                    if (!file) return
+                    const file = e.target.files?.[0]; if (!file) return
                     const reader = new FileReader()
-                    reader.onload = ev => setLabelLogo(ev.target?.result as string)
-                    reader.readAsDataURL(file)
-                    e.target.value = ''
+                    reader.onload = ev => { setLabelLogo(ev.target?.result as string); setLogoLayout({ x: 50, y: 38, w: 60 }) }
+                    reader.readAsDataURL(file); e.target.value = ''
                   }} />
                 </label>
               </div>
 
-              <div className="flex gap-2 pt-1">
+              <div className="flex gap-2">
                 <button onClick={() => setShowLabelModal(false)} className="btn-secondary flex-1 justify-center">إلغاء</button>
                 <button
-                  onClick={() => { openLabelPrint(d, { warranty: labelWarranty, widthMm: labelW, heightMm: labelH, printerName: labelPrinter, silent: labelSilent, logoBase64: labelLogo }); setShowLabelModal(false) }}
+                  onClick={() => { openLabelPrint(d, { warranty: labelWarranty, widthMm: labelW, heightMm: labelH, printerName: labelPrinter, silent: labelSilent, logoBase64: labelLogo, logoX: logoLayout.x, logoY: logoLayout.y, logoW: logoLayout.w }); setShowLabelModal(false) }}
                   className="btn-primary flex-1 justify-center gap-1.5"
                 >
                   <Printer className="w-4 h-4" /> طباعة
