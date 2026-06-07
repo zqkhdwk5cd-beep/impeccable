@@ -206,17 +206,14 @@ class DashboardView(QWidget):
         ax.cla()
         ax.set_facecolor("none")
 
+        _DAY_AR = ["الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد"]
         days = [(datetime.now().date() - timedelta(days=i)) for i in range(6, -1, -1)]
-        revs = []
-        lbls = []
+        revs, profits, lbls = [], [], []
         for d in days:
-            day_rev = sum(
-                s["total"]
-                for s in sales
-                if datetime.fromisoformat(s["ts"]).date() == d
-            )
-            revs.append(day_rev)
-            lbls.append(f"{d.day}/{d.month}")
+            day_sales = [s for s in sales if datetime.fromisoformat(s["ts"]).date() == d]
+            revs.append(sum(s["total"]  for s in day_sales))
+            profits.append(sum(s["profit"] for s in day_sales))
+            lbls.append(_DAY_AR[d.weekday()])
 
         if all(r == 0 for r in revs):
             self._clean_ax(ax)
@@ -227,17 +224,25 @@ class DashboardView(QWidget):
             self.weekly_chart.canvas.draw()
             return
 
-        ax.bar(range(len(lbls)), revs, color=C["accent"], alpha=0.85, width=0.55)
-        ax.set_xticks(range(len(lbls)))
-        ax.set_xticklabels(lbls, fontsize=9, color=C["ink_3"])
-        ax.yaxis.set_tick_params(labelsize=9, colors=C["ink_3"])
+        x = list(range(len(lbls)))
+        ax.fill_between(x, revs, alpha=0.12, color=C["accent"])
+        ax.plot(x, revs,    color=C["accent"], linewidth=2.5,
+                marker="o", markersize=4, label="الإيرادات")
+        ax.plot(x, profits, color=C["amber"],  linewidth=2,
+                marker="o", markersize=4, label="الأرباح")
+
+        ax.set_xticks(x)
+        ax.set_xticklabels(lbls, fontsize=8, color=C["ink_3"])
+        ax.yaxis.set_tick_params(labelsize=8, colors=C["ink_3"])
         ax.tick_params(axis="x", bottom=False)
-        ax.set_ylim(0, max(revs) * 1.25)
+        ax.set_ylim(0, max(max(revs), max(profits), 1) * 1.3)
         ax.spines["left"].set_color(C["border"])
         ax.spines["bottom"].set_color(C["border"])
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
-        ax.grid(axis="y", color=C["border"], linewidth=0.7)
+        ax.grid(axis="y", color=C["border"], linewidth=0.6)
+        ax.legend(fontsize=8, frameon=False, loc="upper left",
+                  labelcolor=C["ink_3"])
 
         self.weekly_chart.figure.tight_layout(pad=0.5)
         self.weekly_chart.canvas.draw()
@@ -269,7 +274,8 @@ class DashboardView(QWidget):
         colors = [CHART_COLORS[i % len(CHART_COLORS)] for i in range(len(labels))]
         wedges, _ = ax.pie(
             values, labels=None, colors=colors,
-            startangle=90, wedgeprops={"linewidth": 2, "edgecolor": "white"}
+            startangle=90,
+            wedgeprops={"linewidth": 2, "edgecolor": "white", "width": 0.55}
         )
         ax.legend(
             wedges, [f"{l} ({round(v/sum(values)*100)}%)" for l, v in zip(labels, values)],

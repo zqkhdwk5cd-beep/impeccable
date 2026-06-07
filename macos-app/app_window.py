@@ -102,26 +102,73 @@ class ToastManager(QWidget):
         QTimer.singleShot(2800, lambda: toast.fade_out(_remove))
 
 
-# ── Sidebar nav button ────────────────────────────────────────────────────────
+# ── Sidebar nav item ─────────────────────────────────────────────────────────
 
-class NavButton(QPushButton):
+class NavItem(QWidget):
+    clicked = Signal()
+
     def __init__(self, icon: str, label: str, view_id: str):
         super().__init__()
         self.view_id = view_id
-        self.setFixedHeight(44)
+        self._active = False
+        self.setFixedHeight(42)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        self.setProperty("class", "nav_item")
-        self.setText(f"  {icon}  {label}")
-        self.setCheckable(False)
-        self._set_active(False)
 
-    def _set_active(self, active: bool):
-        self.setProperty("active", "true" if active else "false")
-        self.style().unpolish(self)
-        self.style().polish(self)
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(8, 5, 10, 5)
+        layout.setSpacing(10)
+
+        self._icon_box = QLabel(icon)
+        self._icon_box.setFixedSize(30, 30)
+        self._icon_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._icon_box.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+
+        self._text = QLabel(label)
+        self._text.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+
+        layout.addWidget(self._icon_box)
+        layout.addWidget(self._text, 1)
+
+        self.set_active(False)
 
     def set_active(self, active: bool):
-        self._set_active(active)
+        self._active = active
+        if active:
+            self.setStyleSheet(
+                f"background:{C['sidebar_active']}; border-radius:8px;"
+            )
+            self._icon_box.setStyleSheet(
+                f"background:{C['accent']}; border-radius:6px; font-size:15px;"
+            )
+            self._text.setStyleSheet(
+                f"font-size:13px; font-weight:700; "
+                f"color:{C['sidebar_text_on']}; background:transparent;"
+            )
+        else:
+            self.setStyleSheet("background:transparent; border-radius:8px;")
+            self._icon_box.setStyleSheet(
+                f"background:{C['sidebar_hover']}; border-radius:6px; font-size:15px;"
+            )
+            self._text.setStyleSheet(
+                f"font-size:13px; font-weight:500; "
+                f"color:{C['sidebar_text']}; background:transparent;"
+            )
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.clicked.emit()
+        super().mousePressEvent(event)
+
+    def enterEvent(self, event):
+        if not self._active:
+            self.setStyleSheet(f"background:{C['sidebar_hover']}; border-radius:8px;")
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        if not self._active:
+            self.setStyleSheet("background:transparent; border-radius:8px;")
+        super().leaveEvent(event)
 
 
 # ── Main window ───────────────────────────────────────────────────────────────
@@ -141,7 +188,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self._owner_unlocked = False
         self._current_view   = "dashboard"
-        self._nav_buttons: dict[str, NavButton] = {}
+        self._nav_buttons: dict[str, NavItem] = {}
 
         self.setWindowTitle("نظام المبيعات والمخزون")
         self.setMinimumSize(1100, 680)
@@ -196,10 +243,10 @@ class MainWindow(QMainWindow):
         nav_layout.setSpacing(0)
 
         for view_id, icon, label in VIEWS:
-            btn = NavButton(icon, label, view_id)
-            btn.clicked.connect(lambda _, v=view_id: self._navigate(v))
-            nav_layout.addWidget(btn)
-            self._nav_buttons[view_id] = btn
+            item = NavItem(icon, label, view_id)
+            item.clicked.connect(lambda v=view_id: self._navigate(v))
+            nav_layout.addWidget(item)
+            self._nav_buttons[view_id] = item
 
         nav_layout.addStretch()
 
@@ -209,18 +256,9 @@ class MainWindow(QMainWindow):
         sep.setStyleSheet(f"background:{C['sidebar_border']};")
         nav_layout.addWidget(sep)
 
-        owner_btn = QPushButton("  ⚙  إعدادات المالك")
-        owner_btn.setFixedHeight(44)
-        owner_btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        owner_btn.setProperty("class", "nav_item")
-        owner_btn.setStyleSheet(
-            f"QPushButton {{ background:transparent; color:{C['sidebar_text']}; "
-            f"font-size:13px; font-weight:500; text-align:right; "
-            f"padding:9px 16px; border-radius:10px; border:none; margin:1px 6px; }}"
-            f"QPushButton:hover {{ background:{C['sidebar_hover']}; color:{C['sidebar_text_on']}; }}"
-        )
-        owner_btn.clicked.connect(self._open_owner)
-        nav_layout.addWidget(owner_btn)
+        self._owner_nav = NavItem("⚙", "إعدادات المالك", "owner")
+        self._owner_nav.clicked.connect(self._open_owner)
+        nav_layout.addWidget(self._owner_nav)
 
         sidebar_layout.addWidget(nav_area, 1)
 
@@ -318,6 +356,7 @@ class MainWindow(QMainWindow):
 
         for vid, btn in self._nav_buttons.items():
             btn.set_active(vid == view_id)
+        self._owner_nav.set_active(view_id == "owner")
 
         # Topbar action button
         self._clear_topbar_actions()
@@ -492,7 +531,7 @@ class MainWindow(QMainWindow):
     def _enter_owner_panel(self):
         self.view_owner.load_settings()
         self._navigate("owner")
-        # Update store name in sidebar after possible settings change
+        self._owner_nav.set_active(True)
         self.store_name_lbl.setText(DB.get_setting("store_name", "متجري"))
 
     def _lock_owner(self):
