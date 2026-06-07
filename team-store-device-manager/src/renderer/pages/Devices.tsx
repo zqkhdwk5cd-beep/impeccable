@@ -97,119 +97,131 @@ export default function DevicesPage() {
         api.devices.getAll({ status: 'available', limit: 9999, offset: 0 }),
         api.settings.get('currency'),
       ])
-      const curr = cur || 'EGP'
 
       if (devices.length === 0) { toast.error('لا توجد أجهزة متاحة'); return }
 
-      // ---- canvas config ----
       const W = 720
       const ROW_H = 34
       const TITLE_H = 56
       const FOOT_H = 36
-      const H = TITLE_H + devices.length * ROW_H + FOOT_H
-
-      const canvas = document.createElement('canvas')
-      canvas.width = W
-      canvas.height = H
-      const ctx = canvas.getContext('2d')!
-
-      // Background
-      ctx.fillStyle = '#111111'
-      ctx.fillRect(0, 0, W, H)
-
-      // Title bar
-      ctx.fillStyle = '#1e1e1e'
-      ctx.fillRect(0, 0, W, TITLE_H)
-      ctx.font = 'bold 18px Cairo, Arial, sans-serif'
-      ctx.fillStyle = '#ffffff'
-      ctx.textAlign = 'center'
-      ctx.fillText('قائمة الأجهزة المتاحة', W / 2, 33)
-
-      // Column x positions (RTL: model right → price left)
-      // | السعر | اللون | البطارية | التخزين | الموديل |
-      const COL = {
-        model:   { x: W - 12, align: 'right'  as CanvasTextAlign },
-        storage: { x: 375,    align: 'center' as CanvasTextAlign },
-        battery: { x: 288,    align: 'center' as CanvasTextAlign },
-        color:   { x: 195,    align: 'center' as CanvasTextAlign },
-        price:   { x: 95,     align: 'center' as CanvasTextAlign },
-      }
-
-      // Separator lines
+      const ROWS_PER_PAGE = 40
       const sepX = [120, 162, 250, 340]
-      ctx.strokeStyle = '#2a2a2a'
-      ctx.lineWidth = 1
+      const today = new Date().toLocaleDateString('en-US')
+      const dateISO = new Date().toISOString().split('T')[0]
+      const totalPages = Math.ceil(devices.length / ROWS_PER_PAGE)
 
-      devices.forEach((d: any, i: number) => {
-        const rowY = TITLE_H + i * ROW_H
+      const drawPage = (pageDevices: any[], pageNum: number): Promise<void> =>
+        new Promise((resolve) => {
+          const H = TITLE_H + pageDevices.length * ROW_H + FOOT_H
+          const canvas = document.createElement('canvas')
+          canvas.width = W
+          canvas.height = H
+          const ctx = canvas.getContext('2d')!
 
-        // Row background
-        ctx.fillStyle = i % 2 === 0 ? '#161616' : '#1c1c1c'
-        ctx.fillRect(0, rowY, W, ROW_H)
+          // Background
+          ctx.fillStyle = '#111111'
+          ctx.fillRect(0, 0, W, H)
 
-        // Separator lines
-        sepX.forEach(sx => {
-          ctx.beginPath(); ctx.moveTo(sx, rowY); ctx.lineTo(sx, rowY + ROW_H); ctx.stroke()
+          // Title bar
+          ctx.fillStyle = '#1e1e1e'
+          ctx.fillRect(0, 0, W, TITLE_H)
+          ctx.font = 'bold 18px Cairo, Arial, sans-serif'
+          ctx.fillStyle = '#ffffff'
+          ctx.textAlign = 'center'
+          ctx.fillText('قائمة الأجهزة المتاحة', W / 2, 30)
+          if (totalPages > 1) {
+            ctx.font = '12px Cairo, Arial, sans-serif'
+            ctx.fillStyle = '#888888'
+            ctx.fillText(`${pageNum} / ${totalPages}`, W / 2, 48)
+          }
+
+          ctx.strokeStyle = '#2a2a2a'
+          ctx.lineWidth = 1
+
+          pageDevices.forEach((d: any, i: number) => {
+            const rowY = TITLE_H + i * ROW_H
+
+            ctx.fillStyle = i % 2 === 0 ? '#161616' : '#1c1c1c'
+            ctx.fillRect(0, rowY, W, ROW_H)
+
+            sepX.forEach(sx => {
+              ctx.beginPath(); ctx.moveTo(sx, rowY); ctx.lineTo(sx, rowY + ROW_H); ctx.stroke()
+            })
+
+            const price = d.expected_sale_price || d.final_sale_price
+            const priceText = price ? price.toLocaleString('en-US') : '—'
+            const modelText = [d.brand, d.model, d.technical_notes].filter(Boolean).join(' ')
+            const hasBox = d.box_status === 'with_box'
+            const textY = rowY + ROW_H / 2 + 5
+
+            // Box badge (far right, green)
+            if (hasBox) {
+              ctx.font = 'bold 11px Cairo, Arial, sans-serif'
+              ctx.fillStyle = '#34d399'
+              ctx.textAlign = 'right'
+              ctx.fillText('Box', W - 6, textY)
+            }
+
+            // Model — shift left when Box badge is present
+            ctx.font = '13px Cairo, Arial, sans-serif'
+            ctx.fillStyle = '#ffffff'
+            ctx.textAlign = 'right'
+            ctx.fillText(modelText, hasBox ? W - 44 : W - 12, textY)
+
+            // Storage
+            ctx.textAlign = 'center'
+            ctx.fillText(d.storage || '—', 375, textY)
+
+            // Battery
+            ctx.fillStyle = d.battery_health && d.battery_health >= 90 ? '#4ade80' :
+                            d.battery_health && d.battery_health >= 80 ? '#facc15' : '#f87171'
+            ctx.fillText(d.battery_health ? `${d.battery_health}%` : '—', 288, textY)
+
+            // Color
+            ctx.fillStyle = '#ffffff'
+            ctx.fillText(d.color || '—', 195, textY)
+
+            // Price
+            ctx.fillStyle = '#fbbf24'
+            ctx.font = 'bold 13px Cairo, Arial, sans-serif'
+            ctx.textAlign = 'center'
+            ctx.fillText(priceText, 95, textY)
+          })
+
+          // Footer
+          const footY = TITLE_H + pageDevices.length * ROW_H
+          ctx.fillStyle = '#1e1e1e'
+          ctx.fillRect(0, footY, W, FOOT_H)
+          ctx.font = '12px Cairo, Arial, sans-serif'
+          ctx.fillStyle = '#555555'
+          ctx.textAlign = 'center'
+          ctx.fillText(
+            `${devices.length} جهاز متاح  •  ${today}  •  Team Store`,
+            W / 2, footY + 23,
+          )
+
+          canvas.toBlob(blob => {
+            if (!blob) { resolve(); return }
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = totalPages > 1
+              ? `list-${dateISO}-p${pageNum}.png`
+              : `list-${dateISO}.png`
+            a.click()
+            URL.revokeObjectURL(url)
+            resolve()
+          }, 'image/png')
         })
 
-        const price = d.expected_sale_price || d.final_sale_price
-        const priceText = price ? price.toLocaleString('en-US') : '—'
-        const modelText = [d.brand, d.model, d.technical_notes].filter(Boolean).join(' ')
+      for (let p = 0; p < totalPages; p++) {
+        await drawPage(devices.slice(p * ROWS_PER_PAGE, (p + 1) * ROWS_PER_PAGE), p + 1)
+        if (p < totalPages - 1) await new Promise(r => setTimeout(r, 300))
+      }
 
-        const textY = rowY + ROW_H / 2 + 5
-
-        ctx.font = '13px Cairo, Arial, sans-serif'
-        ctx.fillStyle = '#ffffff'
-
-        // Model (right-aligned)
-        ctx.textAlign = COL.model.align
-        ctx.fillText(modelText, COL.model.x, textY)
-
-        // Storage
-        ctx.textAlign = COL.storage.align
-        ctx.fillText(d.storage || '—', COL.storage.x, textY)
-
-        // Battery
-        ctx.textAlign = COL.battery.align
-        ctx.fillStyle = d.battery_health && d.battery_health >= 90 ? '#4ade80' :
-                         d.battery_health && d.battery_health >= 80 ? '#facc15' : '#f87171'
-        ctx.fillText(d.battery_health ? `${d.battery_health}%` : '—', COL.battery.x, textY)
-
-        // Color
-        ctx.textAlign = COL.color.align
-        ctx.fillStyle = '#ffffff'
-        ctx.fillText(d.color || '—', COL.color.x, textY)
-
-        // Price
-        ctx.textAlign = COL.price.align
-        ctx.fillStyle = '#fbbf24'
-        ctx.font = 'bold 13px Cairo, Arial, sans-serif'
-        ctx.fillText(priceText, COL.price.x, textY)
-      })
-
-      // Footer
-      const footY = TITLE_H + devices.length * ROW_H
-      ctx.fillStyle = '#1e1e1e'
-      ctx.fillRect(0, footY, W, FOOT_H)
-      ctx.font = '12px Cairo, Arial, sans-serif'
-      ctx.fillStyle = '#555555'
-      ctx.textAlign = 'center'
-      ctx.fillText(
-        `${devices.length} جهاز متاح  •  ${new Date().toLocaleDateString('en-US')}  •  Team Store`,
-        W / 2, footY + 23,
+      toast.success(
+        `تم تحميل الليسته (${devices.length} جهاز${totalPages > 1 ? ` - ${totalPages} صور` : ''})`
       )
-
-      // Download
-      canvas.toBlob(blob => {
-        if (!blob) return
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `list-${new Date().toISOString().split('T')[0]}.png`
-        a.click()
-        URL.revokeObjectURL(url)
-        toast.success(`تم تحميل الليسته (${devices.length} جهاز)`)
-      }, 'image/png')
 
     } catch (e: any) {
       toast.error(e.message || 'حدث خطأ أثناء إنشاء الليسته')
