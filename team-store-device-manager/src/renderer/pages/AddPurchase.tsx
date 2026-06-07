@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
-import { User, Smartphone, ShoppingCart, CheckCircle, AlertTriangle, QrCode } from 'lucide-react'
+import { User, Smartphone, ShoppingCart, CheckCircle, AlertTriangle, QrCode, Scan } from 'lucide-react'
 import SalespersonModal from '../components/SalespersonModal'
 import BoxScanner, { BoxScanResult } from '../components/BoxScanner'
+import ImeiScanner from '../components/ImeiScanner'
+import { DeviceLookupResult } from '../lib/deviceLookup'
 
 const CONDITIONS = [{ value: 'used', label: 'مستعمل' }, { value: 'new', label: 'جديد' }, { value: 'refurbished', label: 'مجدد' }]
 const PAYMENT_METHODS = [{ value: 'cash', label: 'نقد' }, { value: 'transfer', label: 'تحويل' }, { value: 'check', label: 'شيك' }, { value: 'other', label: 'أخرى' }]
@@ -22,7 +24,8 @@ export default function AddPurchase() {
   const [serialWarning, setSerialWarning] = useState('')
   const [imeiWarning, setImeiWarning] = useState('')
   const [salesperson, setSalesperson] = useState<{ id: number; name: string } | null | undefined>(undefined)
-  const [scannerOpen, setScannerOpen] = useState(false)
+  const [scannerOpen, setScannerOpen]         = useState(false)
+  const [imeiScannerOpen, setImeiScannerOpen] = useState(false)
 
   const [form, setForm] = useState({
     // Seller
@@ -56,6 +59,22 @@ export default function AddPurchase() {
   })
 
   const f = (k: string, v: string) => setForm((p) => ({ ...p, [k]: v }))
+
+  const handleImeiScanFill = (result: DeviceLookupResult, imei: string) => {
+    setImeiScannerOpen(false)
+    const updates: Record<string, string> = { imei1: imei }
+    if (result.brand)         updates.brand         = result.brand
+    if (result.model)         updates.model         = result.model
+    if (result.storage)       updates.storage       = result.storage
+    if (result.color)         updates.color         = result.color
+    if (result.serial_number) updates.serial_number = result.serial_number
+    setForm(p => ({ ...p, ...updates }))
+    if (result.found) {
+      toast.success('تم تعبئة بيانات الجهاز من الـ IMEI')
+    } else {
+      toast('تم قراءة IMEI، بعض البيانات تحتاج إدخال يدوي', { icon: 'ℹ️' })
+    }
+  }
 
   const handleScanResult = (data: BoxScanResult) => {
     setScannerOpen(false)
@@ -170,6 +189,9 @@ export default function AddPurchase() {
       {scannerOpen && (
         <BoxScanner onResult={handleScanResult} onClose={() => setScannerOpen(false)} />
       )}
+      {imeiScannerOpen && (
+        <ImeiScanner onFill={handleImeiScanFill} onClose={() => setImeiScannerOpen(false)} />
+      )}
 
       <div className="page-header">
         <div>
@@ -245,14 +267,25 @@ export default function AddPurchase() {
               <Smartphone className="w-4 h-4 text-brand-600" />
               بيانات الجهاز
             </h2>
-            <button
-              type="button"
-              onClick={() => setScannerOpen(true)}
-              className="btn-secondary btn-sm flex items-center gap-1.5 text-brand-700 border-brand-200 hover:bg-brand-50"
-            >
-              <QrCode className="w-3.5 h-3.5" />
-              سكان العلبة
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setImeiScannerOpen(true)}
+                className="btn-secondary btn-sm flex items-center gap-1.5 text-brand-700 border-brand-300 hover:bg-brand-50 font-semibold"
+              >
+                <Scan className="w-3.5 h-3.5" />
+                Scan IMEI
+              </button>
+              <button
+                type="button"
+                onClick={() => setScannerOpen(true)}
+                className="btn-secondary btn-sm flex items-center gap-1.5 text-slate-500 border-slate-200 hover:bg-slate-50 text-xs"
+                title="Camera OCR - Backup"
+              >
+                <QrCode className="w-3 h-3" />
+                Camera OCR
+              </button>
+            </div>
           </div>
           <div className="card-body space-y-4">
             <div className="form-grid-3">
