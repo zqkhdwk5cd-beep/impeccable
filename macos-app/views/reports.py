@@ -70,10 +70,10 @@ class ReportsView(QWidget):
         # KPI row
         kpi_row = QHBoxLayout()
         kpi_row.setSpacing(12)
-        self.kpi_revenue = self._kpi_card("إجمالي الإيرادات",  C["accent"])
-        self.kpi_cost    = self._kpi_card("إجمالي التكاليف",   C["blue"])
+        self.kpi_revenue = self._kpi_card("إجمالي الإيرادات",  C["accent_dark"])
+        self.kpi_cost    = self._kpi_card("إجمالي التكاليف",   C["ink"])
         self.kpi_profit  = self._kpi_card("صافي الربح",        C["amber"])
-        self.kpi_txn     = self._kpi_card("عدد المعاملات",     C["ink_3"])
+        self.kpi_txn     = self._kpi_card("عدد المعاملات",     C["ink"])
         for card in (self.kpi_revenue, self.kpi_cost, self.kpi_profit, self.kpi_txn):
             card.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
             kpi_row.addWidget(card)
@@ -122,19 +122,18 @@ class ReportsView(QWidget):
 
     # ── Helpers ───────────────────────────────────────────────────────────────
 
-    def _kpi_card(self, label: str, accent: str) -> QFrame:
+    def _kpi_card(self, label: str, value_color: str) -> QFrame:
         card = QFrame()
         card.setStyleSheet(
-            f"background:{C['card_bg']}; border:1px solid {C['border']}; border-radius:12px; "
-            f"border-top:3px solid {accent};"
+            f"background:{C['card_bg']}; border:1px solid {C['border']}; border-radius:10px;"
         )
         l = QVBoxLayout(card)
-        l.setContentsMargins(16, 14, 16, 14)
+        l.setContentsMargins(20, 18, 20, 18)
         l.setSpacing(4)
         lbl = QLabel(label)
         lbl.setStyleSheet(f"font-size:10px; font-weight:700; color:{C['ink_3']}; background:transparent;")
         val = QLabel("0 ج.م")
-        val.setStyleSheet(f"font-size:20px; font-weight:800; color:{C['ink']}; background:transparent;")
+        val.setStyleSheet(f"font-size:20px; font-weight:800; color:{value_color}; background:transparent;")
         val.setObjectName("kpi_val")
         l.addWidget(lbl)
         l.addWidget(val)

@@ -31,21 +31,22 @@ def _fmt(n: float) -> str:
 # ── KPI Card ─────────────────────────────────────────────────────────────────
 
 class KPICard(QFrame):
-    def __init__(self, label: str, accent: str = C["accent"]):
+    def __init__(self, label: str, value_color: str = None):
         super().__init__()
-        self._accent = accent
+        if value_color is None:
+            value_color = C["ink"]
         self.setStyleSheet(
-            f"background:{C['card_bg']}; border:2px solid {accent}; border-radius:12px;"
+            f"background:{C['card_bg']}; border:1px solid {C['border']}; border-radius:10px;"
         )
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(18, 16, 18, 16)
+        layout.setContentsMargins(20, 18, 20, 18)
         layout.setSpacing(4)
 
         self.label_l = QLabel(label)
         self.label_l.setStyleSheet(f"font-size:11px; font-weight:700; color:{C['ink_3']}; background:transparent;")
 
         self.value_l = QLabel("0")
-        self.value_l.setStyleSheet(f"font-size:22px; font-weight:800; color:{C['ink']}; background:transparent;")
+        self.value_l.setStyleSheet(f"font-size:22px; font-weight:800; color:{value_color}; background:transparent;")
 
         self.sub_l = QLabel("")
         self.sub_l.setStyleSheet(f"font-size:11px; color:{C['ink_3']}; background:transparent;")
@@ -119,8 +120,8 @@ class DashboardView(QWidget):
         # KPI row
         kpi_row = QHBoxLayout()
         kpi_row.setSpacing(14)
-        self.kpi_today   = KPICard("إجمالي المبيعات اليوم",  C["accent"])
-        self.kpi_month   = KPICard("مبيعات هذا الشهر",        C["blue"])
+        self.kpi_today   = KPICard("إجمالي المبيعات اليوم",  C["accent_dark"])
+        self.kpi_month   = KPICard("مبيعات هذا الشهر",        C["ink"])
         self.kpi_profit  = KPICard("صافي الربح هذا الشهر",   C["amber"])
         self.kpi_low     = KPICard("منتجات تحتاج تجديد",      C["red"])
         for card in (self.kpi_today, self.kpi_month, self.kpi_profit, self.kpi_low):
