@@ -150,7 +150,7 @@ export default function DevicesPage() {
 
             const price = d.expected_sale_price || d.final_sale_price
             const priceText = price ? price.toLocaleString('en-US') : '—'
-            const modelText = [d.brand, d.model, d.technical_notes].filter(Boolean).join(' ')
+            const modelText = [d.model, d.technical_notes].filter(Boolean).join(' ')
             const hasBox = d.box_status === 'with_box'
             const textY = rowY + ROW_H / 2 + 5
 

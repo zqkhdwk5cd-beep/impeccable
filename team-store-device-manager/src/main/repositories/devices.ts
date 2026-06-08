@@ -42,7 +42,15 @@ export function getAllDevices(filters?: {
   const items = db.prepare(`
     SELECT d.*, c.name as seller_name, c.phone as seller_phone, pt.purchase_date
     ${joins} ${where}
-    ORDER BY d.created_at DESC
+    ORDER BY
+      CAST(SUBSTR(d.model, INSTR(d.model, ' ') + 1) AS INTEGER) DESC,
+      CASE
+        WHEN d.model LIKE '%Pro Max%' THEN 3
+        WHEN d.model LIKE '%Pro%'     THEN 2
+        WHEN d.model LIKE '%Plus%'    THEN 1
+        ELSE 0
+      END DESC,
+      d.created_at DESC
     LIMIT ? OFFSET ?
   `).all(...params, limit, offset) as Device[]
 
