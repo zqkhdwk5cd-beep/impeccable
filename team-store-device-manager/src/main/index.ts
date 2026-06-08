@@ -11,8 +11,6 @@ let mainWindow: BrowserWindow | null = null
 // renderer = dist/renderer/index.html    → two levels up → ../../renderer/index.html
 // Enable native BarcodeDetector (Apple Vision on macOS)
 app.commandLine.appendSwitch('enable-features', 'ShapeDetection')
-// Workaround for V8 JIT crash on macOS 26 (Tahoe)
-app.commandLine.appendSwitch('js-flags', '--jitless')
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged
 const PRELOAD_PATH = path.join(__dirname, '../preload/index.js')
