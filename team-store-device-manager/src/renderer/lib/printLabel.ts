@@ -1,9 +1,9 @@
 import { api } from './api'
 
 const BOX_LABELS: Record<string, string> = {
-  with_box: 'Box',
-  without_box: 'بدون كرتون',
-  damaged_box: 'كرتون تالف',
+  with_box:     'Box',
+  without_box:  '',
+  damaged_box:  '',
 }
 
 export interface LabelConfig {
