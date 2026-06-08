@@ -29,7 +29,7 @@ export default function Sidebar({ open, onToggle }: Props) {
 
   return (
     <aside
-      className={`flex flex-col bg-slate-900 text-white transition-all duration-300 ${open ? 'w-64' : 'w-16'} flex-shrink-0`}
+      className={`flex flex-col h-full bg-slate-900 text-white transition-all duration-300 ${open ? 'w-64' : 'w-16'} flex-shrink-0`}
     >
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-5 border-b border-slate-700">
