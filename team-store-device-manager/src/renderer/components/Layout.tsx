@@ -12,7 +12,7 @@ export default function Layout({ children }: Props) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-100">
-      <div className="print-app-shell">
+      <div className="print-app-shell h-full flex flex-col">
         <Sidebar open={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
       </div>
       <div className="flex flex-col flex-1 overflow-hidden">
