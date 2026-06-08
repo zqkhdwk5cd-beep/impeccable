@@ -57,7 +57,7 @@
   },
   "build": {
     "appId": "com.teamstore.devicemanager",
-    "productName": "System Team Store",
+    "productName": "سيستم أجهزه",
     "asar": true,
     "asarUnpack": [
       "**/*.node",
@@ -112,7 +112,7 @@
       "shortcutName": "Team Store Device Manager"
     },
     "dmg": {
-      "title": "${productName} ${version}",
+      "title": "سيستم أجهزه",
       "iconSize": 100,
       "contents": [
         { "x": 380, "y": 250, "type": "link", "path": "/Applications" },
