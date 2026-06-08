@@ -1,0 +1,123 @@
+{
+  "name": "team-store-device-manager",
+  "version": "1.0.0",
+  "description": "Team Store - نظام إدارة أجهزة iPhone",
+  "main": "dist/main/main/index.js",
+  "scripts": {
+    "dev": "npm run build:main && concurrently -k -n VITE,ELECTRON -c yellow,cyan \"npm run dev:vite\" \"npm run dev:electron\"",
+    "dev:vite": "vite --config vite.renderer.config.ts",
+    "dev:electron": "wait-on tcp:5173 && cross-env NODE_ENV=development electron .",
+    "dev:main-watch": "tsc -p tsconfig.main.json --watch",
+    "build:main": "tsc -p tsconfig.main.json",
+    "build:renderer": "vite build --config vite.renderer.config.ts",
+    "build": "npm run build:renderer && npm run build:main",
+    "rebuild-native": "electron-rebuild -f -w better-sqlite3",
+    "dist": "npm run build && electron-builder --publish never",
+    "dist:mac": "npm run build && electron-builder --mac --publish never",
+    "dist:win": "npm run build && electron-builder --win --publish never",
+    "dist:linux": "npm run build && electron-builder --linux --publish never",
+    "pack": "npm run build && electron-builder --dir --publish never",
+    "postinstall": "electron-builder install-app-deps",
+    "desktop": "bash install-desktop.sh"
+  },
+  "keywords": [],
+  "author": "Team Store",
+  "license": "MIT",
+  "devDependencies": {
+    "@electron/rebuild": "^4.0.4",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/better-sqlite3": "^7.6.11",
+    "@types/node": "^20.11.5",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.17",
+    "concurrently": "^8.2.2",
+    "cross-env": "^10.1.0",
+    "electron": "^28.2.0",
+    "electron-builder": "^24.9.1",
+    "postcss": "^8.4.33",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.12",
+    "wait-on": "^9.0.10"
+  },
+  "dependencies": {
+    "@zxing/browser": "^0.1.4",
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^9.4.3",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.2",
+    "lucide-react": "^0.316.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.4.1",
+    "react-router-dom": "^6.21.3",
+    "xlsx": "^0.18.5"
+  },
+  "build": {
+    "appId": "com.teamstore.devicemanager",
+    "productName": "سيستم أجهزه",
+    "asar": true,
+    "asarUnpack": [
+      "**/*.node",
+      "node_modules/better-sqlite3/**/*"
+    ],
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "node_modules/**/*",
+      "package.json",
+      "!node_modules/.cache/**/*",
+      "!**/*.{map,ts,tsx}",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,example,examples}/**/*",
+      "!**/node_modules/.bin/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.business",
+      "target": [
+        { "target": "dmg", "arch": ["x64", "arm64"] },
+        { "target": "zip", "arch": ["x64", "arm64"] }
+      ],
+      "darkModeSupport": true,
+      "identity": null,
+      "extendInfo": {
+        "NSCameraUsageDescription": "يستخدم التطبيق الكاميرا لمسح باركود علبة الأيفون",
+        "NSMicrophoneUsageDescription": "لا يستخدم التطبيق الميكروفون"
+      }
+    },
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] }
+      ]
+    },
+    "linux": {
+      "target": [
+        { "target": "AppImage", "arch": ["x64"] },
+        { "target": "deb", "arch": ["x64"] }
+      ],
+      "category": "Office"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Team Store Device Manager"
+    },
+    "dmg": {
+      "title": "سيستم أجهزه",
+      "iconSize": 100,
+      "contents": [
+        { "x": 380, "y": 250, "type": "link", "path": "/Applications" },
+        { "x": 130, "y": 250, "type": "file" }
+      ]
+    }
+  }
+}
