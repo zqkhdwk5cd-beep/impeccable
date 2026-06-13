@@ -1,6 +1,7 @@
 import React from 'react'
 import { useAppStore } from '@/store/appStore'
 import { runWorkflow, pauseWorkflow, resumeWorkflow, stopWorkflow } from '@/engine/orchestrator'
+import { useTranslation } from '@/i18n/useTranslation'
 import { v4 as uuidv4 } from 'uuid'
 
 export function TopBar(): React.ReactElement {
@@ -11,9 +12,12 @@ export function TopBar(): React.ReactElement {
     setMode,
     projects,
     currentProjectId,
-    commandInput
+    commandInput,
+    language,
+    setLanguage
   } = useAppStore()
 
+  const { t, isAr } = useTranslation()
   const currentProject = projects.find((p) => p.id === currentProjectId)
 
   const handleRun = async () => {
@@ -23,42 +27,63 @@ export function TopBar(): React.ReactElement {
   }
 
   const handlePauseResume = () => {
-    if (isPaused) {
-      resumeWorkflow()
-    } else {
-      pauseWorkflow()
-    }
-  }
-
-  const handleStop = () => {
-    stopWorkflow()
+    if (isPaused) resumeWorkflow()
+    else pauseWorkflow()
   }
 
   const toggleMode = () => {
-    if (!isRunning) {
-      setMode(mode === 'mock' ? 'live' : 'mock')
-    }
+    if (!isRunning) setMode(mode === 'mock' ? 'live' : 'mock')
+  }
+
+  const toggleLanguage = () => {
+    setLanguage(language === 'en' ? 'ar' : 'en')
   }
 
   return (
-    <div className="topbar">
+    <div className="topbar" dir="ltr">
       <div className="topbar-logo">
         <div className="logo-icon">⚡</div>
-        <span>Omar AI Studio</span>
+        <span style={{ fontFamily: isAr ? 'var(--font-ar)' : 'var(--font-ui)' }}>
+          {isAr ? 'أوما AI استوديو' : 'Omar AI Studio'}
+        </span>
       </div>
 
       <div className="topbar-project">
-        {currentProject ? currentProject.name : 'No project selected'}
+        {currentProject
+          ? currentProject.name
+          : t.noProject}
       </div>
 
       <div
         className={`topbar-mode ${mode}`}
         onClick={toggleMode}
-        title={isRunning ? 'Cannot change mode while running' : 'Click to toggle mode'}
+        title={isRunning ? '' : 'Click to toggle mode'}
       >
         <div className="dot" />
-        {mode === 'mock' ? 'Mock Mode' : 'Live Mode'}
+        {mode === 'mock' ? t.mockMode : t.liveMode}
       </div>
+
+      {/* Language toggle */}
+      <button
+        onClick={toggleLanguage}
+        style={{
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-medium)',
+          borderRadius: 'var(--radius-sm)',
+          color: 'var(--text-secondary)',
+          padding: '4px 10px',
+          cursor: 'pointer',
+          fontSize: 12,
+          fontWeight: 600,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 5,
+          transition: 'all 0.15s ease'
+        }}
+        title="Toggle Arabic / English"
+      >
+        {language === 'en' ? '🇸🇦 ع' : '🇺🇸 EN'}
+      </button>
 
       <div className="topbar-controls">
         {isRunning && (
@@ -67,10 +92,10 @@ export function TopBar(): React.ReactElement {
               className={`btn ${isPaused ? 'btn-primary' : 'btn-warn'}`}
               onClick={handlePauseResume}
             >
-              {isPaused ? '▶ Resume' : '⏸ Pause'}
+              {isPaused ? t.resume : t.pause}
             </button>
-            <button className="btn btn-danger" onClick={handleStop}>
-              ⏹ Stop
+            <button className="btn btn-danger" onClick={stopWorkflow}>
+              {t.stop}
             </button>
           </>
         )}
@@ -81,7 +106,7 @@ export function TopBar(): React.ReactElement {
             onClick={handleRun}
             disabled={!commandInput.trim()}
           >
-            ▶ Run
+            {t.run}
           </button>
         )}
       </div>

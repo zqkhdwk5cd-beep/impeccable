@@ -7,7 +7,10 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
-    "package": "npm run build && electron-builder"
+    "package": "npm run build && electron-builder",
+    "package:mac": "npm run build && electron-builder --mac",
+    "package:win": "npm run build && electron-builder --win",
+    "package:linux": "npm run build && electron-builder --linux"
   },
   "keywords": ["ai", "agents", "studio", "electron", "creative"],
   "author": "Omar",
@@ -36,10 +39,35 @@
   "build": {
     "appId": "com.omar.ai-studio",
     "productName": "Omar AI Studio",
-    "directories": { "output": "dist" },
-    "files": ["out/**/*"],
-    "mac": { "target": "dmg" },
-    "win": { "target": "nsis" },
-    "linux": { "target": ["AppImage", "deb"] }
+    "copyright": "Copyright © 2026 Omar",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "out/**/*"
+    ],
+    "mac": {
+      "target": [
+        { "target": "dmg", "arch": ["arm64", "x64"] }
+      ],
+      "category": "public.app-category.productivity",
+      "darkModeSupport": true
+    },
+    "dmg": {
+      "title": "Omar AI Studio",
+      "backgroundColor": "#08080F",
+      "window": { "width": 600, "height": 400 }
+    },
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "Utility"
+    }
   }
 }

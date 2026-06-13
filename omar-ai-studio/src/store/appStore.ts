@@ -5,6 +5,7 @@ import type { AgentId, AgentConfig, AgentRuntimeState } from '@/types/agent'
 import type { Task } from '@/types/task'
 import type { Project, MemoryItem } from '@/types/project'
 import type { PromptPack, LogEntry, PermissionRequest } from '@/types/promptPack'
+import type { Language } from '@/i18n/translations'
 
 export type SidebarView = 'workspace' | 'memory' | 'packs' | 'agents' | 'settings'
 
@@ -57,6 +58,9 @@ interface AppStore {
   // Mode
   mode: 'mock' | 'live'
 
+  // Language
+  language: Language
+
   // UI
   activeView: SidebarView
   commandInput: string
@@ -82,6 +86,7 @@ interface AppStore {
   setIsRunning: (running: boolean) => void
   setIsPaused: (paused: boolean) => void
   setMode: (mode: 'mock' | 'live') => void
+  setLanguage: (lang: Language) => void
 
   addLog: (log: LogEntry) => void
   clearLogs: () => void
@@ -127,6 +132,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
   logs: [],
 
   mode: 'mock',
+
+  language: (storedData?.language ?? 'en') as Language,
 
   activeView: 'workspace',
   commandInput: '',
@@ -199,6 +206,11 @@ export const useAppStore = create<AppStore>((set, get) => ({
     persist(get())
   },
 
+  setLanguage: (language) => {
+    set({ language })
+    persist(get())
+  },
+
   addLog: (log) => {
     set((s) => ({
       logs: [...s.logs.slice(-499), log]
@@ -248,7 +260,8 @@ function persist(state: AppStore): void {
         projects: state.projects,
         currentProjectId: state.currentProjectId,
         promptPacks: state.promptPacks,
-        memoryItems: state.memoryItems
+        memoryItems: state.memoryItems,
+        language: state.language
       })
     )
   } catch {

@@ -1,21 +1,8 @@
 import React, { useState } from 'react'
 import { useAppStore } from '@/store/appStore'
 import type { SidebarView } from '@/store/appStore'
+import { useTranslation } from '@/i18n/useTranslation'
 import { v4 as uuidv4 } from 'uuid'
-
-interface NavItem {
-  view: SidebarView
-  icon: string
-  label: string
-}
-
-const NAV_ITEMS: NavItem[] = [
-  { view: 'workspace', icon: '⚡', label: 'Workspace' },
-  { view: 'memory', icon: '🧠', label: 'Memory' },
-  { view: 'packs', icon: '📦', label: 'Prompt Packs' },
-  { view: 'agents', icon: '🤖', label: 'Agents' },
-  { view: 'settings', icon: '⚙️', label: 'Settings' }
-]
 
 export function Sidebar(): React.ReactElement {
   const {
@@ -26,9 +13,18 @@ export function Sidebar(): React.ReactElement {
     setCurrentProject,
     addProject
   } = useAppStore()
+  const { t, isAr } = useTranslation()
 
   const [showNewProject, setShowNewProject] = useState(false)
   const [newProjectName, setNewProjectName] = useState('')
+
+  const NAV_ITEMS: { view: SidebarView; icon: string; label: string }[] = [
+    { view: 'workspace', icon: '⚡', label: t.workspace },
+    { view: 'memory',    icon: '🧠', label: t.memory },
+    { view: 'packs',     icon: '📦', label: t.promptPacks },
+    { view: 'agents',    icon: '🤖', label: t.agents },
+    { view: 'settings',  icon: '⚙️', label: t.settings }
+  ]
 
   const handleNewProject = () => {
     if (!newProjectName.trim()) return
@@ -49,7 +45,7 @@ export function Sidebar(): React.ReactElement {
   }
 
   return (
-    <div className="sidebar">
+    <div className="sidebar" dir={isAr ? 'rtl' : 'ltr'}>
       <nav className="sidebar-nav">
         {NAV_ITEMS.map((item) => (
           <div
@@ -58,14 +54,21 @@ export function Sidebar(): React.ReactElement {
             onClick={() => setActiveView(item.view)}
           >
             <span className="nav-icon">{item.icon}</span>
-            <span>{item.label}</span>
+            <span style={{ fontFamily: isAr ? 'var(--font-ar)' : 'var(--font-ui)' }}>
+              {item.label}
+            </span>
           </div>
         ))}
       </nav>
 
       <div className="divider" />
 
-      <div className="sidebar-section-title">Projects</div>
+      <div
+        className="sidebar-section-title"
+        style={{ fontFamily: isAr ? 'var(--font-ar)' : 'var(--font-ui)' }}
+      >
+        {t.projects}
+      </div>
 
       <div className="sidebar-projects">
         {projects.map((project) => (
@@ -90,13 +93,11 @@ export function Sidebar(): React.ReactElement {
               onChange={(e) => setNewProjectName(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleNewProject()
-                if (e.key === 'Escape') {
-                  setShowNewProject(false)
-                  setNewProjectName('')
-                }
+                if (e.key === 'Escape') { setShowNewProject(false); setNewProjectName('') }
               }}
-              placeholder="Project name..."
+              placeholder={t.projectName}
               autoFocus
+              dir={isAr ? 'rtl' : 'ltr'}
               style={{
                 background: 'var(--bg-input)',
                 border: '1px solid var(--border-medium)',
@@ -105,7 +106,8 @@ export function Sidebar(): React.ReactElement {
                 color: 'var(--text-primary)',
                 fontSize: 12,
                 outline: 'none',
-                width: '100%'
+                width: '100%',
+                fontFamily: isAr ? 'var(--font-ar)' : 'var(--font-ui)'
               }}
             />
             <div style={{ display: 'flex', gap: 6 }}>
@@ -114,23 +116,20 @@ export function Sidebar(): React.ReactElement {
                 style={{ flex: 1, fontSize: 11, padding: '5px 8px' }}
                 onClick={handleNewProject}
               >
-                Create
+                {t.create}
               </button>
               <button
                 className="btn btn-secondary"
                 style={{ fontSize: 11, padding: '5px 8px' }}
-                onClick={() => {
-                  setShowNewProject(false)
-                  setNewProjectName('')
-                }}
+                onClick={() => { setShowNewProject(false); setNewProjectName('') }}
               >
-                Cancel
+                {t.cancel}
               </button>
             </div>
           </div>
         ) : (
           <button className="new-project-btn" onClick={() => setShowNewProject(true)}>
-            + New Project
+            {t.newProject}
           </button>
         )}
       </div>
