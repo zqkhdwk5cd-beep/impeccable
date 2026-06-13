@@ -11,6 +11,10 @@ import type { Skill } from '@/types/skill'
 
 export type SidebarView = 'workspace' | 'memory' | 'packs' | 'agents' | 'settings' | 'coding' | 'skills'
 
+export type ActiveSection = 'studio' | 'coding'
+export type StudioView = 'overview' | 'chief' | 'story' | 'character' | 'image' | 'video' | 'research' | 'memory'
+export type CodingView = 'lab' | 'new-project' | 'skills' | 'history'
+
 function buildInitialAgentState(agentId: AgentId): AgentRuntimeState {
   return {
     agentId,
@@ -67,6 +71,11 @@ interface AppStore {
   activeView: SidebarView
   commandInput: string
 
+  // New section-based navigation
+  activeSection: ActiveSection
+  studioView: StudioView
+  codingView: CodingView
+
   // Memory
   memoryItems: MemoryItem[]
 
@@ -107,6 +116,11 @@ interface AppStore {
 
   setActiveView: (view: SidebarView) => void
   setCommandInput: (input: string) => void
+
+  // New section-based navigation actions
+  setActiveSection: (section: ActiveSection) => void
+  setStudioView: (view: StudioView) => void
+  setCodingView: (view: CodingView) => void
 
   addMemoryItem: (item: MemoryItem) => void
   deleteMemoryItem: (id: string) => void
@@ -150,6 +164,11 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
   activeView: 'workspace',
   commandInput: '',
+
+  // New section navigation — default to studio/overview
+  activeSection: 'studio',
+  studioView: 'overview',
+  codingView: 'lab',
 
   memoryItems: storedData?.memoryItems ?? [
     {
@@ -257,6 +276,10 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
   setActiveView: (view) => set({ activeView: view }),
   setCommandInput: (input) => set({ commandInput: input }),
+
+  setActiveSection: (section) => set({ activeSection: section }),
+  setStudioView: (view) => set({ studioView: view }),
+  setCodingView: (view) => set({ codingView: view }),
 
   addMemoryItem: (item) => {
     set((s) => ({ memoryItems: [...s.memoryItems, item] }))
