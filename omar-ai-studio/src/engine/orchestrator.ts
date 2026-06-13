@@ -321,6 +321,82 @@ export async function runWorkflow(request: string, projectId: string): Promise<v
   eventBus.emit('workflow:complete', { projectId, packId: pack.id })
 }
 
+export async function runSingleAgent(agentId: AgentId, request: string, projectId: string): Promise<void> {
+  const store = useAppStore.getState()
+
+  store.setIsRunning(true)
+  store.setIsPaused(false)
+  store.clearTasks()
+
+  const task: Task = {
+    id: uuidv4(),
+    agentId,
+    title: `${agentId.charAt(0).toUpperCase() + agentId.slice(1)} — Processing Request`,
+    description: request.substring(0, 80),
+    status: 'pending',
+    order: 1,
+    output: null,
+    error: null,
+    startedAt: null,
+    completedAt: null,
+    dependencies: [],
+    progress: 0
+  }
+
+  store.addTask(task)
+  store.updateTask(task.id, { status: 'running', startedAt: Date.now() })
+  store.updateAgentState(agentId, { status: 'thinking', currentTask: task.title, progress: 0, lastAction: 'Starting...' })
+  store.addLog({
+    id: uuidv4(),
+    timestamp: Date.now(),
+    level: 'info',
+    agentId,
+    message: `[${agentId.toUpperCase()}] Single agent run: ${request.substring(0, 50)}`,
+    details: null
+  })
+
+  try {
+    const output = await runMockTask(task, (progress) => {
+      store.updateTask(task.id, { progress })
+      store.updateAgentState(agentId, { progress })
+    })
+
+    const completedAt = Date.now()
+    store.updateTask(task.id, { status: 'completed', output, progress: 100, completedAt })
+    store.updateAgentState(agentId, {
+      status: 'done',
+      currentTask: null,
+      progress: 100,
+      lastAction: 'Completed',
+      output,
+      completedAt
+    })
+    store.addLog({
+      id: uuidv4(),
+      timestamp: Date.now(),
+      level: 'success',
+      agentId,
+      message: `[${agentId.toUpperCase()}] ✓ Completed`,
+      details: null
+    })
+  } catch (err) {
+    const errorMessage = (err as Error).message
+    store.updateTask(task.id, { status: 'failed', error: errorMessage })
+    store.updateAgentState(agentId, { status: 'error', error: errorMessage, currentTask: null })
+    store.addLog({
+      id: uuidv4(),
+      timestamp: Date.now(),
+      level: 'error',
+      agentId,
+      message: `[${agentId.toUpperCase()}] ✗ Failed`,
+      details: errorMessage
+    })
+  }
+
+  store.setIsRunning(false)
+  store.updateAgentState(agentId, { status: 'idle', currentTask: null, progress: 0, lastAction: 'Ready' })
+}
+
 export function pauseWorkflow(): void {
   taskQueue.pause()
   useAppStore.getState().setIsPaused(true)

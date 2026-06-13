@@ -153,7 +153,48 @@ export const translations = {
     skillEnabled: 'Enabled',
     skillDisabled: 'Disabled',
     resetToDefault: 'Reset',
-    selectProjectFirst: 'Select a project folder first'
+    selectProjectFirst: 'Select a project folder first',
+
+    // Sections
+    studio: '🎬 Studio',
+    codingLab: '💻 Coding Lab',
+
+    // Studio views
+    overview: 'Overview',
+    allAgents: 'All Agents',
+    runFullWorkflow: 'Run Full Workflow',
+    runThisAgent: 'Run Agent',
+
+    // Studio agent workspace descriptions
+    chiefDesc: 'Orchestrate the full creative workflow',
+    storyDesc: 'Write cinematic stories and scene structures',
+    characterDesc: 'Build detailed character bibles',
+    imageDesc: 'Generate Flux and ComfyUI image prompts',
+    videoDesc: 'Generate Kling, Runway, and Veo video prompts',
+    researchDesc: 'Research tools, trends, and creative references',
+    memoryDesc2: 'View and manage your project memory',
+
+    // Coding Lab views
+    reviewProject: 'Review Project',
+    newProject: 'New Project',
+    projectHistory: 'History',
+
+    // New Project Wizard
+    chooseTemplate: 'Choose Template',
+    projectDetails: 'Project Details',
+    creating: 'Creating...',
+    projectCreated: 'Project Created!',
+    projectName2: 'Project Name',
+    saveLocation: 'Save Location',
+    browse: 'Browse',
+    features: 'Features',
+    createProject: '✨ Create Project',
+    openInFinder: '📁 Open in Finder',
+    reviewCode: '🔍 Review Code',
+    startNew: '→ Start New',
+    filesCreated: 'files created',
+    generatingFiles: 'Generating files...',
+    writingFiles: 'Writing to disk...'
   },
 
   ar: {
@@ -308,7 +349,48 @@ export const translations = {
     skillEnabled: 'مفعّل',
     skillDisabled: 'معطّل',
     resetToDefault: 'إعادة تعيين',
-    selectProjectFirst: 'اختر فولدر مشروع أولاً'
+    selectProjectFirst: 'اختر فولدر مشروع أولاً',
+
+    // Sections
+    studio: '🎬 الاستوديو',
+    codingLab: '💻 مختبر البرمجة',
+
+    // Studio views
+    overview: 'نظرة عامة',
+    allAgents: 'كل العملاء',
+    runFullWorkflow: 'تشغيل كل العملاء',
+    runThisAgent: 'تشغيل العميل',
+
+    // Studio agent workspace descriptions
+    chiefDesc: 'تنسيق سير العمل الإبداعي الكامل',
+    storyDesc: 'كتابة القصص وهياكل المشاهد السينمائية',
+    characterDesc: 'بناء ملفات الشخصيات بالتفصيل',
+    imageDesc: 'توليد بروميبتات Flux و ComfyUI',
+    videoDesc: 'توليد بروميبتات Kling و Runway و Veo',
+    researchDesc: 'بحث في الأدوات والاتجاهات والمراجع الإبداعية',
+    memoryDesc2: 'عرض وإدارة ذاكرة مشاريعك',
+
+    // Coding Lab views
+    reviewProject: 'مراجعة مشروع',
+    newProject: 'مشروع جديد',
+    projectHistory: 'السجل',
+
+    // New Project Wizard
+    chooseTemplate: 'اختر قالب',
+    projectDetails: 'تفاصيل المشروع',
+    creating: 'جارٍ الإنشاء...',
+    projectCreated: 'تم إنشاء المشروع!',
+    projectName2: 'اسم المشروع',
+    saveLocation: 'مكان الحفظ',
+    browse: 'تصفح',
+    features: 'المميزات',
+    createProject: '✨ إنشاء المشروع',
+    openInFinder: '📁 فتح في Finder',
+    reviewCode: '🔍 مراجعة الكود',
+    startNew: '→ بدء مشروع جديد',
+    filesCreated: 'ملف تم إنشاؤه',
+    generatingFiles: 'جارٍ توليد الملفات...',
+    writingFiles: 'جارٍ الكتابة على القرص...'
   }
 }
 

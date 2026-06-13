@@ -1,5 +1,6 @@
 import React from 'react'
 import { useAppStore } from '@/store/appStore'
+import type { ActiveSection } from '@/store/appStore'
 import { runWorkflow, pauseWorkflow, resumeWorkflow, stopWorkflow } from '@/engine/orchestrator'
 import { useTranslation } from '@/i18n/useTranslation'
 import { v4 as uuidv4 } from 'uuid'
@@ -10,15 +11,15 @@ export function TopBar(): React.ReactElement {
     isPaused,
     mode,
     setMode,
-    projects,
     currentProjectId,
     commandInput,
     language,
-    setLanguage
+    setLanguage,
+    activeSection,
+    setActiveSection
   } = useAppStore()
 
   const { t, isAr } = useTranslation()
-  const currentProject = projects.find((p) => p.id === currentProjectId)
 
   const handleRun = async () => {
     if (!commandInput.trim()) return
@@ -39,6 +40,11 @@ export function TopBar(): React.ReactElement {
     setLanguage(language === 'en' ? 'ar' : 'en')
   }
 
+  const SECTIONS: { id: ActiveSection; label: string }[] = [
+    { id: 'studio', label: t.studio || '🎬 Studio' },
+    { id: 'coding', label: t.codingLab || '💻 Coding Lab' }
+  ]
+
   return (
     <div className="topbar" dir="ltr">
       <div className="topbar-logo">
@@ -48,10 +54,37 @@ export function TopBar(): React.ReactElement {
         </span>
       </div>
 
-      <div className="topbar-project">
-        {currentProject
-          ? currentProject.name
-          : t.noProject}
+      {/* Section switcher — center */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 4,
+        background: 'var(--bg-primary)',
+        border: '1px solid var(--border-subtle)',
+        borderRadius: 'var(--radius-md)',
+        padding: 3
+      }}>
+        {SECTIONS.map((sec) => (
+          <button
+            key={sec.id}
+            onClick={() => setActiveSection(sec.id)}
+            style={{
+              background: activeSection === sec.id ? 'var(--bg-card)' : 'transparent',
+              border: activeSection === sec.id ? '1px solid var(--border-medium)' : '1px solid transparent',
+              borderRadius: 'var(--radius-sm)',
+              color: activeSection === sec.id ? 'var(--text-primary)' : 'var(--text-muted)',
+              padding: '4px 14px',
+              cursor: 'pointer',
+              fontSize: 12,
+              fontWeight: activeSection === sec.id ? 600 : 400,
+              fontFamily: isAr ? 'var(--font-ar)' : 'var(--font-ui)',
+              transition: 'all 0.15s ease',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {sec.label}
+          </button>
+        ))}
       </div>
 
       <div
@@ -86,7 +119,8 @@ export function TopBar(): React.ReactElement {
       </button>
 
       <div className="topbar-controls">
-        {isRunning && (
+        {/* Only show pause/stop controls in Studio section */}
+        {activeSection === 'studio' && isRunning && (
           <>
             <button
               className={`btn ${isPaused ? 'btn-primary' : 'btn-warn'}`}
@@ -100,7 +134,7 @@ export function TopBar(): React.ReactElement {
           </>
         )}
 
-        {!isRunning && (
+        {activeSection === 'studio' && !isRunning && (
           <button
             className="btn btn-primary"
             onClick={handleRun}

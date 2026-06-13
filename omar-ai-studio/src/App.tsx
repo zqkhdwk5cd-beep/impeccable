@@ -1,142 +1,30 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import './styles/globals.css'
 
 import { useAppStore } from './store/appStore'
 import { useTranslation } from './i18n/useTranslation'
-import { runWorkflow } from './engine/orchestrator'
-import { v4 as uuidv4 } from 'uuid'
 
 import { TopBar } from './components/TopBar'
 import { Sidebar } from './components/Sidebar'
 import { AgentsPanel } from './components/AgentCard'
-import { WorkflowTimeline } from './components/WorkflowTimeline'
 import { ConsoleLog } from './components/ConsoleLog'
-import { OutputPreview } from './components/OutputPreview'
 import { AgentSettings } from './components/AgentSettings'
 import { MemoryView } from './components/MemoryView'
 import { PromptPacksView } from './components/PromptPacksView'
 import { PermissionLayer } from './components/PermissionModal'
-import { CodingWorkspace } from './components/CodingWorkspace'
 import { SkillsView } from './components/SkillsView'
 
-const COMMAND_EXAMPLES_AR = [
-  'اعمل حلقة جديدة للأرنب Hopper مدتها 15 ثانية',
-  'اعمل قصة لشخصية تتعلم الطبخ بأسلوب Pixar',
-  'اكتب سيناريو لمغامرة في الفضاء مدتها 30 ثانية',
-  'اعمل بروميبتات لمقطع تعليمي للأطفال'
-]
+// Studio
+import { OverviewWorkspace } from './components/studio/OverviewWorkspace'
+import { AgentWorkspace } from './components/studio/AgentWorkspace'
 
-const COMMAND_EXAMPLES_EN = [
-  'Create 3 scene prompts for a fantasy adventure',
-  'Write a story about a robot learning to paint',
-  'Make a 15-second episode with character Hopper',
-  'Create video prompts for a nature documentary'
-]
+// Coding
+import { CodingWorkspace } from './components/CodingWorkspace'
+import { CreateProjectWizard } from './components/coding/CreateProjectWizard'
+import { ProjectHistoryView } from './components/coding/ProjectHistoryView'
 
-type WorkspaceTab = 'workflow' | 'output'
-
-function Workspace(): React.ReactElement {
-  const {
-    commandInput,
-    setCommandInput,
-    isRunning,
-    currentProjectId,
-    tasks,
-    currentOutput
-  } = useAppStore()
-  const { t, isAr } = useTranslation()
-
-  const [workspaceTab, setWorkspaceTab] = useState<WorkspaceTab>('workflow')
-
-  const examples = isAr ? COMMAND_EXAMPLES_AR : COMMAND_EXAMPLES_EN
-
-  const handleRun = async () => {
-    if (!commandInput.trim() || isRunning) return
-    const projectId = currentProjectId || uuidv4()
-    setWorkspaceTab('workflow')
-    await runWorkflow(commandInput.trim(), projectId)
-    setWorkspaceTab('output')
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-      e.preventDefault()
-      handleRun()
-    }
-  }
-
-  const isInputRTL = (text: string): boolean => /[؀-ۿ]/.test(text.slice(0, 10))
-
-  return (
-    <div className="workspace" dir={isAr ? 'rtl' : 'ltr'}>
-      <div className="command-section">
-        <div className="command-input-wrapper">
-          <textarea
-            className="command-input"
-            value={commandInput}
-            onChange={(e) => setCommandInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={t.enterCommand}
-            disabled={isRunning}
-            dir={isInputRTL(commandInput) ? 'rtl' : 'ltr'}
-            style={{
-              fontFamily: isInputRTL(commandInput) ? 'var(--font-ar)' : 'var(--font-ui)',
-              textAlign: isInputRTL(commandInput) ? 'right' : 'left'
-            }}
-          />
-          <button
-            className="command-run-btn"
-            onClick={handleRun}
-            disabled={isRunning || !commandInput.trim()}
-            style={{ fontFamily: isAr ? 'var(--font-ar)' : 'var(--font-ui)' }}
-          >
-            {isRunning ? (
-              <>
-                <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block' }}>⟳</span>
-                {t.running}
-              </>
-            ) : t.run}
-          </button>
-        </div>
-
-        <div className="command-examples">
-          {examples.map((ex) => (
-            <div
-              key={ex}
-              className="command-example"
-              onClick={() => !isRunning && setCommandInput(ex)}
-              dir={isInputRTL(ex) ? 'rtl' : 'ltr'}
-              style={{ fontFamily: isInputRTL(ex) ? 'var(--font-ar)' : 'var(--font-ui)' }}
-            >
-              {ex.length > 42 ? ex.substring(0, 42) + '...' : ex}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-        <div
-          className={`output-tab ${workspaceTab === 'workflow' ? 'active' : ''}`}
-          onClick={() => setWorkspaceTab('workflow')}
-          style={{ cursor: 'pointer', padding: '6px 12px', borderBottom: 'none', fontFamily: isAr ? 'var(--font-ar)' : 'var(--font-ui)' }}
-        >
-          ⟳ {t.workflow} {tasks.length > 0 && `(${tasks.filter((t) => t.status === 'completed').length}/${tasks.length})`}
-        </div>
-        <div
-          className={`output-tab ${workspaceTab === 'output' ? 'active' : ''}`}
-          onClick={() => setWorkspaceTab('output')}
-          style={{ cursor: 'pointer', padding: '6px 12px', borderBottom: 'none', fontFamily: isAr ? 'var(--font-ar)' : 'var(--font-ui)' }}
-        >
-          📦 {t.output} {currentOutput ? '●' : ''}
-        </div>
-      </div>
-
-      <div className="workflow-section">
-        {workspaceTab === 'workflow' ? <WorkflowTimeline /> : <OutputPreview />}
-      </div>
-    </div>
-  )
-}
+import type { StudioView } from './store/appStore'
+import type { AgentId } from './types/agent'
 
 function SettingsSection(): React.ReactElement {
   const { mode, setMode, language, setLanguage } = useAppStore()
@@ -238,7 +126,7 @@ function SettingsSection(): React.ReactElement {
 }
 
 export function App(): React.ReactElement {
-  const activeView = useAppStore((s) => s.activeView)
+  const { activeSection, studioView, codingView, activeView } = useAppStore()
   const { isAr } = useTranslation()
 
   // Apply RTL direction to document root
@@ -249,49 +137,46 @@ export function App(): React.ReactElement {
 
   const { t } = useTranslation()
 
-  const renderMain = () => {
-    switch (activeView) {
-      case 'workspace':
-        return <Workspace />
+  const renderStudio = () => {
+    if (studioView === 'overview') {
+      return <OverviewWorkspace />
+    }
+    // Agent workspaces for the 7 creative agents
+    const studioAgentViews: StudioView[] = ['chief', 'story', 'character', 'image', 'video', 'research', 'memory']
+    if (studioAgentViews.includes(studioView)) {
+      return <AgentWorkspace agentId={studioView as Exclude<AgentId, 'coding'>} />
+    }
+    // Legacy views accessible via old activeView system (memory, packs, agents, settings)
+    return <OverviewWorkspace />
+  }
 
-      case 'memory':
-        return (
-          <div style={{ gridArea: 'workspace', overflow: 'hidden', display: 'flex', flexDirection: 'column' }} dir={isAr ? 'rtl' : 'ltr'}>
-            <MemoryView />
-          </div>
-        )
-
-      case 'packs':
-        return (
-          <div style={{ gridArea: 'workspace', overflow: 'hidden', display: 'flex', flexDirection: 'column' }} dir={isAr ? 'rtl' : 'ltr'}>
-            <PromptPacksView />
-          </div>
-        )
-
-      case 'agents':
-        return (
-          <div style={{ gridArea: 'workspace', overflow: 'hidden', display: 'flex', flexDirection: 'column' }} dir={isAr ? 'rtl' : 'ltr'}>
-            <AgentSettings />
-          </div>
-        )
-
-      case 'coding':
-        return (
-          <div style={{ gridArea: 'workspace', overflow: 'hidden', display: 'flex', flexDirection: 'column' }} dir={isAr ? 'rtl' : 'ltr'}>
-            <CodingWorkspace />
-          </div>
-        )
-
+  const renderCoding = () => {
+    switch (codingView) {
+      case 'lab':
+        return <CodingWorkspace />
+      case 'new-project':
+        return <CreateProjectWizard />
       case 'skills':
-        return (
-          <div style={{ gridArea: 'workspace', overflow: 'hidden', display: 'flex', flexDirection: 'column' }} dir={isAr ? 'rtl' : 'ltr'}>
-            <SkillsView />
-          </div>
-        )
+        return <SkillsView />
+      case 'history':
+        return <ProjectHistoryView />
+      default:
+        return <CodingWorkspace />
+    }
+  }
 
+  // Studio section also handles legacy activeView-based views for backward compatibility
+  const renderStudioWithLegacy = () => {
+    switch (activeView) {
+      case 'memory':
+        return <MemoryView />
+      case 'packs':
+        return <PromptPacksView />
+      case 'agents':
+        return <AgentSettings />
       case 'settings':
         return (
-          <div style={{ gridArea: 'workspace', overflow: 'auto', display: 'flex', flexDirection: 'column', padding: 24, gap: 20 }} dir={isAr ? 'rtl' : 'ltr'}>
+          <div style={{ overflow: 'auto', display: 'flex', flexDirection: 'column', padding: 24, gap: 20, height: '100%' }}>
             <div>
               <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4, fontFamily: isAr ? 'var(--font-ar)' : 'var(--font-ui)' }}>
                 {t.settingsTitle}
@@ -303,9 +188,8 @@ export function App(): React.ReactElement {
             <SettingsSection />
           </div>
         )
-
       default:
-        return <Workspace />
+        return renderStudio()
     }
   }
 
@@ -313,8 +197,14 @@ export function App(): React.ReactElement {
     <div className="app-layout">
       <TopBar />
       <Sidebar />
-      {renderMain()}
-      <AgentsPanel />
+      <div
+        style={{ gridArea: 'workspace', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+        dir={isAr ? 'rtl' : 'ltr'}
+      >
+        {activeSection === 'studio' ? renderStudioWithLegacy() : renderCoding()}
+      </div>
+      {/* AgentsPanel only in Studio section */}
+      {activeSection === 'studio' ? <AgentsPanel /> : <div style={{ gridArea: 'agents' }} />}
       <ConsoleLog />
       <PermissionLayer />
     </div>
