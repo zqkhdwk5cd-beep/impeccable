@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { eventBus } from './eventBus'
 import { taskQueue } from './taskQueue'
 import { runMockTask } from './mockRunner'
+import { matchSkills } from './skillMatcher'
 import { useAppStore } from '@/store/appStore'
 import type { Task } from '@/types/task'
 import type { AgentId } from '@/types/agent'
@@ -169,6 +170,24 @@ export async function runWorkflow(request: string, projectId: string): Promise<v
   store.setIsPaused(false)
   store.clearTasks()
 
+  // Run skill matching for coding requests
+  if (isCodingRequest(request)) {
+    const allSkills = useAppStore.getState().skills
+    const matchResult = matchSkills(request, allSkills)
+    useAppStore.getState().setLastSkillMatch(matchResult)
+
+    if (matchResult.matchedSkills.length > 0) {
+      store.addLog({
+        id: uuidv4(),
+        timestamp: Date.now(),
+        level: 'info',
+        agentId: 'coding',
+        message: `[SKILLS] ${matchResult.matchedSkills.length} skills activated: ${matchResult.matchedSkills.map(s => s.name).join(', ')}`,
+        details: matchResult.composedPrompt
+      })
+    }
+  }
+
   const tasks = isCodingRequest(request)
     ? buildCodingTaskPlan(request)
     : buildTaskPlan(request, projectId)
@@ -327,6 +346,24 @@ export async function runSingleAgent(agentId: AgentId, request: string, projectI
   store.setIsRunning(true)
   store.setIsPaused(false)
   store.clearTasks()
+
+  // Run skill matching for coding agent
+  if (agentId === 'coding') {
+    const allSkills = useAppStore.getState().skills
+    const matchResult = matchSkills(request, allSkills)
+    useAppStore.getState().setLastSkillMatch(matchResult)
+
+    if (matchResult.matchedSkills.length > 0) {
+      store.addLog({
+        id: uuidv4(),
+        timestamp: Date.now(),
+        level: 'info',
+        agentId: 'coding',
+        message: `[SKILLS] ${matchResult.matchedSkills.length} skills activated: ${matchResult.matchedSkills.map(s => s.name).join(', ')}`,
+        details: matchResult.composedPrompt
+      })
+    }
+  }
 
   const task: Task = {
     id: uuidv4(),

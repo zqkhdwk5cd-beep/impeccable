@@ -75,6 +75,7 @@ interface OutputPreviewProps {
 function PackView({ pack }: OutputPreviewProps): React.ReactElement {
   const isCodingPack = !!pack.codingOutput && !pack.storyOutput
   const [activeTab, setActiveTab] = useState<Tab>(isCodingPack ? 'code' : 'story')
+  const lastSkillMatch = useAppStore((s) => s.lastSkillMatch)
 
   const tabs: { id: Tab; label: string; available: boolean }[] = isCodingPack
     ? [
@@ -119,6 +120,28 @@ function PackView({ pack }: OutputPreviewProps): React.ReactElement {
         return pack.codingOutput
           ? (
             <div>
+              {lastSkillMatch && lastSkillMatch.matchedSkills.length > 0 && (
+                <div style={{ marginBottom: 12, padding: '8px 12px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
+                    Activated Skills ({lastSkillMatch.matchedSkills.length})
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                    {lastSkillMatch.matchedSkills.map(skill => (
+                      <span key={skill.id} style={{
+                        background: `${skill.color}15`,
+                        border: `1px solid ${skill.color}30`,
+                        color: skill.color,
+                        borderRadius: 10,
+                        padding: '2px 8px',
+                        fontSize: 10,
+                        fontWeight: 600
+                      }}>
+                        {skill.icon} {skill.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, padding: '8px 12px', background: 'rgba(67,217,173,0.06)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(67,217,173,0.15)' }}>
                 <span style={{ fontSize: 16 }}>💻</span>
                 <span style={{ fontSize: 11, color: '#43D9AD', fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Coding Agent Report</span>

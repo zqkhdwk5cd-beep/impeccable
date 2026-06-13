@@ -1,7 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAppStore } from '@/store/appStore'
 import { useTranslation } from '@/i18n/useTranslation'
 import { runWorkflow } from '@/engine/orchestrator'
+import { matchSkills } from '@/engine/skillMatcher'
+import type { Skill } from '@/types/skill'
 import { v4 as uuidv4 } from 'uuid'
 
 const CODING_EXAMPLES_AR = [
@@ -77,14 +79,30 @@ export function CodingWorkspace(): React.ReactElement {
     updateSkill,
     isRunning,
     currentProjectId,
-    currentOutput
+    currentOutput,
+    lastSkillMatch
   } = useAppStore()
   const { t, isAr } = useTranslation()
 
   const [codingInput, setCodingInput] = useState('')
   const [fileCount, setFileCount] = useState<number | null>(null)
+  const [activatedSkills, setActivatedSkills] = useState<Skill[]>([])
+  const [devPanelOpen, setDevPanelOpen] = useState(false)
 
   const fontUi = isAr ? 'var(--font-ar)' : 'var(--font-ui)'
+
+  // Debounced skill preview as user types
+  useEffect(() => {
+    if (!codingInput.trim()) {
+      setActivatedSkills([])
+      return
+    }
+    const timer = setTimeout(() => {
+      const result = matchSkills(codingInput, skills)
+      setActivatedSkills(result.matchedSkills)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [codingInput, skills])
 
   const codingAgent = agents.find((a) => a.id === 'coding')
   const codingState = agentStates['coding']
@@ -321,6 +339,32 @@ export function CodingWorkspace(): React.ReactElement {
             </div>
           ))}
         </div>
+
+        {/* Activated skills banner */}
+        {activatedSkills.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8, alignItems: 'center' }}>
+            <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: fontUi, marginRight: 2 }}>
+              {t.activatedSkills || 'Skills'}:
+            </span>
+            {activatedSkills.map(skill => (
+              <span
+                key={skill.id}
+                style={{
+                  background: `${skill.color}18`,
+                  border: `1px solid ${skill.color}40`,
+                  color: skill.color,
+                  borderRadius: 12,
+                  padding: '2px 8px',
+                  fontSize: 10,
+                  fontWeight: 600,
+                  fontFamily: fontUi
+                }}
+              >
+                {skill.icon} {skill.name}
+              </span>
+            ))}
+          </div>
+        )}
 
         {!codingProjectPath && (
           <div style={{ marginTop: 8, fontSize: 11, color: 'rgba(255,107,107,0.8)', fontFamily: fontUi }}>
@@ -575,6 +619,86 @@ export function CodingWorkspace(): React.ReactElement {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Developer Panel */}
+      <div style={{
+        borderTop: '1px solid var(--border-subtle)',
+        background: 'var(--bg-secondary)',
+        flexShrink: 0
+      }}>
+        <button
+          onClick={() => setDevPanelOpen(o => !o)}
+          style={{
+            width: '100%',
+            padding: '8px 16px',
+            background: 'transparent',
+            border: 'none',
+            textAlign: 'left',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            fontFamily: fontUi,
+            fontSize: 11,
+            color: 'var(--text-muted)',
+            transition: 'color 0.12s ease'
+          }}
+        >
+          <span>{devPanelOpen ? '▼' : '▶'}</span>
+          <span>{t.developerPanel || '🛠️ Developer Panel'}</span>
+          {lastSkillMatch && lastSkillMatch.matchedSkills.length > 0 && (
+            <span style={{
+              marginLeft: 'auto',
+              fontSize: 10,
+              background: 'rgba(162,155,254,0.15)',
+              border: '1px solid rgba(162,155,254,0.3)',
+              color: '#A29BFE',
+              borderRadius: 8,
+              padding: '1px 6px',
+              fontWeight: 600
+            }}>
+              {lastSkillMatch.matchedSkills.length} {t.activatedSkills || 'skills active'}
+            </span>
+          )}
+        </button>
+        {devPanelOpen && (
+          <div style={{ padding: '0 16px 12px', maxHeight: 260, overflow: 'auto' }}>
+            <div style={{
+              fontSize: 10,
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              color: 'var(--text-muted)',
+              marginBottom: 8,
+              fontFamily: fontUi
+            }}>
+              {t.composedPrompt || 'Composed Runtime Prompt'}
+            </div>
+            {lastSkillMatch && lastSkillMatch.composedPrompt ? (
+              <pre style={{
+                background: 'var(--bg-primary)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-sm)',
+                padding: 10,
+                fontSize: 10,
+                color: 'var(--text-secondary)',
+                lineHeight: 1.6,
+                overflow: 'auto',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+                fontFamily: 'monospace',
+                margin: 0
+              }}>
+                {lastSkillMatch.composedPrompt}
+              </pre>
+            ) : (
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: fontUi, fontStyle: 'italic' }}>
+                {t.noSkillsActivated || 'No skills activated for this request'}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

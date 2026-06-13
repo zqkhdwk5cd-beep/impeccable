@@ -194,7 +194,21 @@ export const translations = {
     startNew: '→ Start New',
     filesCreated: 'files created',
     generatingFiles: 'Generating files...',
-    writingFiles: 'Writing to disk...'
+    writingFiles: 'Writing to disk...',
+
+    // Skills UI
+    skillSearch: 'Search skills...',
+    builtInPacks: 'Built-in Packs',
+    allCategories: 'All',
+    importSkills: 'Import',
+    exportSkills: 'Export',
+    priority: 'Priority',
+    exampleRequests: 'Example Requests',
+    activatedSkills: 'Activated Skills',
+    developerPanel: '🛠️ Developer Panel',
+    composedPrompt: 'Composed Runtime Prompt',
+    noSkillsActivated: 'No skills activated for this request',
+    skillPackLoaded: 'Pack loaded'
   },
 
   ar: {
@@ -390,7 +404,21 @@ export const translations = {
     startNew: '→ بدء مشروع جديد',
     filesCreated: 'ملف تم إنشاؤه',
     generatingFiles: 'جارٍ توليد الملفات...',
-    writingFiles: 'جارٍ الكتابة على القرص...'
+    writingFiles: 'جارٍ الكتابة على القرص...',
+
+    // Skills UI
+    skillSearch: 'ابحث في المهارات...',
+    builtInPacks: 'الحزم المدمجة',
+    allCategories: 'الكل',
+    importSkills: 'استيراد',
+    exportSkills: 'تصدير',
+    priority: 'الأولوية',
+    exampleRequests: 'أمثلة على الطلبات',
+    activatedSkills: 'المهارات المفعّلة',
+    developerPanel: '🛠️ لوحة المطوّر',
+    composedPrompt: 'البرومت المركّب',
+    noSkillsActivated: 'لا توجد مهارات مفعّلة لهذا الطلب',
+    skillPackLoaded: 'تم تحميل الحزمة'
   }
 }
 

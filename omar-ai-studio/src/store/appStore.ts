@@ -6,8 +6,9 @@ import type { Task } from '@/types/task'
 import type { Project, MemoryItem } from '@/types/project'
 import type { PromptPack, LogEntry, PermissionRequest } from '@/types/promptPack'
 import type { Language } from '@/i18n/translations'
-import { DEFAULT_SKILLS } from '@/types/skill'
+import { DEFAULT_SKILLS, ADVANCED_CODING_SKILLS } from '@/types/skill'
 import type { Skill } from '@/types/skill'
+import type { SkillMatchResult } from '@/engine/skillMatcher'
 
 export type SidebarView = 'workspace' | 'memory' | 'packs' | 'agents' | 'settings' | 'coding' | 'skills'
 
@@ -88,6 +89,9 @@ interface AppStore {
   // Skills
   skills: Skill[]
 
+  // Last skill match result
+  lastSkillMatch: SkillMatchResult | null
+
   // Actions
   setCurrentProject: (id: string) => void
   addProject: (project: Project) => void
@@ -129,6 +133,7 @@ interface AppStore {
   updateSkill: (id: string, updates: Partial<Skill>) => void
   addSkill: (skill: Skill) => void
   deleteSkill: (id: string) => void
+  setLastSkillMatch: (result: SkillMatchResult | null) => void
 }
 
 const storedData = (() => {
@@ -187,7 +192,9 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
   codingProjectPath: storedData?.codingProjectPath ?? null,
 
-  skills: storedData?.skills ?? DEFAULT_SKILLS,
+  skills: storedData?.skills ?? [...DEFAULT_SKILLS, ...ADVANCED_CODING_SKILLS],
+
+  lastSkillMatch: null,
 
   // Actions
   setCurrentProject: (id) => {
@@ -311,7 +318,9 @@ export const useAppStore = create<AppStore>((set, get) => ({
   deleteSkill: (id) => {
     set((s) => ({ skills: s.skills.filter((sk) => sk.id !== id) }))
     persist(get())
-  }
+  },
+
+  setLastSkillMatch: (result) => set({ lastSkillMatch: result })
 }))
 
 function persist(state: AppStore): void {
