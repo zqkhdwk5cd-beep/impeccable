@@ -83,3 +83,31 @@ ipcMain.handle('dialog:showOpenDialog', async (_event, options) => {
   const result = await dialog.showOpenDialog(options)
   return result
 })
+
+ipcMain.handle('fs:readDir', async (_event, dirPath: string, maxDepth = 3) => {
+  try {
+    const results: { path: string; name: string; isDir: boolean; size: number; ext: string }[] = []
+    const IGNORED = new Set(['.git', 'node_modules', 'dist', 'build', '.next', '__pycache__', '.cache', 'coverage', '.turbo'])
+
+    function readRecursive(currentPath: string, depth: number): void {
+      if (depth > maxDepth) return
+      let entries: ReturnType<typeof fs.readdirSync>
+      try { entries = fs.readdirSync(currentPath, { withFileTypes: true }) } catch { return }
+      for (const entry of entries) {
+        if (entry.name.startsWith('.') || IGNORED.has(entry.name)) continue
+        const fullPath = join(currentPath, entry.name)
+        const isDir = entry.isDirectory()
+        const ext = isDir ? '' : (entry.name.split('.').pop() || '')
+        let size = 0
+        if (!isDir) { try { size = fs.statSync(fullPath).size } catch {} }
+        results.push({ path: fullPath, name: entry.name, isDir, size, ext })
+        if (isDir) readRecursive(fullPath, depth + 1)
+      }
+    }
+
+    readRecursive(dirPath, 0)
+    return { success: true, data: results }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+})

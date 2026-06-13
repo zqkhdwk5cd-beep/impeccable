@@ -6,7 +6,9 @@ const api = {
     readFile: (filePath: string) => ipcRenderer.invoke('fs:readFile', filePath),
     writeFile: (filePath: string, content: string) =>
       ipcRenderer.invoke('fs:writeFile', filePath, content),
-    getDataDir: () => ipcRenderer.invoke('fs:getDataDir')
+    getDataDir: () => ipcRenderer.invoke('fs:getDataDir'),
+    readDir: (dirPath: string, maxDepth?: number) =>
+      ipcRenderer.invoke('fs:readDir', dirPath, maxDepth)
   },
   dialog: {
     showSaveDialog: (options: Electron.SaveDialogOptions) =>

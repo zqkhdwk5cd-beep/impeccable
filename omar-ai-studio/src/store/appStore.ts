@@ -6,8 +6,10 @@ import type { Task } from '@/types/task'
 import type { Project, MemoryItem } from '@/types/project'
 import type { PromptPack, LogEntry, PermissionRequest } from '@/types/promptPack'
 import type { Language } from '@/i18n/translations'
+import { DEFAULT_SKILLS } from '@/types/skill'
+import type { Skill } from '@/types/skill'
 
-export type SidebarView = 'workspace' | 'memory' | 'packs' | 'agents' | 'settings'
+export type SidebarView = 'workspace' | 'memory' | 'packs' | 'agents' | 'settings' | 'coding' | 'skills'
 
 function buildInitialAgentState(agentId: AgentId): AgentRuntimeState {
   return {
@@ -71,6 +73,12 @@ interface AppStore {
   // Permissions
   permissionRequests: PermissionRequest[]
 
+  // Coding workspace
+  codingProjectPath: string | null
+
+  // Skills
+  skills: Skill[]
+
   // Actions
   setCurrentProject: (id: string) => void
   addProject: (project: Project) => void
@@ -102,6 +110,11 @@ interface AppStore {
 
   addMemoryItem: (item: MemoryItem) => void
   deleteMemoryItem: (id: string) => void
+
+  setCodingProjectPath: (path: string | null) => void
+  updateSkill: (id: string, updates: Partial<Skill>) => void
+  addSkill: (skill: Skill) => void
+  deleteSkill: (id: string) => void
 }
 
 const storedData = (() => {
@@ -152,6 +165,10 @@ export const useAppStore = create<AppStore>((set, get) => ({
   ],
 
   permissionRequests: [],
+
+  codingProjectPath: storedData?.codingProjectPath ?? null,
+
+  skills: storedData?.skills ?? DEFAULT_SKILLS,
 
   // Actions
   setCurrentProject: (id) => {
@@ -249,6 +266,28 @@ export const useAppStore = create<AppStore>((set, get) => ({
   deleteMemoryItem: (id) => {
     set((s) => ({ memoryItems: s.memoryItems.filter((m) => m.id !== id) }))
     persist(get())
+  },
+
+  setCodingProjectPath: (path) => {
+    set({ codingProjectPath: path })
+    persist(get())
+  },
+
+  updateSkill: (id, updates) => {
+    set((s) => ({
+      skills: s.skills.map((sk) => (sk.id === id ? { ...sk, ...updates } : sk))
+    }))
+    persist(get())
+  },
+
+  addSkill: (skill) => {
+    set((s) => ({ skills: [...s.skills, skill] }))
+    persist(get())
+  },
+
+  deleteSkill: (id) => {
+    set((s) => ({ skills: s.skills.filter((sk) => sk.id !== id) }))
+    persist(get())
   }
 }))
 
@@ -261,7 +300,9 @@ function persist(state: AppStore): void {
         currentProjectId: state.currentProjectId,
         promptPacks: state.promptPacks,
         memoryItems: state.memoryItems,
-        language: state.language
+        language: state.language,
+        codingProjectPath: state.codingProjectPath,
+        skills: state.skills
       })
     )
   } catch {
