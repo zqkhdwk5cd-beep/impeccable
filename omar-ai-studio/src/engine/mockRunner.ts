@@ -16,32 +16,40 @@ export async function runMockTask(
 ): Promise<string> {
   const agentId = task.agentId
 
+  const isCoding = agentId === 'coding'
+  const initialStatus = isCoding ? 'analyzing' : 'thinking'
+  const workingStatus = isCoding ? 'planning' : 'working'
+
   eventBus.emit('agent:status', {
     agentId,
-    status: 'thinking',
+    status: initialStatus,
     task: task.title,
     progress: 0,
-    lastAction: 'Analyzing request...'
+    lastAction: isCoding ? 'Reading project structure...' : 'Analyzing request...'
   })
   onProgress(10)
   await delay(randomBetween(800, 1500))
 
   eventBus.emit('agent:status', {
     agentId,
-    status: 'working',
+    status: workingStatus,
     task: task.title,
     progress: 30,
-    lastAction: 'Processing task...'
+    lastAction: isCoding ? 'Creating implementation plan...' : 'Processing task...'
   })
   onProgress(30)
 
   const steps = getMockSteps(task)
+  const codingStatuses = ['analyzing', 'planning', 'editing', 'testing', 'reviewing']
   for (let i = 0; i < steps.length; i++) {
     const step = steps[i]
     const progress = 30 + Math.floor(((i + 1) / steps.length) * 60)
+    const stepStatus = isCoding
+      ? codingStatuses[Math.min(i, codingStatuses.length - 1)]
+      : 'working'
     eventBus.emit('agent:status', {
       agentId,
-      status: 'working',
+      status: stepStatus as any,
       task: task.title,
       progress,
       lastAction: step
@@ -57,8 +65,19 @@ export async function runMockTask(
 
 function getMockSteps(task: Task): string[] {
   const steps: Record<AgentId, string[]> = {
+    coding: [
+      'Reading project file structure...',
+      'Analyzing component relationships...',
+      'Inspecting engine architecture...',
+      'Reviewing state management...',
+      'Creating implementation plan...',
+      'Generating code review report...',
+      'Running architecture analysis...',
+      'Verifying — no files modified...'
+    ],
     chief: [
       'Parsing user request...',
+      'Detecting request type (creative / coding)...',
       'Identifying required agents...',
       'Creating task plan...',
       'Assigning priorities...',
@@ -113,6 +132,7 @@ function getMockSteps(task: Task): string[] {
 
 function getMockOutput(task: Task): string {
   const outputs: Record<AgentId, string> = {
+    coding: CODING_OUTPUT,
     chief: CHIEF_OUTPUT,
     story: STORY_OUTPUT,
     character: CHARACTER_OUTPUT,
@@ -123,6 +143,110 @@ function getMockOutput(task: Task): string {
   }
   return outputs[task.agentId] || 'Task completed successfully.'
 }
+
+const CODING_OUTPUT = `## 💻 Coding Agent Report
+**Task:** Architecture Review — Read-Only Inspection
+**Status:** ✓ Completed (no files modified)
+
+---
+
+### 1. Request Analysis
+- **Type:** Architecture Review
+- **Risk Level:** None (read-only)
+- **Permission Required:** No
+- **Files Modified:** 0
+
+---
+
+### 2. Project Inspection
+
+**32 files scanned across 8 directories**
+
+\`\`\`
+omar-ai-studio/
+├── electron/               # Main process + IPC bridge
+│   ├── main.ts             # Window creation, IPC handlers
+│   └── preload.ts          # Context bridge to renderer
+├── src/
+│   ├── types/              # TypeScript interfaces (4 files)
+│   ├── engine/             # Core orchestration (5 files)
+│   │   ├── eventBus.ts     ✓ Clean typed pub/sub
+│   │   ├── orchestrator.ts ⚠ Task plan partially hardcoded
+│   │   ├── mockRunner.ts   ✓ Realistic agent simulation
+│   │   └── taskQueue.ts    ✓ FIFO with pause/resume
+│   ├── store/              # Zustand + localStorage
+│   ├── tools/              # Coding Agent tool interfaces
+│   ├── skills/coding/      # Skill definitions (4 skills)
+│   ├── components/         # React UI (10 components)
+│   ├── i18n/               # Arabic + English translations
+│   └── styles/             # CSS custom properties
+├── package.json            # electron-builder configured
+└── electron.vite.config.ts # Main + preload + renderer
+\`\`\`
+
+---
+
+### 3. Architecture Strengths
+
+✅ **Clean module boundaries** — engine, store, and UI are properly separated
+✅ **Typed EventBus** — prevents event name typos at compile time
+✅ **Zustand with persistence** — simple, performant, no boilerplate
+✅ **RTL/LTR i18n** — bilingual support correctly implemented
+✅ **Permission manager** — destructive actions require confirmation
+✅ **Mock-first design** — easy to swap in real APIs later
+✅ **CSS custom properties** — consistent design system tokens
+
+---
+
+### 4. Areas for Improvement
+
+**Priority 1 — Dynamic Task Planning**
+\`src/engine/orchestrator.ts\` always creates the same 6 tasks regardless of request.
+→ Let Chief Agent inspect request and decide which agents are actually needed.
+→ Estimated effort: 3 hours
+
+**Priority 2 — Agent as Class**
+Agents are currently pure config objects. Logic lives in \`mockRunner.ts\`.
+→ Create \`src/agents/BaseAgent.ts\` with \`process(task): Promise<string>\`
+→ Each agent becomes a replaceable class — clean plugin architecture
+→ Estimated effort: 4 hours
+
+**Priority 3 — Memory Integration**
+Memory Agent runs but doesn't read context back into the workflow.
+→ Memory Agent should retrieve relevant context before Story/Character agents run
+→ Estimated effort: 2 hours
+
+**Priority 4 — Error Recovery**
+If one task fails, the workflow stops completely.
+→ Add retry logic with exponential backoff (2s → 4s → 8s)
+→ Estimated effort: 1 hour
+
+**Priority 5 — Filesystem Storage**
+Currently using localStorage (5MB limit).
+→ Use Electron IPC + \`app.getPath('userData')\` for proper file storage
+→ The IPC bridge is already set up in \`electron/main.ts\` — just needs to be used
+→ Estimated effort: 2 hours
+
+---
+
+### 5. Next Steps (Recommended Order)
+
+1. \`BaseAgent.ts\` — abstract class for all agents
+2. Dynamic task planning in orchestrator
+3. Connect Memory Agent to workflow context
+4. Add proper filesystem storage via Electron IPC
+5. Wire up first real API (Anthropic Claude recommended — already in \`claude-api\` skill)
+
+---
+
+### 6. Verification
+✓ Read-only inspection completed
+✓ Zero files modified
+✓ Architecture notes saved to memory
+
+---
+
+*Coding Agent completed analysis. Ready for next task.*`
 
 const CHIEF_OUTPUT = `## Task Plan Created
 

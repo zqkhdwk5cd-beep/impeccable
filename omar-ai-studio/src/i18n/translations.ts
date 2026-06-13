@@ -116,7 +116,23 @@ export const translations = {
     images: '🎨 Images',
     video: '🎬 Video',
     notes: '📋 Notes',
-    export: '💾 Export'
+    export: '💾 Export',
+    code: '💻 Code',
+
+    // Coding agent
+    codingSkills: 'Coding Skills',
+    architecture: 'Architecture',
+    debugging: 'Debugging',
+    refactor: 'Refactor',
+    integration: 'Integration',
+    codingAgentStatus: 'Coding Agent',
+    analyzing: 'Analyzing',
+    planning: 'Planning',
+    editing: 'Editing',
+    testing: 'Testing',
+    reviewing: 'Reviewing',
+    codingEmpty: 'Enter a coding request to activate the Coding Agent',
+    codingEmptyHint: 'Try: "راجع معمارية المشروع واقترح تحسينات"'
   },
 
   ar: {
@@ -234,7 +250,23 @@ export const translations = {
     images: '🎨 الصور',
     video: '🎬 الفيديو',
     notes: '📋 الملاحظات',
-    export: '💾 تصدير'
+    export: '💾 تصدير',
+    code: '💻 الكود',
+
+    // Coding agent
+    codingSkills: 'مهارات البرمجة',
+    architecture: 'المعمارية',
+    debugging: 'تصحيح الأخطاء',
+    refactor: 'إعادة الهيكلة',
+    integration: 'التكامل',
+    codingAgentStatus: 'عميل البرمجة',
+    analyzing: 'يحلل',
+    planning: 'يخطط',
+    editing: 'يعدّل',
+    testing: 'يختبر',
+    reviewing: 'يراجع',
+    codingEmpty: 'أدخل طلباً برمجياً لتفعيل عميل البرمجة',
+    codingEmptyHint: 'جرب: "راجع معمارية المشروع واقترح تحسينات"'
   }
 }
 

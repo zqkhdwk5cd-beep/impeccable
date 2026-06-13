@@ -7,6 +7,70 @@ import type { Task } from '@/types/task'
 import type { AgentId } from '@/types/agent'
 import type { PromptPack } from '@/types/promptPack'
 
+// Keywords that route to Coding Agent
+const CODING_KEYWORDS = [
+  // Arabic
+  'راجع', 'صلح', 'اصلح', 'ضيف agent', 'اعمل integration', 'اعمل سكربت',
+  'ابني صفحة', 'حسن المعمارية', 'اعمل test', 'افحص المشروع', 'كود',
+  'برمجة', 'باق', 'مشكلة في', 'integration', 'سكربت', 'معمارية',
+  // English
+  'review code', 'fix bug', 'add agent', 'integrate', 'create script',
+  'build page', 'improve architecture', 'run test', 'inspect project',
+  'refactor', 'debug', 'typescript', 'component', 'implement', 'coding'
+]
+
+function isCodingRequest(request: string): boolean {
+  const lower = request.toLowerCase()
+  return CODING_KEYWORDS.some((kw) => lower.includes(kw.toLowerCase()))
+}
+
+function buildCodingTaskPlan(request: string): Task[] {
+  return [
+    {
+      id: uuidv4(),
+      agentId: 'chief' as AgentId,
+      title: 'Route to Coding Agent',
+      description: 'Detect coding request, route to Coding Agent',
+      status: 'pending',
+      order: 1,
+      output: null,
+      error: null,
+      startedAt: null,
+      completedAt: null,
+      dependencies: [],
+      progress: 0
+    },
+    {
+      id: uuidv4(),
+      agentId: 'coding' as AgentId,
+      title: 'Analyze & Plan',
+      description: 'Inspect project, create implementation plan',
+      status: 'pending',
+      order: 2,
+      output: null,
+      error: null,
+      startedAt: null,
+      completedAt: null,
+      dependencies: [],
+      progress: 0
+    },
+    {
+      id: uuidv4(),
+      agentId: 'memory' as AgentId,
+      title: 'Save Coding Notes',
+      description: 'Store architecture notes and coding decisions',
+      status: 'pending',
+      order: 3,
+      output: null,
+      error: null,
+      startedAt: null,
+      completedAt: null,
+      dependencies: [],
+      progress: 0
+    }
+  ]
+}
+
 function buildTaskPlan(request: string, projectId: string): Task[] {
   const tasks: Task[] = [
     {
@@ -105,7 +169,9 @@ export async function runWorkflow(request: string, projectId: string): Promise<v
   store.setIsPaused(false)
   store.clearTasks()
 
-  const tasks = buildTaskPlan(request, projectId)
+  const tasks = isCodingRequest(request)
+    ? buildCodingTaskPlan(request)
+    : buildTaskPlan(request, projectId)
   tasks.forEach((t) => store.addTask(t))
 
   eventBus.emit('workflow:start', { projectId, request })
@@ -222,6 +288,7 @@ export async function runWorkflow(request: string, projectId: string): Promise<v
     videoPrompts: [],
     researchNotes: outputs['research'] || null,
     notes: outputs['chief'] || null,
+    codingOutput: outputs['coding'] || null,
     tags: ['auto-generated']
   }
 

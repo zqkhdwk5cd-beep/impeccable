@@ -13,13 +13,18 @@ export function AgentCard({ agent, state }: AgentCardProps): React.ReactElement 
   const { t, isAr } = useTranslation()
 
   const STATUS_LABELS: Record<string, string> = {
-    idle:     t.idle,
-    thinking: t.thinking,
-    working:  t.working,
-    waiting:  t.waiting,
-    done:     t.done,
-    error:    t.error,
-    disabled: t.disabled
+    idle:      t.idle,
+    thinking:  t.thinking,
+    working:   t.working,
+    waiting:   t.waiting,
+    done:      t.done,
+    error:     t.error,
+    disabled:  t.disabled,
+    analyzing: t.analyzing,
+    planning:  t.planning,
+    editing:   t.editing,
+    testing:   t.testing,
+    reviewing: t.reviewing
   }
 
   const handleToggle = () => updateAgentConfig(agent.id, { enabled: !agent.enabled })
@@ -66,7 +71,7 @@ export function AgentCard({ agent, state }: AgentCardProps): React.ReactElement 
             <span
               className={`agent-status-badge ${cardStatus}`}
               style={
-                cardStatus === 'working' || cardStatus === 'thinking'
+                ['working', 'thinking', 'analyzing', 'planning', 'editing', 'testing', 'reviewing'].includes(cardStatus)
                   ? { color: agent.color, background: `${agent.color}15`, border: `1px solid ${agent.color}25` }
                   : {}
               }
@@ -113,7 +118,7 @@ export function AgentsPanel(): React.ReactElement {
   const { t } = useTranslation()
 
   const runningCount = agents.filter(
-    (a) => a.enabled && ['thinking', 'working'].includes(agentStates[a.id]?.status)
+    (a) => a.enabled && ['thinking', 'working', 'analyzing', 'planning', 'editing', 'testing', 'reviewing'].includes(agentStates[a.id]?.status)
   ).length
 
   return (

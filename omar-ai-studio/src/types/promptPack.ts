@@ -35,6 +35,7 @@ export interface PromptPack {
   videoPrompts: VideoPrompt[]
   researchNotes: string | null
   notes: string | null
+  codingOutput: string | null
   tags: string[]
 }
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useAppStore } from '@/store/appStore'
 import type { PromptPack } from '@/types/promptPack'
 
-type Tab = 'story' | 'character' | 'images' | 'video' | 'notes' | 'export'
+type Tab = 'story' | 'character' | 'images' | 'video' | 'notes' | 'export' | 'code'
 
 function renderMarkdown(text: string): React.ReactElement {
   const lines = text.split('\n')
@@ -73,16 +73,23 @@ interface OutputPreviewProps {
 }
 
 function PackView({ pack }: OutputPreviewProps): React.ReactElement {
-  const [activeTab, setActiveTab] = useState<Tab>('story')
+  const isCodingPack = !!pack.codingOutput && !pack.storyOutput
+  const [activeTab, setActiveTab] = useState<Tab>(isCodingPack ? 'code' : 'story')
 
-  const tabs: { id: Tab; label: string; available: boolean }[] = [
-    { id: 'story', label: '📖 Story', available: !!pack.storyOutput },
-    { id: 'character', label: '🎭 Character', available: !!pack.characterOutput },
-    { id: 'images', label: '🎨 Images', available: pack.imagePrompts?.length > 0 || !!pack.storyOutput },
-    { id: 'video', label: '🎬 Video', available: pack.videoPrompts?.length > 0 || !!pack.storyOutput },
-    { id: 'notes', label: '📋 Notes', available: true },
-    { id: 'export', label: '💾 Export', available: true }
-  ]
+  const tabs: { id: Tab; label: string; available: boolean }[] = isCodingPack
+    ? [
+        { id: 'code', label: '💻 Code', available: !!pack.codingOutput },
+        { id: 'notes', label: '📋 Notes', available: true },
+        { id: 'export', label: '💾 Export', available: true }
+      ]
+    : [
+        { id: 'story', label: '📖 Story', available: !!pack.storyOutput },
+        { id: 'character', label: '🎭 Character', available: !!pack.characterOutput },
+        { id: 'images', label: '🎨 Images', available: pack.imagePrompts?.length > 0 || !!pack.storyOutput },
+        { id: 'video', label: '🎬 Video', available: pack.videoPrompts?.length > 0 || !!pack.storyOutput },
+        { id: 'notes', label: '📋 Notes', available: true },
+        { id: 'export', label: '💾 Export', available: true }
+      ]
 
   const handleExportMD = () => {
     const md = buildMarkdownExport(pack)
@@ -108,6 +115,20 @@ function PackView({ pack }: OutputPreviewProps): React.ReactElement {
 
   const getContent = () => {
     switch (activeTab) {
+      case 'code':
+        return pack.codingOutput
+          ? (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, padding: '8px 12px', background: 'rgba(67,217,173,0.06)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(67,217,173,0.15)' }}>
+                <span style={{ fontSize: 16 }}>💻</span>
+                <span style={{ fontSize: 11, color: '#43D9AD', fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Coding Agent Report</span>
+                <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--text-muted)' }}>Read-only · No files modified</span>
+              </div>
+              {renderMarkdown(pack.codingOutput)}
+            </div>
+          )
+          : <div className="no-content"><p>No coding output available</p></div>
+
       case 'story':
         return pack.storyOutput
           ? renderMarkdown(pack.storyOutput)

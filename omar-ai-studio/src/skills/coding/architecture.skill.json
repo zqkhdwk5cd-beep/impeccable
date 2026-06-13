@@ -1,0 +1,42 @@
+{
+  "skillName": "Architecture Review",
+  "version": "1.0.0",
+  "description": "Inspect and evaluate the current codebase architecture. Identify patterns, anti-patterns, and improvement opportunities without modifying code.",
+  "triggers": [
+    "review architecture",
+    "راجع المعمارية",
+    "inspect project",
+    "افحص المشروع",
+    "architecture improvement",
+    "تحسين المعمارية",
+    "project structure",
+    "how is the code organized"
+  ],
+  "rules": [
+    "Always read-only — never modify files during architecture review",
+    "Map all major modules and their relationships",
+    "Identify circular dependencies",
+    "Assess separation of concerns",
+    "Evaluate state management approach",
+    "Check for duplicated logic",
+    "Assess testability of each module",
+    "Rate overall maintainability on a scale of 1-10"
+  ],
+  "outputFormat": {
+    "sections": [
+      "Project Map",
+      "Module Analysis",
+      "Strengths",
+      "Concerns",
+      "Priority Improvements",
+      "Estimated Refactor Cost"
+    ],
+    "style": "structured-markdown"
+  },
+  "safetyNotes": [
+    "No file modifications",
+    "No installs",
+    "No shell commands",
+    "Read-only inspection only"
+  ]
+}

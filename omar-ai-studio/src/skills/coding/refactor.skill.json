@@ -1,0 +1,44 @@
+{
+  "skillName": "Code Refactoring",
+  "version": "1.0.0",
+  "description": "Improve code quality, readability, and maintainability without changing external behavior.",
+  "triggers": [
+    "refactor",
+    "clean up code",
+    "improve code",
+    "حسن الكود",
+    "make it cleaner",
+    "reduce duplication",
+    "extract component",
+    "split file",
+    "rename",
+    "reorganize"
+  ],
+  "rules": [
+    "Never change behavior — only structure",
+    "Refactor in small, verifiable steps",
+    "Run tests before and after each step",
+    "Keep git history clean — one refactor per commit",
+    "Do not mix refactoring with feature additions",
+    "Prefer extracting named functions over inline code",
+    "Eliminate magic numbers and strings",
+    "Ensure TypeScript types remain strict after refactor"
+  ],
+  "outputFormat": {
+    "sections": [
+      "Refactor Scope",
+      "Before State",
+      "Proposed Changes",
+      "After State Preview",
+      "Risk Assessment",
+      "Rollback Plan"
+    ],
+    "style": "before-after-diff"
+  },
+  "safetyNotes": [
+    "Always create backup before refactoring",
+    "Require explicit permission for multi-file refactors",
+    "Never rename exports without checking all import sites",
+    "Verify TypeScript compiles after each step"
+  ]
+}

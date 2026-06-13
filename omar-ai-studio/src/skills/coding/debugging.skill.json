@@ -1,0 +1,44 @@
+{
+  "skillName": "Bug Detection & Debugging",
+  "version": "1.0.0",
+  "description": "Systematically locate, analyze, and fix bugs. Produce a root-cause analysis before proposing any fix.",
+  "triggers": [
+    "fix bug",
+    "صلح مشكلة",
+    "debug",
+    "error in",
+    "not working",
+    "مش شغال",
+    "crash",
+    "exception",
+    "undefined",
+    "null reference"
+  ],
+  "rules": [
+    "Reproduce the bug before fixing it",
+    "Identify root cause — not just symptoms",
+    "Check for similar bugs in related code",
+    "Create a backup before any fix",
+    "Apply minimal change to fix the bug",
+    "Add a test case after fixing when possible",
+    "Document the fix with a clear comment explaining WHY",
+    "Verify fix does not introduce regressions"
+  ],
+  "outputFormat": {
+    "sections": [
+      "Bug Report",
+      "Root Cause Analysis",
+      "Proposed Fix",
+      "Risk Assessment",
+      "Verification Plan",
+      "Prevention Notes"
+    ],
+    "style": "structured-markdown"
+  },
+  "safetyNotes": [
+    "Always create backup before editing files",
+    "Require permission before modifying existing files",
+    "Never delete files as a debugging step",
+    "Prefer adding safety checks over removing code"
+  ]
+}

@@ -6,6 +6,7 @@ export type AgentId =
   | 'video'
   | 'research'
   | 'memory'
+  | 'coding'
 
 export type AgentStatus =
   | 'idle'
@@ -15,6 +16,11 @@ export type AgentStatus =
   | 'done'
   | 'error'
   | 'disabled'
+  | 'analyzing'
+  | 'planning'
+  | 'editing'
+  | 'testing'
+  | 'reviewing'
 
 export interface AgentConfig {
   id: AgentId
@@ -53,8 +59,8 @@ export const DEFAULT_AGENTS: AgentConfig[] = [
     icon: '⚡',
     enabled: true,
     order: 1,
-    capabilities: ['orchestration', 'task-planning', 'output-assembly'],
-    instructions: 'You are the Chief Agent. Analyze the user request, break it into specific tasks for each specialized agent, assign tasks in order, track progress, and assemble the final output.'
+    capabilities: ['orchestration', 'task-planning', 'output-assembly', 'routing'],
+    instructions: 'You are the Chief Agent. Analyze the user request, detect whether it is a creative task (story, video, image) or a software engineering task (code, review, debug, build). Route accordingly: creative tasks go to Story/Character/Image/Video agents; coding tasks go to the Coding Agent. Break requests into specific tasks, track progress, and assemble final output.'
   },
   {
     id: 'story',
@@ -106,7 +112,7 @@ export const DEFAULT_AGENTS: AgentConfig[] = [
     enabled: true,
     order: 5,
     capabilities: ['video-prompts', 'camera-movement', 'kling', 'runway', 'veo'],
-    instructions: 'You are the Video Agent. Create detailed video generation prompts including camera movement (pan, tilt, zoom, dolly), duration, lens specification, lighting setup, scene motion, and timing. Compatible with Kling, Runway, Veo, and SuperGrok.'
+    instructions: 'You are the Video Agent. Create detailed video generation prompts including camera movement, duration, lens specification, lighting setup, scene motion, and timing. Compatible with Kling, Runway, Veo, and SuperGrok.'
   },
   {
     id: 'research',
@@ -133,5 +139,45 @@ export const DEFAULT_AGENTS: AgentConfig[] = [
     order: 7,
     capabilities: ['memory-storage', 'memory-retrieval', 'character-bibles', 'style-guides'],
     instructions: 'You are the Memory Agent. Store and retrieve project memory including character bibles, style guides, previous prompt packs, and project context. Ensure consistency across sessions.'
+  },
+  {
+    id: 'coding',
+    name: 'Coding Agent',
+    nameAr: 'عميل البرمجة',
+    description: 'Senior software engineer. Plans, inspects, writes, reviews, and verifies code.',
+    descriptionAr: 'مهندس برمجيات أول. يخطط ويفحص ويكتب ويراجع الكود.',
+    color: '#43D9AD',
+    icon: '💻',
+    enabled: true,
+    order: 8,
+    capabilities: [
+      'code-review', 'bug-detection', 'architecture', 'refactoring',
+      'typescript', 'react', 'electron', 'testing', 'scripting',
+      'integration-planning', 'implementation-plans'
+    ],
+    instructions: `You are Omar AI Studio Coding Agent.
+
+You are a senior software engineer specialized in:
+- TypeScript, React, Electron desktop apps
+- Node.js and local AI integrations
+- Multi-agent architecture and prompt workflow engines
+- ComfyUI / Ollama integration planning
+
+You must never modify code before inspecting the project and creating a plan.
+You must preserve the existing app architecture.
+You must prefer small, reversible changes.
+You must write clean, typed, maintainable code.
+You must keep all actions visible in the logs.
+You must ask for confirmation before destructive or risky actions.
+You must verify changes after implementation.
+
+Execution sequence for every task:
+1. Analyze Request — understand goal, identify affected areas, assess risk
+2. Inspect Project — read relevant files, identify dependencies
+3. Create Plan — list files to modify/create, identify risks
+4. Permission Check — confirm before any destructive action
+5. Execute — create/edit files with typed tools
+6. Verify — run checks, TypeScript, tests if available
+7. Report — summarize changes, list files, suggest next steps`
   }
 ]
