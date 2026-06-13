@@ -132,7 +132,28 @@ export const translations = {
     testing: 'Testing',
     reviewing: 'Reviewing',
     codingEmpty: 'Enter a coding request to activate the Coding Agent',
-    codingEmptyHint: 'Try: "راجع معمارية المشروع واقترح تحسينات"'
+    codingEmptyHint: 'Try: "راجع معمارية المشروع واقترح تحسينات"',
+
+    // Coding workspace
+    codingWorkspace: 'Coding Workspace',
+    selectProject: '📁 Select Project',
+    projectSelected: 'Project selected',
+    noProjectSelected: 'No project selected',
+    fileCount: 'files',
+    codingRequest: 'Enter a coding request...',
+
+    // Skills
+    skillsTitle: 'Skills',
+    skillsDesc: 'Manage Coding Agent skills and behavior rules',
+    addSkill: '+ Add Skill',
+    skillTriggers: 'Triggers',
+    skillRules: 'Rules',
+    skillOutputSections: 'Output Sections',
+    skillSafetyNotes: 'Safety Notes',
+    skillEnabled: 'Enabled',
+    skillDisabled: 'Disabled',
+    resetToDefault: 'Reset',
+    selectProjectFirst: 'Select a project folder first'
   },
 
   ar: {
@@ -266,7 +287,28 @@ export const translations = {
     testing: 'يختبر',
     reviewing: 'يراجع',
     codingEmpty: 'أدخل طلباً برمجياً لتفعيل عميل البرمجة',
-    codingEmptyHint: 'جرب: "راجع معمارية المشروع واقترح تحسينات"'
+    codingEmptyHint: 'جرب: "راجع معمارية المشروع واقترح تحسينات"',
+
+    // Coding workspace
+    codingWorkspace: 'مساحة البرمجة',
+    selectProject: '📁 اختر مشروع',
+    projectSelected: 'مشروع محدد',
+    noProjectSelected: 'لا يوجد مشروع محدد',
+    fileCount: 'ملف',
+    codingRequest: 'أدخل طلباً برمجياً...',
+
+    // Skills
+    skillsTitle: 'المهارات',
+    skillsDesc: 'إدارة مهارات عميل البرمجة وقواعد السلوك',
+    addSkill: '+ إضافة مهارة',
+    skillTriggers: 'محفزات التفعيل',
+    skillRules: 'القواعد',
+    skillOutputSections: 'أقسام الناتج',
+    skillSafetyNotes: 'ملاحظات الأمان',
+    skillEnabled: 'مفعّل',
+    skillDisabled: 'معطّل',
+    resetToDefault: 'إعادة تعيين',
+    selectProjectFirst: 'اختر فولدر مشروع أولاً'
   }
 }
 

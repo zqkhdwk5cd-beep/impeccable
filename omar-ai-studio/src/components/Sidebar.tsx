@@ -23,6 +23,8 @@ export function Sidebar(): React.ReactElement {
     { view: 'memory',    icon: '🧠', label: t.memory },
     { view: 'packs',     icon: '📦', label: t.promptPacks },
     { view: 'agents',    icon: '🤖', label: t.agents },
+    { view: 'coding',    icon: '💻', label: t.codingWorkspace || 'Coding' },
+    { view: 'skills',    icon: '🎯', label: t.skillsTitle || 'Skills' },
     { view: 'settings',  icon: '⚙️', label: t.settings }
   ]
 

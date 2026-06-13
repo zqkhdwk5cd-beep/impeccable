@@ -16,6 +16,8 @@ import { AgentSettings } from './components/AgentSettings'
 import { MemoryView } from './components/MemoryView'
 import { PromptPacksView } from './components/PromptPacksView'
 import { PermissionLayer } from './components/PermissionModal'
+import { CodingWorkspace } from './components/CodingWorkspace'
+import { SkillsView } from './components/SkillsView'
 
 const COMMAND_EXAMPLES_AR = [
   'اعمل حلقة جديدة للأرنب Hopper مدتها 15 ثانية',
@@ -270,6 +272,20 @@ export function App(): React.ReactElement {
         return (
           <div style={{ gridArea: 'workspace', overflow: 'hidden', display: 'flex', flexDirection: 'column' }} dir={isAr ? 'rtl' : 'ltr'}>
             <AgentSettings />
+          </div>
+        )
+
+      case 'coding':
+        return (
+          <div style={{ gridArea: 'workspace', overflow: 'hidden', display: 'flex', flexDirection: 'column' }} dir={isAr ? 'rtl' : 'ltr'}>
+            <CodingWorkspace />
+          </div>
+        )
+
+      case 'skills':
+        return (
+          <div style={{ gridArea: 'workspace', overflow: 'hidden', display: 'flex', flexDirection: 'column' }} dir={isAr ? 'rtl' : 'ltr'}>
+            <SkillsView />
           </div>
         )
 
