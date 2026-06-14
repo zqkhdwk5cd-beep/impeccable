@@ -296,26 +296,62 @@ class ComfyUIService {
     workflow: Record<string, unknown>,
     onStatus: StatusCallback
   ): Promise<GeneratedImage[]> {
-    await this.connectWebSocket()
-
     const promptId = await this.queuePrompt(workflow)
     onStatus({ type: 'queued', position: 0, promptId })
 
+    // Poll history every 2 seconds — avoids WebSocket renderer restrictions
     return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        this.statusCallbacks.delete(promptId)
-        reject(new Error('Generation timed out after 5 minutes'))
-      }, 5 * 60 * 1000)
-
-      this.registerCallback(promptId, (status) => {
-        onStatus(status)
-        if (status.type === 'completed') {
-          clearTimeout(timeout)
-          resolve(status.images)
-        } else if (status.type === 'error') {
-          clearTimeout(timeout)
-          reject(new Error(status.message))
+      let step = 0
+      const maxSteps = 150 // 5 minutes
+      const interval = setInterval(async () => {
+        step++
+        if (step > maxSteps) {
+          clearInterval(interval)
+          reject(new Error('Generation timed out after 5 minutes'))
+          return
         }
+
+        // Simulate progress (ComfyUI doesn't expose step count via history)
+        onStatus({ type: 'progress', value: step, max: maxSteps, promptId })
+
+        try {
+          const history = await this.getHistory(promptId)
+          const item = history[promptId]
+          if (item?.status?.completed) {
+            clearInterval(interval)
+            const images: GeneratedImage[] = []
+            for (const output of Object.values(item.outputs)) {
+              if (output.images) {
+                for (const img of output.images) {
+                  images.push({ ...img, url: this.imageUrl(img) })
+                }
+              }
+            }
+            onStatus({ type: 'completed', promptId, images })
+            resolve(images)
+          } else if (item?.status?.status_str === 'error') {
+            clearInterval(interval)
+            reject(new Error('ComfyUI generation error'))
+          }
+        } catch {
+          // keep polling
+        }
+      }, 2000)
+
+      // Also try WebSocket for real-time progress if available
+      this.connectWebSocket().then(() => {
+        this.registerCallback(promptId, (status) => {
+          onStatus(status)
+          if (status.type === 'completed') {
+            clearInterval(interval)
+            resolve(status.images)
+          } else if (status.type === 'error') {
+            clearInterval(interval)
+            reject(new Error(status.message))
+          }
+        })
+      }).catch(() => {
+        // WebSocket unavailable — polling handles it
       })
     })
   }
