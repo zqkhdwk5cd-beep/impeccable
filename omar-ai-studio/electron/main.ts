@@ -3,6 +3,7 @@ import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import fs from 'fs'
 import os from 'os'
+import http from 'http'
 import { execSync } from 'child_process'
 
 function createWindow(): void {
@@ -54,6 +55,52 @@ app.on('window-all-closed', () => {
 })
 
 // IPC: File system operations
+// ComfyUI proxy — makes HTTP requests from main process (no renderer security restrictions)
+ipcMain.handle('comfyui:get', async (_event, path: string) => {
+  return new Promise<{ ok: boolean; data: unknown; status: number }>((resolve) => {
+    const req = http.get(`http://127.0.0.1:8188${path}`, (res) => {
+      let body = ''
+      res.on('data', (chunk: Buffer) => { body += chunk.toString() })
+      res.on('end', () => {
+        try {
+          resolve({ ok: res.statusCode === 200, status: res.statusCode ?? 0, data: JSON.parse(body) })
+        } catch {
+          resolve({ ok: res.statusCode === 200, status: res.statusCode ?? 0, data: body })
+        }
+      })
+    })
+    req.on('error', () => resolve({ ok: false, status: 0, data: null }))
+    req.setTimeout(5000, () => { req.destroy(); resolve({ ok: false, status: 0, data: null }) })
+  })
+})
+
+ipcMain.handle('comfyui:post', async (_event, path: string, body: string) => {
+  return new Promise<{ ok: boolean; data: unknown; status: number }>((resolve) => {
+    const options = {
+      hostname: '127.0.0.1',
+      port: 8188,
+      path,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
+    }
+    const req = http.request(options, (res) => {
+      let data = ''
+      res.on('data', (chunk: Buffer) => { data += chunk.toString() })
+      res.on('end', () => {
+        try {
+          resolve({ ok: res.statusCode === 200, status: res.statusCode ?? 0, data: JSON.parse(data) })
+        } catch {
+          resolve({ ok: res.statusCode === 200, status: res.statusCode ?? 0, data })
+        }
+      })
+    })
+    req.on('error', () => resolve({ ok: false, status: 0, data: null }))
+    req.setTimeout(5000, () => { req.destroy(); resolve({ ok: false, status: 0, data: null }) })
+    req.write(body)
+    req.end()
+  })
+})
+
 ipcMain.handle('fs:readFile', async (_event, filePath: string) => {
   try {
     const content = fs.readFileSync(filePath, 'utf-8')

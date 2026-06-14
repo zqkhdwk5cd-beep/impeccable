@@ -18,6 +18,10 @@ const api = {
   },
   system: {
     getHardwareInfo: () => ipcRenderer.invoke('system:getHardwareInfo')
+  },
+  comfyui: {
+    get: (path: string) => ipcRenderer.invoke('comfyui:get', path),
+    post: (path: string, body: string) => ipcRenderer.invoke('comfyui:post', path, body)
   }
 }
 

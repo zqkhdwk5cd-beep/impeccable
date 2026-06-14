@@ -32,6 +32,10 @@ declare global {
       system: {
         getHardwareInfo: () => Promise<HardwareInfo>
       }
+      comfyui: {
+        get: (path: string) => Promise<{ ok: boolean; data: unknown; status: number }>
+        post: (path: string, body: string) => Promise<{ ok: boolean; data: unknown; status: number }>
+      }
     }
   }
 }

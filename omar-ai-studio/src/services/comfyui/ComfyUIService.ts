@@ -1,6 +1,3 @@
-// ComfyUI HTTP + WebSocket client for local image generation
-// Connects to http://127.0.0.1:8188 by default
-
 export interface ComfyUIConfig {
   host: string
   port: number
@@ -62,9 +59,30 @@ class ComfyUIService {
     this.config = { ...this.config, ...config }
   }
 
+  // Routes HTTP GET through Electron main process IPC to bypass renderer security
+  private async ipcGet(path: string): Promise<{ ok: boolean; data: unknown }> {
+    if (typeof window !== 'undefined' && window.api?.comfyui?.get) {
+      return window.api.comfyui.get(path)
+    }
+    const res = await fetch(`${this.baseUrl}${path}`)
+    return { ok: res.ok, data: await res.json().catch(() => null) }
+  }
+
+  private async ipcPost(path: string, body: unknown): Promise<{ ok: boolean; data: unknown }> {
+    if (typeof window !== 'undefined' && window.api?.comfyui?.post) {
+      return window.api.comfyui.post(path, JSON.stringify(body))
+    }
+    const res = await fetch(`${this.baseUrl}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+    return { ok: res.ok, data: await res.json().catch(() => null) }
+  }
+
   async checkConnection(): Promise<boolean> {
     try {
-      const res = await fetch(`${this.baseUrl}/system_stats`, { signal: AbortSignal.timeout(3000) })
+      const res = await this.ipcGet('/system_stats')
       this.connected = res.ok
       return res.ok
     } catch {
@@ -74,22 +92,22 @@ class ComfyUIService {
   }
 
   async getSystemStats(): Promise<Record<string, unknown>> {
-    const res = await fetch(`${this.baseUrl}/system_stats`)
-    if (!res.ok) throw new Error(`ComfyUI unreachable: ${res.status}`)
-    return res.json()
+    const res = await this.ipcGet('/system_stats')
+    if (!res.ok) throw new Error('ComfyUI unreachable')
+    return res.data as Record<string, unknown>
   }
 
   async getModels(): Promise<ModelList> {
     const fetchList = async (type: string): Promise<string[]> => {
       try {
-        const res = await fetch(`${this.baseUrl}/object_info/${type}`)
+        const res = await this.ipcGet(`/object_info/${type}`)
         if (!res.ok) return []
-        const data = await res.json()
-        // ComfyUI returns object_info for a node; extract input options
-        const nodeData = data[type]
+        const data = res.data as Record<string, unknown>
+        const nodeData = data[type] as Record<string, unknown> | undefined
         if (!nodeData) return []
-        const inputs = nodeData.input?.required || nodeData.input?.optional || {}
-        for (const [, value] of Object.entries(inputs)) {
+        const inputs = (nodeData.input as Record<string, unknown>)?.required ||
+                       (nodeData.input as Record<string, unknown>)?.optional || {}
+        for (const [, value] of Object.entries(inputs as Record<string, unknown>)) {
           if (Array.isArray(value) && Array.isArray(value[0])) {
             return value[0] as string[]
           }
@@ -114,12 +132,13 @@ class ComfyUIService {
 
   async getCheckpointList(): Promise<string[]> {
     try {
-      const res = await fetch(`${this.baseUrl}/object_info/CheckpointLoaderSimple`)
+      const res = await this.ipcGet('/object_info/CheckpointLoaderSimple')
       if (!res.ok) return []
-      const data = await res.json()
-      const node = data['CheckpointLoaderSimple']
+      const data = res.data as Record<string, unknown>
+      const node = data['CheckpointLoaderSimple'] as Record<string, unknown> | undefined
       if (!node) return []
-      return node.input?.required?.ckpt_name?.[0] || []
+      const input = node.input as Record<string, unknown> | undefined
+      return (input?.required as Record<string, unknown>)?.ckpt_name?.[0] as string[] || []
     } catch {
       return []
     }
@@ -127,52 +146,43 @@ class ComfyUIService {
 
   async getLoraList(): Promise<string[]> {
     try {
-      const res = await fetch(`${this.baseUrl}/object_info/LoraLoader`)
+      const res = await this.ipcGet('/object_info/LoraLoader')
       if (!res.ok) return []
-      const data = await res.json()
-      const node = data['LoraLoader']
+      const data = res.data as Record<string, unknown>
+      const node = data['LoraLoader'] as Record<string, unknown> | undefined
       if (!node) return []
-      return node.input?.required?.lora_name?.[0] || []
+      const input = node.input as Record<string, unknown> | undefined
+      return (input?.required as Record<string, unknown>)?.lora_name?.[0] as string[] || []
     } catch {
       return []
     }
   }
 
   async queuePrompt(workflow: Record<string, unknown>): Promise<string> {
-    const res = await fetch(`${this.baseUrl}/prompt`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: workflow, client_id: this.clientId })
-    })
-    if (!res.ok) {
-      const text = await res.text()
-      throw new Error(`Failed to queue prompt: ${text}`)
-    }
-    const data = await res.json()
-    return data.prompt_id
+    const res = await this.ipcPost('/prompt', { prompt: workflow, client_id: this.clientId })
+    if (!res.ok) throw new Error('Failed to queue prompt')
+    return (res.data as Record<string, unknown>).prompt_id as string
   }
 
   async getHistory(promptId?: string): Promise<Record<string, HistoryItem>> {
-    const url = promptId
-      ? `${this.baseUrl}/history/${promptId}`
-      : `${this.baseUrl}/history`
-    const res = await fetch(url)
+    const path = promptId ? `/history/${promptId}` : '/history'
+    const res = await this.ipcGet(path)
     if (!res.ok) return {}
-    return res.json()
+    return res.data as Record<string, HistoryItem>
   }
 
   async getQueue(): Promise<{ running: QueueItem[]; pending: QueueItem[] }> {
-    const res = await fetch(`${this.baseUrl}/queue`)
+    const res = await this.ipcGet('/queue')
     if (!res.ok) return { running: [], pending: [] }
-    const data = await res.json()
+    const data = res.data as Record<string, unknown>
     return {
-      running: data.queue_running || [],
-      pending: data.queue_pending || []
+      running: (data.queue_running as QueueItem[]) || [],
+      pending: (data.queue_pending as QueueItem[]) || []
     }
   }
 
   async interruptGeneration(): Promise<void> {
-    await fetch(`${this.baseUrl}/interrupt`, { method: 'POST' })
+    await this.ipcPost('/interrupt', {})
   }
 
   imageUrl(image: { filename: string; subfolder: string; type: string }): string {
@@ -253,7 +263,6 @@ class ComfyUIService {
       }
 
       if (type === 'execution_cached') {
-        // cached result — treat as completed
         const promptId: string = data.prompt_id
         const cb = this.statusCallbacks.get(promptId)
         if (cb) {
@@ -287,7 +296,6 @@ class ComfyUIService {
     workflow: Record<string, unknown>,
     onStatus: StatusCallback
   ): Promise<GeneratedImage[]> {
-    // Ensure WS is connected for real-time progress
     await this.connectWebSocket()
 
     const promptId = await this.queuePrompt(workflow)
