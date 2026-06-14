@@ -1,0 +1,48 @@
+{
+  "skillName": "Integration Planning",
+  "version": "1.0.0",
+  "description": "Plan and implement integrations with external services, APIs, and tools. Covers ComfyUI, Ollama, OpenAI, Anthropic, Kling, Runway, and other AI tools.",
+  "triggers": [
+    "integrate",
+    "connect to",
+    "اعمل integration",
+    "وصّل",
+    "add api",
+    "comfyui",
+    "ollama",
+    "openai",
+    "anthropic",
+    "kling",
+    "runway",
+    "add real ai",
+    "live mode"
+  ],
+  "rules": [
+    "Document the target API before writing any code",
+    "Create a typed interface for the external service",
+    "Implement with a mock/fallback first, then real API",
+    "Never hardcode API keys — use environment variables",
+    "Add error handling for all network calls",
+    "Add timeout and retry logic",
+    "Test mock mode still works after adding real integration",
+    "Add the integration behind a feature flag"
+  ],
+  "outputFormat": {
+    "sections": [
+      "Integration Target",
+      "API Documentation Summary",
+      "Typed Interface Design",
+      "Implementation Plan",
+      "Environment Variables Required",
+      "Error Handling Strategy",
+      "Test Plan"
+    ],
+    "style": "structured-markdown"
+  },
+  "safetyNotes": [
+    "Never commit API keys",
+    "Require explicit permission before making real API calls",
+    "Keep mock mode as default until user confirms live mode",
+    "Validate API responses before processing"
+  ]
+}
