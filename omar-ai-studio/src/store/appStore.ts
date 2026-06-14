@@ -167,7 +167,6 @@ interface AppStore {
   updateImageProject: (id: string, updates: Partial<ImageProject>) => void
   deleteImageProject: (id: string) => void
   setActiveImageProjectId: (id: string | null) => void
-  setImageGenView: (view: ImageGenView) => void
 }
 
 const storedData = (() => {
@@ -353,7 +352,6 @@ export const useAppStore = create<AppStore>((set, get) => ({
   setActiveSection: (section) => set({ activeSection: section }),
   setStudioView: (view) => set({ studioView: view }),
   setCodingView: (view) => set({ codingView: view }),
-  setImageGenView: (view) => set({ imageGenView: view }),
 
   addMemoryItem: (item) => {
     set((s) => ({ memoryItems: [...s.memoryItems, item] }))

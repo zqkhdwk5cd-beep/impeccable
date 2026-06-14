@@ -176,7 +176,6 @@ export const translations = {
 
     // Coding Lab views
     reviewProject: 'Review Project',
-    newProject: 'New Project',
     projectHistory: 'History',
 
     // New Project Wizard
@@ -386,7 +385,6 @@ export const translations = {
 
     // Coding Lab views
     reviewProject: 'مراجعة مشروع',
-    newProject: 'مشروع جديد',
     projectHistory: 'السجل',
 
     // New Project Wizard
