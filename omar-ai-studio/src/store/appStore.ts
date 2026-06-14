@@ -9,10 +9,13 @@ import type { Language } from '@/i18n/translations'
 import { DEFAULT_SKILLS, ADVANCED_CODING_SKILLS } from '@/types/skill'
 import type { Skill } from '@/types/skill'
 import type { SkillMatchResult } from '@/engine/skillMatcher'
+import type { GenerationJob, ComfyUIConnectionState } from '@/types/generation'
+import type { FluxGenerationParams, WorkflowPreset } from '@/services/comfyui/WorkflowTemplates'
+import type { ModelType } from '@/types/generation'
 
 export type SidebarView = 'workspace' | 'memory' | 'packs' | 'agents' | 'settings' | 'coding' | 'skills'
 
-export type ActiveSection = 'studio' | 'coding'
+export type ActiveSection = 'studio' | 'coding' | 'image-gen'
 export type StudioView = 'overview' | 'chief' | 'story' | 'character' | 'image' | 'video' | 'research' | 'memory'
 export type CodingView = 'lab' | 'new-project' | 'skills' | 'history'
 
@@ -92,6 +95,14 @@ interface AppStore {
   // Last skill match result
   lastSkillMatch: SkillMatchResult | null
 
+  // Image Generation
+  comfyUIConnection: ComfyUIConnectionState
+  generationJobs: GenerationJob[]
+  activeGenerationId: string | null
+  imageGenParams: FluxGenerationParams
+  selectedModelType: ModelType
+  selectedPreset: WorkflowPreset | null
+
   // Actions
   setCurrentProject: (id: string) => void
   addProject: (project: Project) => void
@@ -134,6 +145,15 @@ interface AppStore {
   addSkill: (skill: Skill) => void
   deleteSkill: (id: string) => void
   setLastSkillMatch: (result: SkillMatchResult | null) => void
+
+  // Image generation actions
+  setComfyUIConnection: (state: Partial<ComfyUIConnectionState>) => void
+  addGenerationJob: (job: GenerationJob) => void
+  updateGenerationJob: (id: string, updates: Partial<GenerationJob>) => void
+  setActiveGenerationId: (id: string | null) => void
+  setImageGenParams: (params: Partial<FluxGenerationParams>) => void
+  setSelectedModelType: (model: ModelType) => void
+  setSelectedPreset: (preset: WorkflowPreset | null) => void
 }
 
 const storedData = (() => {
@@ -195,6 +215,34 @@ export const useAppStore = create<AppStore>((set, get) => ({
   skills: storedData?.skills ?? [...DEFAULT_SKILLS, ...ADVANCED_CODING_SKILLS],
 
   lastSkillMatch: null,
+
+  // Image Generation defaults
+  comfyUIConnection: {
+    status: 'unknown',
+    checkpoints: [],
+    loras: [],
+    vaes: [],
+    embeddings: [],
+    lastChecked: null,
+    error: null
+  },
+  generationJobs: [],
+  activeGenerationId: null,
+  selectedModelType: 'flux-dev',
+  selectedPreset: null,
+  imageGenParams: {
+    checkpoint: 'flux1-dev.safetensors',
+    prompt: '',
+    negativePrompt: '',
+    width: 1024,
+    height: 1024,
+    steps: 28,
+    cfg: 3.5,
+    seed: -1,
+    sampler: 'euler',
+    scheduler: 'simple',
+    batchSize: 1
+  },
 
   // Actions
   setCurrentProject: (id) => {
@@ -320,7 +368,30 @@ export const useAppStore = create<AppStore>((set, get) => ({
     persist(get())
   },
 
-  setLastSkillMatch: (result) => set({ lastSkillMatch: result })
+  setLastSkillMatch: (result) => set({ lastSkillMatch: result }),
+
+  setComfyUIConnection: (updates) => {
+    set((s) => ({ comfyUIConnection: { ...s.comfyUIConnection, ...updates } }))
+  },
+
+  addGenerationJob: (job) => {
+    set((s) => ({ generationJobs: [job, ...s.generationJobs].slice(0, 50) }))
+  },
+
+  updateGenerationJob: (id, updates) => {
+    set((s) => ({
+      generationJobs: s.generationJobs.map((j) => (j.id === id ? { ...j, ...updates } : j))
+    }))
+  },
+
+  setActiveGenerationId: (id) => set({ activeGenerationId: id }),
+
+  setImageGenParams: (params) => {
+    set((s) => ({ imageGenParams: { ...s.imageGenParams, ...params } }))
+  },
+
+  setSelectedModelType: (model) => set({ selectedModelType: model }),
+  setSelectedPreset: (preset) => set({ selectedPreset: preset })
 }))
 
 function persist(state: AppStore): void {

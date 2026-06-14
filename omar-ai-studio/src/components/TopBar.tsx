@@ -42,7 +42,8 @@ export function TopBar(): React.ReactElement {
 
   const SECTIONS: { id: ActiveSection; label: string }[] = [
     { id: 'studio', label: t.studio || '🎬 Studio' },
-    { id: 'coding', label: t.codingLab || '💻 Coding Lab' }
+    { id: 'coding', label: t.codingLab || '💻 Coding Lab' },
+    { id: 'image-gen', label: '✦ Image Lab' }
   ]
 
   return (

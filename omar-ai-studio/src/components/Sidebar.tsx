@@ -57,12 +57,22 @@ export function Sidebar(): React.ReactElement {
     setShowNewProject(false)
   }
 
+  const IMAGE_GEN_NAV = [
+    { view: 'generate', icon: '✦', label: isAr ? 'توليد' : 'Generate' },
+    { view: 'history',  icon: '🖼️', label: isAr ? 'السجل' : 'Gallery' },
+    { view: 'models',   icon: '🧩', label: isAr ? 'النماذج' : 'Models' },
+    { view: 'settings', icon: '⚙️', label: isAr ? 'الإعدادات' : 'Settings' }
+  ]
+
   const isStudio = activeSection === 'studio'
-  const navItems = isStudio ? STUDIO_NAV : CODING_NAV
+  const isImageGen = activeSection === 'image-gen'
+  const navItems = isStudio ? STUDIO_NAV : isImageGen ? IMAGE_GEN_NAV : CODING_NAV
   const activeView = isStudio ? studioView : codingView
   const setView = isStudio
     ? (v: string) => setStudioView(v as StudioView)
-    : (v: string) => setCodingView(v as CodingView)
+    : isImageGen
+      ? () => {}
+      : (v: string) => setCodingView(v as CodingView)
 
   return (
     <div className="sidebar" dir={isAr ? 'rtl' : 'ltr'}>
@@ -84,6 +94,7 @@ export function Sidebar(): React.ReactElement {
       <div className="divider" />
 
       {/* Projects section — only in Studio mode */}
+      {!isStudio && !isImageGen && <div />}
       {isStudio && (
         <>
           <div

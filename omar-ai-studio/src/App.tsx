@@ -23,6 +23,10 @@ import { CodingWorkspace } from './components/CodingWorkspace'
 import { CreateProjectWizard } from './components/coding/CreateProjectWizard'
 import { ProjectHistoryView } from './components/coding/ProjectHistoryView'
 
+// Image Generation
+import { ImageGenWorkspace } from './components/ImageGenWorkspace'
+import { SetupWizard } from './components/SetupWizard'
+
 import type { StudioView } from './store/appStore'
 import type { AgentId } from './types/agent'
 
@@ -126,14 +130,22 @@ function SettingsSection(): React.ReactElement {
 }
 
 export function App(): React.ReactElement {
-  const { activeSection, studioView, codingView, activeView } = useAppStore()
+  const { activeSection, studioView, codingView, activeView, comfyUIConnection } = useAppStore()
   const { isAr } = useTranslation()
+  const [showSetupWizard, setShowSetupWizard] = React.useState(false)
 
   // Apply RTL direction to document root
   useEffect(() => {
     document.documentElement.dir = isAr ? 'rtl' : 'ltr'
     document.documentElement.lang = isAr ? 'ar' : 'en'
   }, [isAr])
+
+  // Show setup wizard when entering image-gen section for the first time
+  useEffect(() => {
+    if (activeSection === 'image-gen' && comfyUIConnection.status === 'unknown') {
+      setShowSetupWizard(true)
+    }
+  }, [activeSection, comfyUIConnection.status])
 
   const { t } = useTranslation()
 
@@ -201,12 +213,15 @@ export function App(): React.ReactElement {
         style={{ gridArea: 'workspace', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
         dir={isAr ? 'rtl' : 'ltr'}
       >
-        {activeSection === 'studio' ? renderStudioWithLegacy() : renderCoding()}
+        {activeSection === 'studio' && renderStudioWithLegacy()}
+        {activeSection === 'coding' && renderCoding()}
+        {activeSection === 'image-gen' && <ImageGenWorkspace />}
       </div>
       {/* AgentsPanel only in Studio section */}
       {activeSection === 'studio' ? <AgentsPanel /> : <div style={{ gridArea: 'agents' }} />}
       <ConsoleLog />
       <PermissionLayer />
+      {showSetupWizard && <SetupWizard onComplete={() => setShowSetupWizard(false)} />}
     </div>
   )
 }
