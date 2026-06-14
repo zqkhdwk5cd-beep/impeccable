@@ -60,8 +60,11 @@ export function Sidebar(): React.ReactElement {
   }
 
   const IMAGE_GEN_NAV: { view: ImageGenView; icon: string; label: string }[] = [
-    { view: 'generate', icon: '✦', label: isAr ? 'توليد' : 'Generate' },
-    { view: 'hardware', icon: '🖥️', label: isAr ? 'الجهاز' : 'Hardware Check' }
+    { view: 'generate',   icon: '✦',  label: isAr ? 'توليد' : 'Generate' },
+    { view: 'workflows',  icon: '📚', label: isAr ? 'المكتبة' : 'Workflows' },
+    { view: 'projects',   icon: '🗂️', label: isAr ? 'المشاريع' : 'Projects' },
+    { view: 'hardware',   icon: '🖥️', label: isAr ? 'الجهاز' : 'Hardware' },
+    { view: 'settings',   icon: '⚙️', label: isAr ? 'الأداء' : 'Performance' }
   ]
 
   const isStudio = activeSection === 'studio'

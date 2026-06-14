@@ -12,13 +12,15 @@ import type { SkillMatchResult } from '@/engine/skillMatcher'
 import type { GenerationJob, ComfyUIConnectionState } from '@/types/generation'
 import type { FluxGenerationParams, WorkflowPreset } from '@/services/comfyui/WorkflowTemplates'
 import type { ModelType } from '@/types/generation'
+import type { ImageProject } from '@/types/imageProject'
+import type { PerformanceMode } from '@/components/PerformanceSettings'
 
 export type SidebarView = 'workspace' | 'memory' | 'packs' | 'agents' | 'settings' | 'coding' | 'skills'
 
 export type ActiveSection = 'studio' | 'coding' | 'image-gen'
 export type StudioView = 'overview' | 'chief' | 'story' | 'character' | 'image' | 'video' | 'research' | 'memory'
 export type CodingView = 'lab' | 'new-project' | 'skills' | 'history'
-export type ImageGenView = 'generate' | 'hardware'
+export type ImageGenView = 'generate' | 'hardware' | 'workflows' | 'projects' | 'settings'
 
 function buildInitialAgentState(agentId: AgentId): AgentRuntimeState {
   return {
@@ -104,6 +106,9 @@ interface AppStore {
   imageGenParams: FluxGenerationParams
   selectedModelType: ModelType
   selectedPreset: WorkflowPreset | null
+  selectedPerformanceMode: PerformanceMode
+  imageProjects: ImageProject[]
+  activeImageProjectId: string | null
 
   // Actions
   setCurrentProject: (id: string) => void
@@ -157,6 +162,12 @@ interface AppStore {
   setImageGenParams: (params: Partial<FluxGenerationParams>) => void
   setSelectedModelType: (model: ModelType) => void
   setSelectedPreset: (preset: WorkflowPreset | null) => void
+  setPerformanceMode: (mode: PerformanceMode) => void
+  addImageProject: (project: ImageProject) => void
+  updateImageProject: (id: string, updates: Partial<ImageProject>) => void
+  deleteImageProject: (id: string) => void
+  setActiveImageProjectId: (id: string | null) => void
+  setImageGenView: (view: ImageGenView) => void
 }
 
 const storedData = (() => {
@@ -234,6 +245,9 @@ export const useAppStore = create<AppStore>((set, get) => ({
   activeGenerationId: null,
   selectedModelType: 'flux-dev',
   selectedPreset: null,
+  selectedPerformanceMode: 'balanced',
+  imageProjects: storedData?.imageProjects ?? [],
+  activeImageProjectId: null,
   imageGenParams: {
     checkpoint: 'flux1-dev.safetensors',
     prompt: '',
@@ -396,7 +410,28 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
 
   setSelectedModelType: (model) => set({ selectedModelType: model }),
-  setSelectedPreset: (preset) => set({ selectedPreset: preset })
+  setSelectedPreset: (preset) => set({ selectedPreset: preset }),
+  setPerformanceMode: (mode) => set({ selectedPerformanceMode: mode }),
+
+  addImageProject: (project) => {
+    set((s) => ({ imageProjects: [...s.imageProjects, project] }))
+    persist(get())
+  },
+  updateImageProject: (id, updates) => {
+    set((s) => ({
+      imageProjects: s.imageProjects.map((p) => (p.id === id ? { ...p, ...updates } : p))
+    }))
+    persist(get())
+  },
+  deleteImageProject: (id) => {
+    set((s) => ({
+      imageProjects: s.imageProjects.filter((p) => p.id !== id),
+      activeImageProjectId: s.activeImageProjectId === id ? null : s.activeImageProjectId
+    }))
+    persist(get())
+  },
+  setActiveImageProjectId: (id) => set({ activeImageProjectId: id }),
+  setImageGenView: (view) => set({ imageGenView: view })
 }))
 
 function persist(state: AppStore): void {
@@ -410,7 +445,8 @@ function persist(state: AppStore): void {
         memoryItems: state.memoryItems,
         language: state.language,
         codingProjectPath: state.codingProjectPath,
-        skills: state.skills
+        skills: state.skills,
+        imageProjects: state.imageProjects
       })
     )
   } catch {

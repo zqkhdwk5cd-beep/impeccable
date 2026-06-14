@@ -27,6 +27,9 @@ import { ProjectHistoryView } from './components/coding/ProjectHistoryView'
 import { ImageGenWorkspace } from './components/ImageGenWorkspace'
 import { HardwareCheck } from './components/HardwareCheck'
 import { SetupWizard } from './components/SetupWizard'
+import { WorkflowLibrary } from './components/WorkflowLibrary'
+import { ImageProjectsView } from './components/ImageProjectsView'
+import { PerformanceSettings } from './components/PerformanceSettings'
 
 import type { StudioView } from './store/appStore'
 import type { AgentId } from './types/agent'
@@ -217,9 +220,24 @@ export function App(): React.ReactElement {
         {activeSection === 'studio' && renderStudioWithLegacy()}
         {activeSection === 'coding' && renderCoding()}
         {activeSection === 'image-gen' && imageGenView === 'generate' && <ImageGenWorkspace />}
+        {activeSection === 'image-gen' && imageGenView === 'workflows' && (
+          <div style={{ overflow: 'auto', height: '100%' }}>
+            <WorkflowLibrary />
+          </div>
+        )}
+        {activeSection === 'image-gen' && imageGenView === 'projects' && (
+          <div style={{ overflow: 'auto', height: '100%' }}>
+            <ImageProjectsView />
+          </div>
+        )}
         {activeSection === 'image-gen' && imageGenView === 'hardware' && (
           <div style={{ overflow: 'auto', height: '100%' }}>
             <HardwareCheck />
+          </div>
+        )}
+        {activeSection === 'image-gen' && imageGenView === 'settings' && (
+          <div style={{ overflow: 'auto', height: '100%' }}>
+            <PerformanceSettings />
           </div>
         )}
       </div>

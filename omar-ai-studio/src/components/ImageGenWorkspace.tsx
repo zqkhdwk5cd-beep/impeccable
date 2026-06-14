@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAppStore } from '@/store/appStore'
 import { comfyUIService } from '@/services/comfyui/ComfyUIService'
 import { outputService } from '@/services/OutputService'
+import { enhancePrompt } from '@/services/PromptEnhancer'
 import { buildWorkflowForModel, WORKFLOW_PRESETS, PRESET_LABELS, SAMPLER_OPTIONS, SCHEDULER_OPTIONS } from '@/services/comfyui/WorkflowTemplates'
 import type { WorkflowPreset } from '@/services/comfyui/WorkflowTemplates'
 import { FLUX_CHECKPOINTS } from '@/types/generation'
@@ -22,12 +23,17 @@ export function ImageGenWorkspace() {
     addGenerationJob,
     updateGenerationJob,
     activeGenerationId,
-    setActiveGenerationId
+    setActiveGenerationId,
+    activeImageProjectId,
+    updateImageProject,
+    imageProjects
   } = useAppStore()
 
   const [advancedOpen, setAdvancedOpen] = useState(false)
   const [checkingConnection, setCheckingConnection] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [enhancing, setEnhancing] = useState(false)
+  const [agentLog, setAgentLog] = useState<{ agent: string; msg: string }[]>([])
 
   const checkConnection = useCallback(async () => {
     setCheckingConnection(true)
@@ -60,6 +66,33 @@ export function ImageGenWorkspace() {
       checkConnection()
     }
   }, [])
+
+  const runEnhancement = async () => {
+    if (!imageGenParams.prompt.trim()) return
+    setEnhancing(true)
+    setAgentLog([])
+
+    // Chief Agent
+    await new Promise<void>((r) => setTimeout(r, 300))
+    const result = enhancePrompt(imageGenParams.prompt, imageGenParams.negativePrompt)
+    setAgentLog([{ agent: 'Chief', msg: result.chiefNotes }])
+
+    // Prompt Agent
+    await new Promise<void>((r) => setTimeout(r, 400))
+    setAgentLog((prev) => [...prev, { agent: 'Prompt', msg: `Enhanced: ${result.changes.join(' · ')}` }])
+
+    setImageGenParams({ prompt: result.enhanced, negativePrompt: result.negativePrompt })
+
+    // Apply suggested preset
+    if (result.suggestedPreset) {
+      const preset = result.suggestedPreset as WorkflowPreset
+      setSelectedPreset(preset)
+      setImageGenParams({ ...WORKFLOW_PRESETS[preset] })
+    }
+
+    setAgentLog((prev) => [...prev, { agent: 'Router', msg: `Preset set to "${result.suggestedPreset}". Ready for Image Agent.` }])
+    setEnhancing(false)
+  }
 
   const applyPreset = (preset: WorkflowPreset) => {
     const presetParams = WORKFLOW_PRESETS[preset]
@@ -134,8 +167,20 @@ export function ImageGenWorkspace() {
 
       if (images.length > 0) {
         setSelectedImage(images[0].url)
-        // Auto-save first image to disk
         outputService.saveGeneratedImage(images[0].url, imageGenParams)
+        // Auto-add to active project
+        if (activeImageProjectId) {
+          const job = generationJobs.find((j) => j.id === jobId)
+          const proj = imageProjects.find((p) => p.id === activeImageProjectId)
+          if (proj && job) {
+            const newIds = job.images.map((i) => i.id)
+            updateImageProject(activeImageProjectId, {
+              imageEntryIds: [...proj.imageEntryIds, ...newIds],
+              coverImageUrl: proj.coverImageUrl || images[0].url,
+              updatedAt: Date.now()
+            })
+          }
+        }
       }
     } catch (err) {
       updateGenerationJob(jobId, {
@@ -221,9 +266,19 @@ export function ImageGenWorkspace() {
             </div>
           </section>
 
-          {/* Prompt */}
+          {/* Prompt + Enhance */}
           <section className="gen-section">
-            <h3 className="gen-section-title">Prompt</h3>
+            <div className="gen-prompt-header">
+              <h3 className="gen-section-title">Prompt</h3>
+              <button
+                className="gen-enhance-btn"
+                onClick={runEnhancement}
+                disabled={enhancing || !imageGenParams.prompt.trim()}
+                title="Chief Agent analyzes and enhances your prompt for Flux"
+              >
+                {enhancing ? '⟳ Enhancing...' : '✦ Enhance'}
+              </button>
+            </div>
             <textarea
               className="gen-textarea"
               placeholder="Describe what you want to generate..."
@@ -231,6 +286,17 @@ export function ImageGenWorkspace() {
               onChange={(e) => setImageGenParams({ prompt: e.target.value })}
               rows={4}
             />
+            {/* Agent pipeline log */}
+            {agentLog.length > 0 && (
+              <div className="gen-agent-log">
+                {agentLog.map((entry, i) => (
+                  <div key={i} className="gen-agent-log-entry">
+                    <span className="gen-agent-log-badge">{entry.agent}</span>
+                    <span className="gen-agent-log-msg">{entry.msg}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
 
           {/* Negative Prompt */}
@@ -499,6 +565,17 @@ export function ImageGenWorkspace() {
               ))}
             </div>
           )}
+
+          {/* Active project badge */}
+          {activeImageProjectId && (() => {
+            const proj = imageProjects.find((p) => p.id === activeImageProjectId)
+            return proj ? (
+              <div className="gen-active-project">
+                <span className="gen-active-project-dot" />
+                <span>Saving to: <strong>{proj.name}</strong></span>
+              </div>
+            ) : null
+          })()}
 
           {/* Job History */}
           {generationJobs.length > 0 && (
