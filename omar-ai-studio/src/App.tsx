@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import './styles/globals.css'
 
 import { useAppStore } from './store/appStore'
@@ -30,6 +30,8 @@ import { SetupWizard } from './components/SetupWizard'
 import { WorkflowLibrary } from './components/WorkflowLibrary'
 import { ImageProjectsView } from './components/ImageProjectsView'
 import { PerformanceSettings } from './components/PerformanceSettings'
+
+import { comfyUIService } from './services/comfyui/ComfyUIService'
 
 import type { StudioView } from './store/appStore'
 import type { AgentId } from './types/agent'
@@ -134,9 +136,10 @@ function SettingsSection(): React.ReactElement {
 }
 
 export function App(): React.ReactElement {
-  const { activeSection, studioView, codingView, imageGenView, activeView, comfyUIConnection } = useAppStore()
+  const { activeSection, studioView, codingView, imageGenView, activeView, comfyUIConnection, setComfyUIConnection } = useAppStore()
   const { isAr } = useTranslation()
   const [showSetupWizard, setShowSetupWizard] = React.useState(false)
+  const autoCheckDone = useRef(false)
 
   // Apply RTL direction to document root
   useEffect(() => {
@@ -144,10 +147,29 @@ export function App(): React.ReactElement {
     document.documentElement.lang = isAr ? 'ar' : 'en'
   }, [isAr])
 
-  // Show setup wizard when entering image-gen section for the first time
+  // Auto-connect to ComfyUI on startup
+  useEffect(() => {
+    if (autoCheckDone.current) return
+    autoCheckDone.current = true
+    const autoConnect = async () => {
+      const ok = await comfyUIService.checkConnection()
+      if (ok) {
+        const [checkpoints, loras] = await Promise.all([
+          comfyUIService.getCheckpointList(),
+          comfyUIService.getLoraList()
+        ])
+        setComfyUIConnection({ status: 'connected', checkpoints, loras, lastChecked: Date.now(), error: null })
+      }
+    }
+    autoConnect()
+  }, [setComfyUIConnection])
+
+  // Show setup wizard when entering image-gen and still not connected
   useEffect(() => {
     if (activeSection === 'image-gen' && comfyUIConnection.status === 'unknown') {
       setShowSetupWizard(true)
+    } else if (comfyUIConnection.status === 'connected') {
+      setShowSetupWizard(false)
     }
   }, [activeSection, comfyUIConnection.status])
 
