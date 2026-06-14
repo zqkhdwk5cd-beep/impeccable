@@ -18,6 +18,7 @@ export type SidebarView = 'workspace' | 'memory' | 'packs' | 'agents' | 'setting
 export type ActiveSection = 'studio' | 'coding' | 'image-gen'
 export type StudioView = 'overview' | 'chief' | 'story' | 'character' | 'image' | 'video' | 'research' | 'memory'
 export type CodingView = 'lab' | 'new-project' | 'skills' | 'history'
+export type ImageGenView = 'generate' | 'hardware'
 
 function buildInitialAgentState(agentId: AgentId): AgentRuntimeState {
   return {
@@ -79,6 +80,7 @@ interface AppStore {
   activeSection: ActiveSection
   studioView: StudioView
   codingView: CodingView
+  imageGenView: ImageGenView
 
   // Memory
   memoryItems: MemoryItem[]
@@ -136,6 +138,7 @@ interface AppStore {
   setActiveSection: (section: ActiveSection) => void
   setStudioView: (view: StudioView) => void
   setCodingView: (view: CodingView) => void
+  setImageGenView: (view: ImageGenView) => void
 
   addMemoryItem: (item: MemoryItem) => void
   deleteMemoryItem: (id: string) => void
@@ -194,6 +197,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   activeSection: 'studio',
   studioView: 'overview',
   codingView: 'lab',
+  imageGenView: 'generate',
 
   memoryItems: storedData?.memoryItems ?? [
     {
@@ -335,6 +339,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   setActiveSection: (section) => set({ activeSection: section }),
   setStudioView: (view) => set({ studioView: view }),
   setCodingView: (view) => set({ codingView: view }),
+  setImageGenView: (view) => set({ imageGenView: view }),
 
   addMemoryItem: (item) => {
     set((s) => ({ memoryItems: [...s.memoryItems, item] }))

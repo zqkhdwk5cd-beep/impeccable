@@ -15,6 +15,9 @@ const api = {
       ipcRenderer.invoke('dialog:showSaveDialog', options),
     showOpenDialog: (options: Electron.OpenDialogOptions) =>
       ipcRenderer.invoke('dialog:showOpenDialog', options)
+  },
+  system: {
+    getHardwareInfo: () => ipcRenderer.invoke('system:getHardwareInfo')
   }
 }
 

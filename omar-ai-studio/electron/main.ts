@@ -2,6 +2,8 @@ import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import fs from 'fs'
+import os from 'os'
+import { execSync } from 'child_process'
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -82,6 +84,39 @@ ipcMain.handle('dialog:showSaveDialog', async (_event, options) => {
 ipcMain.handle('dialog:showOpenDialog', async (_event, options) => {
   const result = await dialog.showOpenDialog(options)
   return result
+})
+
+ipcMain.handle('system:getHardwareInfo', async () => {
+  const cpus = os.cpus()
+  const totalMemBytes = os.totalmem()
+  const freeMemBytes = os.freemem()
+
+  let cpuBrand = cpus[0]?.model || 'Unknown CPU'
+  let appleSiliconModel: string | null = null
+
+  if (process.platform === 'darwin') {
+    try {
+      cpuBrand = execSync('sysctl -n machdep.cpu.brand_string', { timeout: 2000 })
+        .toString().trim()
+      // Apple Silicon — brand string is just "Apple M2 Pro" etc.
+      const appleMatch = cpuBrand.match(/Apple\s+(M\d+(?:\s+(?:Pro|Max|Ultra|Base))?)/i)
+      if (appleMatch) {
+        appleSiliconModel = appleMatch[0]  // e.g. "Apple M2 Pro"
+      }
+    } catch {
+      // Intel Mac or sysctl not available
+    }
+  }
+
+  return {
+    cpuBrand,
+    cpuCores: cpus.length,
+    totalMemBytes,
+    freeMemBytes,
+    appleSiliconModel,
+    platform: process.platform,
+    arch: process.arch
+  }
 })
 
 ipcMain.handle('fs:readDir', async (_event, dirPath: string, maxDepth = 3) => {

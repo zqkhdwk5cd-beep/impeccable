@@ -6,6 +6,16 @@ export interface FileEntry {
   ext: string
 }
 
+export interface HardwareInfo {
+  cpuBrand: string
+  cpuCores: number
+  totalMemBytes: number
+  freeMemBytes: number
+  appleSiliconModel: string | null
+  platform: string
+  arch: string
+}
+
 declare global {
   interface Window {
     api: {
@@ -18,6 +28,9 @@ declare global {
       dialog: {
         showSaveDialog: (options: unknown) => Promise<{ canceled: boolean; filePath?: string }>
         showOpenDialog: (options: unknown) => Promise<{ canceled: boolean; filePaths?: string[] }>
+      }
+      system: {
+        getHardwareInfo: () => Promise<HardwareInfo>
       }
     }
   }

@@ -1601,3 +1601,200 @@ html, body {
 .setup-help ol { padding-left: 16px; display: flex; flex-direction: column; gap: 7px; }
 .setup-help li { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
 .setup-help code { font-family: var(--font-mono); color: #7C6FF7; background: rgba(124,111,247,0.1); padding: 1px 5px; border-radius: 3px; }
+
+/* ============================================================
+   HARDWARE CHECK
+   ============================================================ */
+
+.hw-check {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 28px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.hw-check--loading,
+.hw-check--error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  height: 100%;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.hw-check--error { color: #FF6B6B; }
+
+.hw-header { display: flex; flex-direction: column; gap: 4px; }
+.hw-title { font-size: 22px; font-weight: 700; color: var(--text-primary); }
+.hw-subtitle { font-size: 13px; color: var(--text-muted); }
+
+/* Info Grid */
+.hw-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.hw-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hw-card--wide { grid-column: span 2; }
+.hw-card--apple { border-color: rgba(85,239,196,0.2); background: rgba(85,239,196,0.04); }
+.hw-card--intel { border-color: rgba(255,107,107,0.15); }
+
+.hw-card-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.hw-card-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+.hw-card-value--green  { color: #55EFC4; }
+.hw-card-value--purple { color: #BD93F9; }
+.hw-card-value--warn   { color: #FFB347; }
+.hw-card-value--muted  { color: var(--text-muted); font-size: 14px; }
+
+.hw-card-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+/* RAM Bar */
+.hw-ram-bar-wrap { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.hw-ram-bar {
+  flex: 1;
+  height: 4px;
+  background: var(--border-subtle);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.hw-ram-bar-used {
+  height: 100%;
+  background: linear-gradient(90deg, var(--text-accent), #55EFC4);
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+.hw-ram-pct { font-size: 10px; font-family: var(--font-mono); color: var(--text-muted); }
+
+/* Tier Badge */
+.hw-tier-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+.hw-tier-badge--entry { background: rgba(255,179,71,0.12); color: #FFB347; border: 1px solid rgba(255,179,71,0.2); }
+.hw-tier-badge--mid   { background: rgba(124,111,247,0.12); color: #7C6FF7; border: 1px solid rgba(124,111,247,0.2); }
+.hw-tier-badge--pro   { background: rgba(116,185,255,0.12); color: #74B9FF; border: 1px solid rgba(116,185,255,0.2); }
+.hw-tier-badge--max   { background: rgba(85,239,196,0.12);  color: #55EFC4; border: 1px solid rgba(85,239,196,0.2); }
+.hw-tier-badge--ultra { background: rgba(189,147,249,0.12); color: #BD93F9; border: 1px solid rgba(189,147,249,0.2); }
+
+/* Section */
+.hw-section { display: flex; flex-direction: column; gap: 12px; }
+.hw-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Compatibility Cards */
+.hw-compat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.hw-compat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hw-compat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.hw-compat-model { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.hw-compat-verdict { font-size: 12px; font-weight: 600; }
+
+.hw-compat-reason { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+.hw-compat-time {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+.hw-time-label { font-size: 11px; color: var(--text-muted); }
+.hw-time-value { font-size: 13px; font-weight: 700; color: var(--text-accent); font-family: var(--font-mono); }
+
+/* Recommendation Banner */
+.hw-recommendation {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px;
+  background: rgba(124,111,247,0.06);
+  border: 1px solid rgba(124,111,247,0.2);
+  border-radius: var(--radius-lg);
+}
+.hw-rec-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+.hw-rec-content { display: flex; flex-direction: column; gap: 4px; }
+.hw-rec-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-accent); }
+.hw-rec-text { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+
+/* Times Table */
+.hw-times-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.hw-times-table th {
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.hw-times-table td {
+  padding: 9px 12px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.hw-times-table tr:last-child td { border-bottom: none; }
+.hw-times-table tr:hover td { background: var(--bg-card); }
+.hw-times-table--divider td { border-top: 2px solid var(--border-medium); }
+.hw-time-cell { font-family: var(--font-mono); color: var(--text-accent); font-weight: 600; }
+
+.hw-times-note {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-top: 4px;
+}

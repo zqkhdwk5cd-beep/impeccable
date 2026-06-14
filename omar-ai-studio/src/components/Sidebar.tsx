@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useAppStore } from '@/store/appStore'
-import type { StudioView, CodingView } from '@/store/appStore'
+import type { StudioView, CodingView, ImageGenView } from '@/store/appStore'
 import { useTranslation } from '@/i18n/useTranslation'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -11,6 +11,8 @@ export function Sidebar(): React.ReactElement {
     setStudioView,
     codingView,
     setCodingView,
+    imageGenView,
+    setImageGenView,
     projects,
     currentProjectId,
     setCurrentProject,
@@ -57,21 +59,19 @@ export function Sidebar(): React.ReactElement {
     setShowNewProject(false)
   }
 
-  const IMAGE_GEN_NAV = [
+  const IMAGE_GEN_NAV: { view: ImageGenView; icon: string; label: string }[] = [
     { view: 'generate', icon: '✦', label: isAr ? 'توليد' : 'Generate' },
-    { view: 'history',  icon: '🖼️', label: isAr ? 'السجل' : 'Gallery' },
-    { view: 'models',   icon: '🧩', label: isAr ? 'النماذج' : 'Models' },
-    { view: 'settings', icon: '⚙️', label: isAr ? 'الإعدادات' : 'Settings' }
+    { view: 'hardware', icon: '🖥️', label: isAr ? 'الجهاز' : 'Hardware Check' }
   ]
 
   const isStudio = activeSection === 'studio'
   const isImageGen = activeSection === 'image-gen'
   const navItems = isStudio ? STUDIO_NAV : isImageGen ? IMAGE_GEN_NAV : CODING_NAV
-  const activeView = isStudio ? studioView : codingView
+  const activeView = isStudio ? studioView : isImageGen ? imageGenView : codingView
   const setView = isStudio
     ? (v: string) => setStudioView(v as StudioView)
     : isImageGen
-      ? () => {}
+      ? (v: string) => setImageGenView(v as ImageGenView)
       : (v: string) => setCodingView(v as CodingView)
 
   return (

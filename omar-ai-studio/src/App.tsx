@@ -25,6 +25,7 @@ import { ProjectHistoryView } from './components/coding/ProjectHistoryView'
 
 // Image Generation
 import { ImageGenWorkspace } from './components/ImageGenWorkspace'
+import { HardwareCheck } from './components/HardwareCheck'
 import { SetupWizard } from './components/SetupWizard'
 
 import type { StudioView } from './store/appStore'
@@ -130,7 +131,7 @@ function SettingsSection(): React.ReactElement {
 }
 
 export function App(): React.ReactElement {
-  const { activeSection, studioView, codingView, activeView, comfyUIConnection } = useAppStore()
+  const { activeSection, studioView, codingView, imageGenView, activeView, comfyUIConnection } = useAppStore()
   const { isAr } = useTranslation()
   const [showSetupWizard, setShowSetupWizard] = React.useState(false)
 
@@ -215,7 +216,12 @@ export function App(): React.ReactElement {
       >
         {activeSection === 'studio' && renderStudioWithLegacy()}
         {activeSection === 'coding' && renderCoding()}
-        {activeSection === 'image-gen' && <ImageGenWorkspace />}
+        {activeSection === 'image-gen' && imageGenView === 'generate' && <ImageGenWorkspace />}
+        {activeSection === 'image-gen' && imageGenView === 'hardware' && (
+          <div style={{ overflow: 'auto', height: '100%' }}>
+            <HardwareCheck />
+          </div>
+        )}
       </div>
       {/* AgentsPanel only in Studio section */}
       {activeSection === 'studio' ? <AgentsPanel /> : <div style={{ gridArea: 'agents' }} />}
